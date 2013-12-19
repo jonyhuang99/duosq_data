@@ -1,7 +1,7 @@
 <?php
 namespace DAL;
 /**
- * DAL:用户数据访问
+ * DAL:用户数据访问层
  */
 class User extends _Dal {
 
@@ -9,8 +9,10 @@ class User extends _Dal {
 
 		if(!$userid || !$field || $field == '*')return;
 
-        return clearTableName($this->db('user')->find(array('userid'=>$userid), $field));
+		return clearTableName($this->db('user')->find(array('userid'=>$userid), $field));
 	}
+
+
 
 }
 

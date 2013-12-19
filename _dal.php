@@ -38,14 +38,25 @@ class _Dal extends \Object {
 
 	}
 
-	//返回apc操作对象
-	function apc($name){
+	//返回xcache操作对象
+	function xcache($name){
 
 	}
 
 	//返回api操作对象(第三方API操作对象)
 	function api($name){
 
+	}
+
+	//返回session操作对象
+	function sess(){
+
+		static $_loaded = null;
+		if(!$_loaded){
+			require '_session.php';
+			$_loaded = new \Session\_Session;
+		}
+		return $_loaded;
 	}
 }
 
