@@ -1,15 +1,13 @@
 <?php
-namespace Session;
-/**
- * DAL:SESSION访问层，lazy原则，只用当引用到变量时才会初始化
- */
-class _Session extends \Object {
+//DAL:SESSION访问层，lazy原则，只用当引用到变量时才会初始化
 
-	static $sess = array();
+namespace SESSION;
+
+class _Session extends \Object {
 
 	function init() {
 
-		if(!self::$sess){
+		if(!isset($_SESSION)){
 
 			switch(CAKE_SECURITY) {
 				case 'high':
@@ -17,11 +15,11 @@ class _Session extends \Object {
 				//ini_set('session.referer_check', $this->host);
 				break;
 				case 'medium':
-				$cookieLifeTime = 7 * 86400;
+				$cookieLifeTime = WEEK;
 				break;
 				case 'low':
 				default:
-				$cookieLifeTime = 365 * 86400;
+				$cookieLifeTime = YEAR;
 				break;
 			}
 
@@ -35,28 +33,57 @@ class _Session extends \Object {
 			ini_set('session.cookie_domain', CAKE_SESSION_DOMAIN);
 			ini_set('session.gc_probability', 0);
 			ini_set('session.auto_start', 0);
-
+			ini_set('session.cookie_httponly', 1);
 			session_start();
-			self::$sess = $_SESSION;
 		}
 	}
 
 	function __get($key){
 
-		if(!self::$sess){
+		if(!isset($_SESSION)){
 			$this->init();
 		}
-
-		return self::$sess[$key];
+		$trueKey = $this->__sessionVarNames($key);
+		return eval("return @{$trueKey};");
 	}
 
 	function __set($key, $value){
 
-		if(!self::$sess){
+		if(!isset($_SESSION)){
+			$this->init();
+		}
+		$trueKey = $this->__sessionVarNames($key);
+
+		eval("@{$trueKey} = \$value;");
+	}
+
+	function __sessionVarNames($key) {
+
+		if (is_string($key)) {
+			if (strpos($key, ".")) {
+				$keys = explode(".", $key);
+			} else {
+				$keys = array($key);
+			}
+			$expression = '$_SESSION';
+			foreach($keys as $item) {
+				$expression .= is_numeric($item) ? "[$item]" : "['$item']";
+			}
+			return $expression;
+		}
+		return false;
+	}
+
+	function close(){
+
+		if(!isset($_SESSION)){
 			$this->init();
 		}
 
-		self::$sess[$key] = $value;
+		$_SESSION = array();
+		session_destroy();
+
+		setcookie(CAKE_SESSION_COOKIE, '', time()-42000, '/');
 	}
 
 }

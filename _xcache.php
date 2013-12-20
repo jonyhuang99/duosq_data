@@ -1,36 +1,46 @@
 <?php
+//DAL:xcache本地缓存层
 
-class AppModel extends Model {
+namespace XCACHE;
 
-	function off() {
-		$this->belongsTo = array();
-		$this->hasMany = array();
-		$this->hasOne = array();
+class _Xcache extends \Object {
+
+	function get($key){
+		return xcache_get($key);
 	}
 
-	//支持数组方式进行批量更新
-	function updateStatus($ids, $status, $reason=null) {
-
-		if(!$ids)return;
-
-		if(is_array($ids)){
-			foreach($ids as $id){
-				if(!$id)continue;
-				if($reason!==null)
-					$this->save(array($this->primaryKey=>$id, 'status'=>$status, 'reason'=>$reason));
-				else
-					$this->save(array($this->primaryKey=>$id, 'status'=>$status));
-			}
-		}else{
-			if($status == $this->field('status', array($this->primaryKey=>$ids))) return;
-			if($reason!==null)
-				$this->save(array($this->primaryKey=>$ids, 'status'=>$status, 'reason'=>$reason));
-			else
-				$this->save(array($this->primaryKey=>$ids, 'status'=>$status));
-		}
-		return true;
+	function set($key, $value, $ttl=3600){
+		xcache_set($key, $value, $ttl);
 	}
 
+	function isset($key){
+		return xcache_isset($key);
+	}
+
+	function unset($key){
+		xcache_unset($key);
+	}
+
+	function unset_prefix($key_prefix){
+		xcache_unset_by_prefix($key_prefix)
+	}
+
+	function inc($key, $step=1, $ttl=3600){
+		return xcache_inc($key, $step, $ttl);
+	}
+
+	function dec($key, $step=1, $ttl=3600){
+		return xcache_dec($key, $step, $ttl);
+	}
+
+	function lock($key){
+		$fp = fopen("/tmp/{$key}.lock", "w");
+		return flock($fp, LOCK_EX);
+	}
+
+	function unlock(){
+		flock($fp, LOCK_UN);
+	}
 }
 
 ?>

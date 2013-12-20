@@ -1,7 +1,9 @@
 <?php
+//DAL:数据库访问层
+
 namespace DB;
 
-class _DB extends Model {
+class _Db extends \Model {
 
 	var $useDbConfig = 'default'; //可以指定不同数据库连接
 	var $useTable = null; //指定表名
