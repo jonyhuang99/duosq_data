@@ -4,6 +4,12 @@ namespace API;
 
 class Fanli extends _Api {
 
+	/**
+	 * 调用返利网passport接口
+	 * @param string $api    具体接口路径
+	 * @param $array $params 传入接口参数
+	 * @param string $secret 签名秘钥
+	 */
 	function ApiFanliPassport($api, $params, $secret = '9f93eab2452f8dba5c7b9dd49dd85888') {
 
 		$tmp = array();

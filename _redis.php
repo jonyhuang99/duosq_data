@@ -1,28 +1,115 @@
 <?php
 //DAL:Redis访问层
+//redis方法请保持驼峰的命名规则，key值一律用小写&下划线
+//必须指定namespace命名空间
+//默认DSN为被动缓存，即有可能丢失数据，如果数据不能缺失，请指定dsn_type='database'
+//注意：缓存模式的redis使用时，必须指定expire时间
 
 namespace REDIS;
 
 class _Redis extends \Object {
 
+	static $connected = array();
+
+	protected $namespace; //当前模块key命名空间，***必填***，public以便创建空类赋值
+
+	/**
+	 * 重要纪要: 命令如果执行超时短于阻塞时间:
+	 * 底层将抛出异常read error on connection，第二次调用，redis.so将不会发送任何命令，此时应重连
+	 */
+
+	//一般无需重载，当重载了exec_timeout，一旦连接单例已经存在，则当前exec_timeout不会有效
+	protected $exec_timeout = 5;
+	protected $dsn_type = 'cache'; //数据源类型(cache:不做dump数据操作，database:做AOF实时备份)
 	protected $redis;
 
 	/**
-     * 析构方法，初始化redis
-     */
-    public function __construct() {
-    	static $connected;
+	 * 析构方法，初始化redis
+	 */
+	function __construct() {
 
-    	if(!$connected){
+		$this->init();
+	}
 
-    		list($host, $port) = explode(':', C('REDIS_SESSION'));
-	        $obj = new Redis();
-	        $obj->connect($host, $port, 2);
-	        $connected = $obj;
-    	}
+	//初始化redis连接
+	protected function init(){
 
-    	$this->redis = $connected;
-    }
+		$this->setDsn($this->dsn_type);
+
+		if(!@self::$connected[$this->dsn]){
+
+			list($host, $port, $db) = explode(':', $this->dsn);
+			$obj = new \Redis();
+			//当重载了exec_timeout，但连接单例已经存在，则exec_timeout不会有效
+			$obj->connect($host, $port, $this->exec_timeout);
+			if($db)$obj->select($db); //切换到指定数据库
+			self::$connected[$this->dsn] = $obj;
+		}
+	}
+
+	//重新恢复连接，此处一般用于script
+	function reconnect(){
+
+		list($host, $port, $db) = explode(':', $this->dsn);
+		$this->close();
+		$obj = new \Redis();
+		$obj->connect($host, $port, $this->exec_timeout);
+		if($db)$obj->select($db); //切换到指定数据库
+		self::$connected[$this->dsn] = $obj;
+	}
+
+	//切换redis连接类型，返回redis模块对象
+	function switchDsn($dsn_type){
+
+		$this->setDsn($dsn_type);
+
+		if(!@self::$connected[$this->dsn]){
+
+			list($host, $port, $db) = explode(':', $this->dsn);
+			$obj = new \Redis();
+
+			$obj->connect($host, $port, $this->exec_timeout);
+			if($db)$obj->select($db); //切换到指定数据库
+			self::$connected[$this->dsn] = $obj;
+		}
+
+		return $this;
+	}
+
+	//根据使用类型设置DSN连接
+	protected function setDsn($dsn_type){
+
+		//TODO 未来此处可以根据namespace来路由不同的redis
+
+		if($dsn_type == 'database'){
+			$this->dsn = REDIS_DATABASE;
+		}elseif($dsn_type == 'cache'){
+			$this->dsn = REDIS_CACHE;
+		}else{
+			echo 'redis dsn must be "database" or "cache"';
+			die();
+		}
+	}
+
+	//重载select方法，防止强制加入命名空间
+	function select($db){
+		$this->redis()->select($db);
+	}
+
+
+	//主动切断连接
+	function close(){
+		$obj = $this->redis();
+		if($obj){
+			$obj->close();
+			unset(self::$connected[$this->dsn]);
+		}
+	}
+
+	//获取当前的redis操作对象
+	protected function redis(){
+		return self::$connected[$this->dsn];
+	}
 
 	/**
 	 * 安全的预先更新锁
@@ -33,7 +120,7 @@ class _Redis extends \Object {
 	 * @param float $aheadRate 在{ttl<有效期*rate}时锁定并更新
 	 * @return boolean
 	 */
-	public function aheadUpdateLock($key, $expires, $lockExpires = 60, $aheadRate = 0.1) {
+	function aheadUpdateLock($key, $expires, $lockExpires = 60, $aheadRate = 0.1) {
 		$lockKey = "other:ahead_update_lock:$key";
 		if ($this->ttl($key) < $expires * $aheadRate && !$this->get($lockKey)) {
 			$this->set($lockKey, 1, $lockExpires);
@@ -50,7 +137,7 @@ class _Redis extends \Object {
 	 * @param string $prefix
 	 * @return :conds_md5(conds) or ''
 	 */
-	public function getCacheKeyConds($conds, $keys, $prefix = ':conds_') {
+	function getCacheKeyConds($conds, $keys, $prefix = ':conds_') {
 		$mask = array_fill_keys($keys, null);
 		$conds = array_intersect_key($conds, $mask);
 
@@ -74,8 +161,8 @@ class _Redis extends \Object {
 	 * @param string $key
 	 * @return mixed
 	 */
-	public function getJson($key) {
-		return json_decode($this->redis->get($key), true);
+	function getJson($key) {
+		return json_decode($this->redis()->get($key), true);
 	}
 
 	/**
@@ -88,46 +175,64 @@ class _Redis extends \Object {
 	 * @param int $exp
 	 * @return boolean
 	 */
-	public function setJson($key, $val, $exp = null) {
+	function setJson($key, $val, $exp = null) {
 		if (is_null($exp)) {
-			$ret = $this->redis->set($key, json_encode($val));
+			$ret = $this->redis()->set($key, json_encode($val));
 		}
 		else {
-			$ret = $this->redis->setex($key, $exp, json_encode($val));
+			$ret = $this->redis()->setex($key, $exp, json_encode($val));
 		}
 		return $ret;
 	}
 
-    /**
-     * 重载lRange方法，默认$offset为0，将第二个参数改写为limit属性，默认为10
-     * @param string 键值
-     * @param int 起始偏移量
-     * @param int 条数
-     * @return array 数组
-     */
-    public function lRange($key, $offset, $limit) {
-        $offset = (0 >= $offset) ? 0 : $offset;
-        $limit = (0 >= $limit) ? 10 : ($offset + $limit - 1);
-        return $this->redis->lRange($key, $offset, $limit);
-    }
+	/**
+	 * 重载lrange方法，默认$offset为0，将第二个参数改写为limit属性，默认为10
+	 * @param string 键值
+	 * @param int 起始偏移量
+	 * @param int 条数
+	 * @return array 数组
+	 */
+	function lrange($key, $offset, $limit) {
+		$offset = (0 >= $offset) ? 0 : $offset;
+		$limit = (0 >= $limit) ? 10 : ($offset + $limit - 1);
+		return $this->redis()->lRange($key, $offset, $limit);
+	}
 
-    /**
-     * 重载zRevRange方法，默认$offset为0，将第二个参数改写为limit属性，默认为10
-     * @param string 键值
-     * @param int 起始偏移量
-     * @param int 条数
-     * @return array 数组
-     */
-    public function zRange($key, $offset, $limit) {
-        $offset = (0 >= $offset) ? 0 : $offset;
-        $limit = (0 >= $limit) ? 10 : ($offset + $limit - 1);
-        return $this->redis->zRevRange($key, $offset, $limit);
-    }
+	/**
+	 * 重载zRevRange方法，默认$offset为0，将第二个参数改写为limit属性，默认为10
+	 * @param string 键值
+	 * @param int 起始偏移量
+	 * @param int 条数
+	 * @return array 数组
+	 */
+	function zrange($key, $offset, $limit) {
+		$offset = (0 >= $offset) ? 0 : $offset;
+		$limit = (0 >= $limit) ? 10 : ($offset + $limit - 1);
+		return $this->redis()->zRevRange($key, $offset, $limit);
+	}
 
-    //将操作方法重定向到redis对象
-    public function __call($method, $arg_array) {
-        return call_user_func_array(array($this->redis, $method), $arg_array);
-    }
+	//重载brpoplpush，第二参数加上namespace
+	function brpoplpush($source, $dst, $timeout=0){
+		return $this->redis()->brpoplpush($this->namespace.':'.$source, $this->namespace.':'.$dst, $timeout);
+	}
+
+	//将操作方法重定向到redis对象
+	function __call($method, $arg_array=null) {
+
+		if($arg_array){
+			//对key的访问只允许继承类，而D()->redis()形式返回的对象，需要赋值namespace
+			if(!$this->namespace){
+				echo 'redis namespace miss';
+				die();
+			}
+			//此处为了提升性能，没判断命令类型，强制加入命名空间，如果有冲突的命令，请用重载的方式避免
+			$arg_array[0] = $this->namespace . ':' . $arg_array[0];
+		}
+
+		$ret = call_user_func_array(array($this->redis(), $method), $arg_array);
+
+		return $ret;
+	}
 
 }
 
