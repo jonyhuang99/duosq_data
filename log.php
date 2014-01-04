@@ -36,6 +36,7 @@ class Log extends _Dal {
 		$data['referer'] = env('HTTP_REFERER');
 		$data['request'] = json_encode($_REQUEST);
 		$data['utmo'] = @$_COOKIE['__utmo'];
+		$data['client'] = getBrowser();
 
 		$this->db('log_action')->create();
 		return $this->db('log_action')->save(arrayClean($data));

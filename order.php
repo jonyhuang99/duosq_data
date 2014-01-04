@@ -152,6 +152,7 @@ class Order extends _Dal {
 	 * @param bigint $user_id  用户ID
 	 * @param int    $gifttype 新人礼包类型，常量定义见开篇
 	 * @param int    $amount   红包价值金额单位分，仅当类型为新人抽奖/新人任务时有效，且不能超过100
+	 * return array            o_id, amount
 	 */
 	function addCashgift($user_id, $gifttype, $amount=0){
 
@@ -187,6 +188,11 @@ class Order extends _Dal {
 
 		//TODO 不允许重复增加新人礼包
 		$ret = $this->add($user_id, $status, 'cashgift', $cashtype, self::N_ADD, $amount, array('gifttype'=>$gifttype));
+		if($ret){
+			$ret_true = array();
+			$ret_true['amount'] = $amount;
+			$ret_true['o_id'] = $ret;
+		}
 		return $ret;
 	}
 
