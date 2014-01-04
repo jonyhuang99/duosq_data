@@ -17,7 +17,7 @@ class Myuser extends _Dal {
 		}
 
 		if(!valide($alipay, 'email') && !valide($alipay, 'mobile')){
-			$err = '格式错误，请核对账号!';
+			$err = '支付宝账号格式错误，请核对!';
 			return;
 		}
 
