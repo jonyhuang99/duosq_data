@@ -81,9 +81,8 @@ class Pay extends _Dal {
 
 		}else{
 			//标识扣款订单为打款不成功
-			if(!$this->db('order_reduce')->update($o_id, \DAL\Order::REDUCE_STATUS_PAY_ERROR, $errcode)){
+			if($this->db('order_reduce')->update($o_id, \DAL\Order::REDUCE_STATUS_PAY_ERROR, $errcode)){
 
-				$errcode = _e('jfb_api_err');
 				D('log')->pay($o_id, 0, $errcode, $alipay, \DAL\Fund::CASHTYPE_JFB, $amount, $api_name);
 				return false;
 

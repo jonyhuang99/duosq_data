@@ -24,7 +24,7 @@ class Duoduo extends _Api {
 		$p['mobile'] = $o_id;
 		$p['version'] = 2;
 		$p['openname'] = 'duosq.com';
-		$p['checksum'] = md5(C('keys', 'duoduo_pay')).'xxx';
+		$p['checksum'] = md5(C('keys', 'duoduo_pay'));
 		$p['format'] = 'json';
 		$p['client_url'] = 'dd.duosq.com';
 		$url = 'http://issue.duoduo123.com/api/' . '?' . http_build_query($p);
@@ -43,23 +43,23 @@ class Duoduo extends _Api {
 			$ret = 0;
 
 			if (strpos($api_ret['r'], '此单提现已发放') !== false) {
-				$errcode = E('jfb_trade_repeat');
+				$errcode = _e('jfb_trade_repeat');
 			} elseif (strpos($api_ret['r'], '没有找到用户') !== false) {
-				$errcode = E('jfb_account_nofound');
+				$errcode = _e('jfb_account_nofound');
 			} elseif (strpos($api_ret['r'], '支付宝一日内第3次提现') !== false) {
-				$errcode = E('jfb_duoduo_limit_3times_pre_day');
+				$errcode = _e('jfb_duoduo_limit_3times_pre_day');
 			} else {
-				$errcode = E('jfb_unknow');
+				$errcode = _e('jfb_unknow');
 			}
 
 		} elseif ($api_ret['s'] == 0 && strpos($api_ret['r'], '校验码') !== false){
 
 			$ret = 0;
-			$errcode = E('jfb_apikey_invalide');
+			$errcode = _e('jfb_apikey_invalide');
 
 		} else {
 			$ret = 0;
-			$errcode = E('jfb_unknow');
+			$errcode = _e('jfb_unknow');
 		}
 
 		if($ret){
@@ -70,7 +70,7 @@ class Duoduo extends _Api {
 			$action_status = 0;
 		}
 
-		D('log')->action($action_code, 1, array('operator'=>2, 'status'=>$action_status, 'data1'=>$o_id, 'data2'=>$alipay, 'data3'=>$num, 'data4'=>serialize($api_ret)));
+		D('log')->action($action_code, 1, array('operator'=>2, 'status'=>$action_status, 'data1'=>$o_id, 'data2'=>$alipay, 'data3'=>$num, 'data4'=>serialize($api_ret), 'data5'=>$action_code));
 
 		return $ret;
 	}
