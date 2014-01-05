@@ -22,8 +22,12 @@ class User extends _Db {
 	}
 
 	//更新用户数据
-	function update($user_id, $info){
+	function update($user_id, $data=array()){
 
+		if(!$user_id)return;
+		$data['id'] = $user_id;
+		$ret = parent::save(arrayClean($data));
+		return $ret;
 	}
 
 	//置空save，只允许从add/update进入

@@ -39,7 +39,7 @@ class Duoduo extends _Api {
 		if ($api_ret['s'] == 1) {
 			$ret = 1;
 
-		} elseif ($api_ret['s'] == 2) {
+		} elseif ($api_ret['s'] == 2 || $api_ret['s'] == 0) {
 			$ret = 0;
 
 			if (strpos($api_ret['r'], '此单提现已发放') !== false) {
@@ -48,14 +48,11 @@ class Duoduo extends _Api {
 				$errcode = _e('jfb_account_nofound');
 			} elseif (strpos($api_ret['r'], '支付宝一日内第3次提现') !== false) {
 				$errcode = _e('jfb_duoduo_limit_3times_pre_day');
+			} elseif (strpos($api_ret['r'], '校验码') !== false) {
+				$errcode = _e('jfb_apikey_invalide');
 			} else {
 				$errcode = _e('jfb_unknow');
 			}
-
-		} elseif ($api_ret['s'] == 0 && strpos($api_ret['r'], '校验码') !== false){
-
-			$ret = 0;
-			$errcode = _e('jfb_apikey_invalide');
 
 		} else {
 			$ret = 0;

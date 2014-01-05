@@ -142,11 +142,13 @@ class Myuser extends _Dal {
 	 * 增加去过的商城次数
 	 */
 	function addSp($sp){
+
 		if(!$this->isLogined())return;
+
 		$count = intval($this->sess('userinfo.sp.'.$sp));
 		$count++;
 		$this->sess('userinfo.sp.'.$sp, $count);
-		$this->db('user')->save(array('id'=>$this->getId(), 'sp'=>serialize($this->getSp())));
+		$this->db('user')->update($this->getId(), array('sp'=>serialize($this->getSp())));
 		return $count;
 	}
 }
