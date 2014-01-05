@@ -12,12 +12,12 @@ class Myuser extends _Dal {
 	function saveAlipay($alipay, &$err){
 
 		if(!$alipay){
-			$err = '支付宝不能为空!';
+			$err = '支付宝账号不能为空!';
 			return;
 		}
 
 		if(!valide($alipay, 'email') && !valide($alipay, 'mobile')){
-			$err = '支付宝账号格式错误，请核对!';
+			$err = '支付宝错误，是手机号或邮箱才对哟!';
 			return;
 		}
 
