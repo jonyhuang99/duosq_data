@@ -23,9 +23,9 @@ class Log extends _Dal {
 
 		if(!@$data['user_id']){
 			if(@$_REQUEST['user_id']){
-				$data['user_id'] = $_REQUEST['user_id'];
+				$data['operator_id'] = $_REQUEST['user_id'];
 			}else if($uid = D('myuser')->getId()){
-				$data['user_id'] = $uid;
+				$data['operator_id'] = $uid;
 			}
 		}
 
