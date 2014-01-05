@@ -33,6 +33,7 @@ class Log extends _Dal {
 		$data['status'] = $status;
 		$data['ip'] = getIp();
 		$data['ip_c'] = getIpByLevel('c');
+		$data['area'] = getAreaByIp();
 		$data['referer'] = env('HTTP_REFERER');
 		$data['request'] = json_encode($_REQUEST);
 		$data['utmo'] = @$_COOKIE['__utmo'];
