@@ -30,6 +30,7 @@ class _Dal extends \Object {
 			if ($must_exist) return false;
 			self::$_loaded[$m_key] = new \Model(false, $m);
 			self::$_loaded[$m_key]->name = $obj_name;
+			self::$_loaded[$m_key]->className = $obj_name;
 		}
 		return self::$_loaded[$m_key];
 	}
