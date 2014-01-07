@@ -51,7 +51,7 @@ class Pay extends _Dal {
 		$amount = $order_detail['amount'];
 
 		//标识扣款订单为正在打款
-		$ret = $this->db('order_reduce')->update($o_id, \DAL\Order::REDUCE_STATUS_PAYING);
+		$ret = D('order')->updateSub($o_id, 'reduce', array('status'=>\DB\OrderReduce::STATUS_PAYING));
 
 		if(!$ret){
 			$errcode = _e('jfb_reduce_order_lock_err');
@@ -66,32 +66,16 @@ class Pay extends _Dal {
 		//支付成功
 		if($ret){
 			//标识扣款订单为已打款
-			if($this->db('order_reduce')->update($o_id, \DAL\Order::REDUCE_STATUS_PAY_DONE)){
-
-				$ret = array('amount'=>$amount, 'o_id'=>$o_id, 'alipay'=>$alipay, 'api_name'=>$api_name);
-				D('log')->pay($o_id, 1, 0, $alipay, \DAL\Fund::CASHTYPE_JFB, $amount, $api_name);
-				return $ret;
-
-			}else{
-
-				$errcode = _e('jfb_payed_succ_order_reduce_update_err');
-				D('log')->pay($o_id, 0, $errcode, $alipay, \DAL\Fund::CASHTYPE_JFB, $amount, $api_name);
-				return false;
-			}
+			D('order')->updateSub($o_id, 'reduce', array('status'=>\DB\OrderReduce::STATUS_PAY_DONE));
+			$ret = array('amount'=>$amount, 'o_id'=>$o_id, 'alipay'=>$alipay, 'api_name'=>$api_name);
+			D('log')->pay($o_id, 1, 0, $alipay, \DAL\Fund::CASHTYPE_JFB, $amount, $api_name);
+			return $ret;
 
 		}else{
 			//标识扣款订单为打款不成功
-			if($this->db('order_reduce')->update($o_id, \DAL\Order::REDUCE_STATUS_PAY_ERROR, $errcode)){
-
-				D('log')->pay($o_id, 0, $errcode, $alipay, \DAL\Fund::CASHTYPE_JFB, $amount, $api_name);
-				return false;
-
-			}else{
-
-				$errcode = _e('jfb_payed_err_order_reduce_update_err');
-				D('log')->pay($o_id, 0, $errcode, $alipay, \DAL\Fund::CASHTYPE_JFB, $amount, $api_name);
-				return false;
-			}
+			D('order')->updateSub($o_id, 'reduce', array('status'=>\DB\OrderReduce::STATUS_PAY_ERROR));
+			D('log')->pay($o_id, 0, $errcode, $alipay, \DAL\Fund::CASHTYPE_JFB, $amount, $api_name);
+			return false;
 		}
 
 		return false;

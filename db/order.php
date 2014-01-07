@@ -22,7 +22,7 @@ class Order extends _Db {
 	function add($o_id, $user_id, $status, $sub, $cashtype, $n, $amount, $is_show=1){
 
 		if(!$o_id || !$user_id || !$sub || !$cashtype || !$n || !$amount){
-			throw new \Exception("[order][add][param error]");
+			throw new \Exception("[order:{$o_id}][add][param error]");
 		}
 
 		$this->create();
@@ -38,7 +38,7 @@ class Order extends _Db {
 		$ret = parent::save($data);
 
 		if(!$ret){
-			throw new \Exception("[order][add][save error]");
+			throw new \Exception("[order:{$o_id}][add][save error]");
 		}
 		return $ret;
 	}
@@ -55,9 +55,9 @@ class Order extends _Db {
 
 		$ret = $this->save(arrayClean($data));
 		if(!$ret){
-			throw new \Exception("[order][update][save error]");
+			throw new \Exception("[order:{$o_id}][update][save error]");
 		}
-		return;
+		return $ret;
 	}
 
 	//置空save，只允许从add/update进入

@@ -15,25 +15,6 @@ class Order extends _Dal {
 	const N_ADD = 1; //增加资产
 	const N_REDUCE = -1; //减少资产
 
-	const CASHGIFT_GIFTTYPE_LUCK = 1; //红包订单：新人抽奖送集分宝
-	const CASHGIFT_GIFTTYPE_TASK = 2; //红包订单：新人任务送集分宝
-	const CASHGIFT_GIFTTYPE_COND_10 = 5; //红包订单：条件现金红包10元
-	const CASHGIFT_GIFTTYPE_COND_20 = 6; //红包订单：条件现金红包20元
-	const CASHGIFT_GIFTTYPE_COND_50 = 8; //红包订单：条件现金红包50元
-	const CASHGIFT_GIFTTYPE_COND_100 = 9; //红包订单：条件现金红包100元
-
-	const CASHGIFT_STATUS_WAIT_ACTIVE = 0; //红包订单：状态_待激活
-	const CASHGIFT_STATUS_PASS = 1; //红包订单：状态_通过
-	const CASHGIFT_STATUS_INVALIDE = 10; //红包订单：状态_无效
-
-	//资产扣除订单常量
-	const REDUCE_TYPE_SYSPAY = 1; //系统提现
-	const REDUCE_STATUS_WAIT_CONFIRM = 0; //等待确认
-	const REDUCE_STATUS_PASS = 1; //已到账[网站]
-	const REDUCE_STATUS_PAYING = 2; //正在支付中
-	const REDUCE_STATUS_PAY_DONE = 3; //已打款
-	const REDUCE_STATUS_PAY_ERROR = 4; //打款失败
-
 	/**
 	 * 获取用户订单列表(主订单数据)
 	 * @param  bigint  $user_id   用户ID
@@ -44,7 +25,7 @@ class Order extends _Dal {
 	 * @param  integer $maxPages  最大页数
 	 * return  array              订单数据
 	 */
-	function get($user_id, $pn, $status='', $sub='', $show = 20, $maxPages = 10) {
+	function getList($user_id, $pn, $status='', $sub='', $show = 20, $maxPages = 10) {
 
 		if(!$user_id)return;
 		$condition['user_id'] = $user_id;
@@ -68,7 +49,7 @@ class Order extends _Dal {
 		return $result;
 	}
 
-	//获取单独订单详情
+	//获取单独主订单详情
 	function detail($o_id){
 		if(!$o_id)return;
 		$ret = $this->db('order')->find(array('o_id'=>$o_id));
@@ -83,7 +64,7 @@ class Order extends _Dal {
 	 * @param  array   $extra     子订单额外筛选项
 	 * @return array              订单列表
 	 */
-	function getSub($user_id, $sub, $status='', $extra=array()){
+	function getSubList($user_id, $sub, $status='', $extra=array()){
 
 		if(!$user_id || !$sub)return;
 		$extra['status'] = $status;
@@ -116,35 +97,60 @@ class Order extends _Dal {
 		}
 
 		$this->db()->begin();
+
 		try{
 
 			$o_id = $this->redis('order')->createId();
+			$sub_table = 'order_'.$sub;
 			$this->db('order')->add($o_id, $user_id, $status, $sub, $cashtype, $n, $amount, $is_show);
-			$this->db('order_'.$sub)->add($o_id, $user_id, $sub_data);
-
-			//确认状态的订单，增加会员资产
-			if($status == self::STATUS_PASS){
-
-				$fund_id = $this->db('fund')->add($o_id, $user_id, $cashtype, $n, $amount);
-				$this->db('order')->update($o_id, $fund_id);
-				//TODO，根据子订单类型引用不同的STATUS_PASS常量
-				$this->db('order_'.$sub)->update($o_id, self::STATUS_PASS);
-
-			}
+			$this->db($sub_table)->add($o_id, $user_id, $sub_data);
 
 		//订单、资产相关DB操作遇到错误均会抛异常，直接捕获，model db对象注销时自动rollback
 		}catch(\Exception $e){
-			writeLog('exception', 'dal_order', $e->getMessage());
+			writeLog('exception', 'dal_order_add', $e->getMessage());
+			$this->db()->rollback();
+			return false;
+		}
+
+		//初始化主订单为确认状态，则触发更新子订单为确认状态，激活首次后续动作
+		if($status == self::STATUS_PASS){
+			$class = $this->_table2class('order_'.$sub);
+			$this->updateSub($o_id, $sub, array('status'=>$class::STATUS_PASS));
+		}
+
+
+		$this->db()->commit();
+
+
+		return $o_id;
+	}
+
+	/**
+	 * 更新子订单信息
+	 * @param  char   $o_id      主订单编号
+	 * @param  string $sub       子订单标识
+	 * @param  array  $new_field 新的字段信息
+	 * @return bool              更新结果
+	 */
+	function updateSub($o_id, $sub, $new_field){
+
+		if(!$o_id || !$sub || !$new_field){
+			return;
+		}
+
+		$this->db()->begin();
+
+		try{
+			$this->db('order_'.$sub)->update($o_id, $new_field);
+
+		}catch(\Exception $e){
+			writeLog('exception', 'dal_order_update_sub', $e->getMessage());
 			$this->db()->rollback();
 			return false;
 		}
 
 		$this->db()->commit();
-		//标记自动打款
-		if($status == self::STATUS_PASS)
-			$this->redis('queue')->addAutopayJob($cashtype, D('myuser')->getId());
-
-		return $o_id;
+		return true;
 	}
 
 	/**
@@ -158,29 +164,30 @@ class Order extends _Dal {
 
 		if($amount>100)return; //保护金额
 
-		if(array_search($gifttype, array(self::CASHGIFT_GIFTTYPE_LUCK, self::CASHGIFT_GIFTTYPE_TASK, self::CASHGIFT_GIFTTYPE_COND_10, self::CASHGIFT_GIFTTYPE_COND_20, self::CASHGIFT_GIFTTYPE_COND_50, self::CASHGIFT_GIFTTYPE_COND_100))===false)return; //保护类型
+		D()->db('order_cashgift');
+		if(array_search($gifttype, array(\DB\OrderCashgift::GIFTTYPE_LUCK, \DB\OrderCashgift::GIFTTYPE_TASK, \DB\OrderCashgift::GIFTTYPE_COND_10, \DB\OrderCashgift::GIFTTYPE_COND_20, \DB\OrderCashgift::GIFTTYPE_COND_50, \DB\OrderCashgift::GIFTTYPE_COND_100))===false)return; //保护类型
 
 		$status = self::STATUS_WAIT_CONFIRM;
 
 		switch ($gifttype) {
-			case self::CASHGIFT_GIFTTYPE_COND_10:
+			case \DB\OrderCashgift::GIFTTYPE_COND_10:
 				$amount = 1000;
 				$cashtype = self::CASHTYPE_CASH;
 				break;
-			case self::CASHGIFT_GIFTTYPE_COND_20:
+			case \DB\OrderCashgift::GIFTTYPE_COND_20:
 				$amount = 2000;
 				$cashtype = self::CASHTYPE_CASH;
 				break;
-			case self::CASHGIFT_GIFTTYPE_COND_50:
+			case \DB\OrderCashgift::GIFTTYPE_COND_50:
 				$amount = 5000;
 				$cashtype = self::CASHTYPE_CASH;
 				break;
-			case self::CASHGIFT_GIFTTYPE_COND_100:
+			case \DB\OrderCashgift::GIFTTYPE_COND_100:
 				$amount = 10000;
 				$cashtype = self::CASHTYPE_CASH;
 				break;
-			case self::CASHGIFT_GIFTTYPE_LUCK:
-			case self::CASHGIFT_GIFTTYPE_TASK:
+			case \DB\OrderCashgift::GIFTTYPE_LUCK:
+			case \DB\OrderCashgift::GIFTTYPE_TASK:
 				$cashtype = self::CASHTYPE_JFB;
 				$status = self::STATUS_PASS;
 				break;

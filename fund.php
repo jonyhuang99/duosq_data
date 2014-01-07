@@ -70,8 +70,8 @@ class Fund extends _Dal {
 			return false;
 		}
 
-		//function add($user_id, $status, $sub, $cashtype, $n, $amount, $sub_data, $is_show=1){
-		$ret = D('order')->add($user_id, \DAL\Order::STATUS_PASS, 'reduce', $cashtype, \DAL\Order::N_REDUCE, $amount, array('type'=>\DAL\Order::REDUCE_TYPE_SYSPAY));
+		D()->db('order_reduce');
+		$ret = D('order')->add($user_id, \DAL\Order::STATUS_PASS, 'reduce', $cashtype, \DAL\Order::N_REDUCE, $amount, array('type'=>\DB\OrderReduce::TYPE_SYSPAY));
 
 		$this->unlock($user_id);
 

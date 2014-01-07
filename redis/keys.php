@@ -7,7 +7,12 @@ class Keys extends _Redis {
 
 	var $namespace = 'keys';
 
-	//多多集分宝打款key，12小时过期
+	/**
+	 * 多多集分宝打款key，12小时过期，value为空表示获取数据
+	 * @param  string  $new_value 新的key值
+	 * @param  integer $expire    过期时间
+	 * @return [type]             array()
+	 */
 	function duoduo($new_value='',$expire=43200){
 
 		if($new_value){
@@ -15,7 +20,11 @@ class Keys extends _Redis {
 		}else{
 			$value = $this->get('duoduo:jfb');
 			$ttl = $this->ttl('duoduo:jfb');
-			return array('value'=>$value, 'ttl'=>$ttl);
+			if(!$value){
+				return array('value'=>'');
+			}else{
+				return array('value'=>$value, 'ttl'=>$ttl);
+			}
 		}
 	}
 }

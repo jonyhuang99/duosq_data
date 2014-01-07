@@ -24,16 +24,20 @@ class Duoduo extends _Api {
 		$p['mobile'] = $o_id;
 		$p['version'] = 2;
 		$p['openname'] = 'duosq.com';
-		$p['checksum'] = md5($this->redis('keys')->duoduo());
+
+		$key = D()->redis('keys')->duoduo();
+		$p['checksum'] = md5($key['value']);
 		$p['format'] = 'json';
 		$p['client_url'] = 'dd.duosq.com';
 		$url = 'http://issue.duoduo123.com/api/' . '?' . http_build_query($p);
 
 		if(MY_DEBUG_PAY_SUCC==true){
 			$api_ret = array('s'=>1);
-		}else{
+		}else if($p['checksum']){
 			$json = file_get_contents($url);
 			$api_ret = json_decode($json, true);
+		}else{
+			$api_ret = array('s'=>0, 'r'=>'校验码');
 		}
 
 		if ($api_ret['s'] == 1) {
@@ -51,12 +55,12 @@ class Duoduo extends _Api {
 			} elseif (strpos($api_ret['r'], '校验码') !== false) {
 				$errcode = _e('jfb_apikey_invalide');
 			} else {
-				$errcode = _e('jfb_unknow');
+				$errcode = _e('jfb_api_err');
 			}
 
 		} else {
 			$ret = 0;
-			$errcode = _e('jfb_unknow');
+			$errcode = _e('jfb_api_err');
 		}
 
 		if($ret){

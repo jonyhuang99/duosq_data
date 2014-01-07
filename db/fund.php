@@ -31,8 +31,11 @@ class Fund extends _Db {
 		$ret = parent::save($data);
 
 		if(!$ret){
-			throw new \Exception("[fund][add][save error]");
+			throw new \Exception("[fund][o_id{$o_id}][add][save error]");
 		}
+
+		//联动主订单fund_id更新
+		$ret = D()->db('order')->update($o_id, $ret);
 
 		return $ret;
 	}
