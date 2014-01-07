@@ -24,7 +24,7 @@ class Duoduo extends _Api {
 		$p['mobile'] = $o_id;
 		$p['version'] = 2;
 		$p['openname'] = 'duosq.com';
-		$p['checksum'] = md5(C('keys', 'duoduo_pay'));
+		$p['checksum'] = md5($this->redis('keys')->duoduo());
 		$p['format'] = 'json';
 		$p['client_url'] = 'dd.duosq.com';
 		$url = 'http://issue.duoduo123.com/api/' . '?' . http_build_query($p);
@@ -70,6 +70,28 @@ class Duoduo extends _Api {
 		D('log')->action($action_code, 1, array('operator'=>2, 'status'=>$action_status, 'data1'=>$o_id, 'data2'=>$alipay, 'data3'=>$num, 'data4'=>serialize($api_ret), 'data5'=>$action_code));
 
 		return $ret;
+	}
+
+	/**
+	 * 调用多多接口获取新的支付授权码
+	 * @return [type] [description]
+	 */
+	function sendPayKey(){
+		$p = array();
+		$p['mod'] = 'user';
+		$p['act'] = 'get_info';
+		$p['tag'] = 'send_email';
+		$p['checksum'] = '';
+		$p['version'] = 2;
+		$p['openname'] = 'duosq.com';
+		$p['openpwd']=md5('bpro880214');
+		$p['format']='json';
+		$p['client_url']='dd.duosq.com';
+		$url = 'http://issue.duoduo123.com/api/' . '?' . http_build_query($p);
+
+		$json = file_get_contents($url);
+		$api_ret = json_decode($json, true);
+		return $api_ret;
 	}
 }
 ?>
