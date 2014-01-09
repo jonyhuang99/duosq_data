@@ -13,7 +13,7 @@ class OrderCashgift extends _Db {
 	//红包状态
 	const STATUS_WAIT_ACTIVE = 0; //状态_待激活
 	const STATUS_PASS = 1; //状态_通过
-	const STATUS_INVALIDE = 10; //状态_无效
+	const STATUS_INVALID = 10; //状态_无效
 
 	//红包类型
 	const GIFTTYPE_LUCK = 1; //新人抽奖送集分宝

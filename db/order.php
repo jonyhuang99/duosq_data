@@ -7,6 +7,18 @@ class Order extends _Db {
 	var $name = 'Order';
 	var $primaryKey = 'o_id'; //指定主键
 
+	//主订单表状态定义
+	const STATUS_WAIT_CONFIRM = 0;
+	const STATUS_PASS = 1;
+	const STATUS_INVALID = 10;
+
+	const CASHTYPE_JFB = 1; //资金类型：集分宝
+	const CASHTYPE_CASH = 2; //资金类型：现金
+
+	const N_ADD = 1; //增加资产
+	const N_REDUCE = -1; //减少资产
+	const N_ZERO = 0; //资产不变
+
 	/**
 	 * 新增用户主订单
 	 * @param char    $o_id     主订单编号
@@ -21,8 +33,12 @@ class Order extends _Db {
 	 */
 	function add($o_id, $user_id, $status, $sub, $cashtype, $n, $amount, $is_show=1){
 
-		if(!$o_id || !$user_id || !$sub || !$cashtype || !$n || !$amount){
+		if(!$o_id || !$user_id || !$sub || !$cashtype){
 			throw new \Exception("[order:{$o_id}][add][param error]");
+		}
+
+		if($n && !$amount){ //允许平账订单
+			throw new \Exception("[order:{$o_id}][add][param n&amount error]");
 		}
 
 		$this->create();
@@ -46,21 +62,50 @@ class Order extends _Db {
 	/**
 	 * 更新主订单状态
 	 * @param char    $o_id     主订单编号
-	 * @param bigint  $fund_id  对应资产流水ID
 	 * @param int     $status   主订单初始状态
 	 */
-	function update($o_id, $fund_id='', $status=''){
+	function update($o_id, $status=''){
 
-		$data = array('o_id'=>$o_id, 'fund_id'=>$fund_id, 'status'=>$status);
+		$data = array('o_id'=>$o_id, 'status'=>$status);
 
-		$ret = $this->save(arrayClean($data));
+		$ret = parent::save(arrayClean($data));
 		if(!$ret){
 			throw new \Exception("[order:{$o_id}][update][save error]");
 		}
 		return $ret;
 	}
 
+	/**
+	 * 更新主订单对应资金流水ID
+	 * @param char    $o_id     主订单编号
+	 * @param bigint  $fund_id  对应资产流水ID
+	 */
+	function updateFundId($o_id, $fund_id){
+
+		$data = array('o_id'=>$o_id, 'fund_id'=>$fund_id);
+
+		$ret = parent::save(arrayClean($data));
+		if(!$ret){
+			throw new \Exception("[order:{$o_id}][updateFundId][save error]");
+		}
+		return $ret;
+	}
+
+	/**
+	 * 对于淘宝订单，待成交时未确认订单金额，因此当订单确认后，应更新真实的返利金额
+	 * @return [type] [description]
+	 */
+	function updateFanli($o_id, $fanli){
+
+		if(!$o_id || !$fanli)return;
+		$ret = parent::save(array('o_id'=>$o_id, 'n'=>self::N_ADD, 'amount'=>$fanli));
+		if(!$ret){
+			throw new \Exception("[order:{$o_id}][updateFanli][save error]");
+		}
+		return $ret;
+	}
+
 	//置空save，只允许从add/update进入
-	//function save(){}
+	function save(){}
 }
 ?>

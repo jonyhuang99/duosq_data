@@ -18,7 +18,6 @@ class _Dal extends \Object {
 
 		if (!$m) $m = 'empty'; //表操作类不存在，生成默认对象
 		$m_key = '_db_' . $m;
-
 		if (isset(self::$_loaded[$m_key])) return self::$_loaded[$m_key];
 		$obj_name = \inflector::camelize($m);
 		require_once '_db.php';

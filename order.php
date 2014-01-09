@@ -7,13 +7,14 @@ class Order extends _Dal {
 	//主订单表状态定义
 	const STATUS_WAIT_CONFIRM = 0;
 	const STATUS_PASS = 1;
-	const STATUS_INVALIDE = 10;
+	const STATUS_INVALID = 10;
 
 	const CASHTYPE_JFB = 1; //资金类型：集分宝
 	const CASHTYPE_CASH = 2; //资金类型：现金
 
 	const N_ADD = 1; //增加资产
 	const N_REDUCE = -1; //减少资产
+	const N_ZERO = 0; //资产不变
 
 	/**
 	 * 获取用户订单列表(主订单数据)
@@ -51,7 +52,9 @@ class Order extends _Dal {
 
 	//获取单独主订单详情
 	function detail($o_id){
+
 		if(!$o_id)return;
+
 		$ret = $this->db('order')->find(array('o_id'=>$o_id));
 		return clearTableName($ret);
 	}
@@ -88,7 +91,11 @@ class Order extends _Dal {
 	 */
 	function add($user_id, $status, $sub, $cashtype, $n, $amount, $sub_data, $is_show=1){
 
-		if(!$user_id || !$sub || !$cashtype || !$n || !$amount || !$sub_data){
+		if(!$user_id || !$sub || !$cashtype || !$sub_data){
+			return;
+		}
+
+		if($n && !$amount){ //允许插入平账订单
 			return;
 		}
 
@@ -101,8 +108,10 @@ class Order extends _Dal {
 		try{
 
 			$o_id = $this->redis('order')->createId();
+
 			$sub_table = 'order_'.$sub;
 			$this->db('order')->add($o_id, $user_id, $status, $sub, $cashtype, $n, $amount, $is_show);
+
 			$this->db($sub_table)->add($o_id, $user_id, $sub_data);
 
 		//订单、资产相关DB操作遇到错误均会抛异常，直接捕获，model db对象注销时自动rollback

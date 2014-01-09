@@ -17,11 +17,47 @@ class Fund extends _Dal {
 	function getBalance($user_id, $cashtype=self::CASHTYPE_JFB, $lock=false){
 
 		//TODO model底层加入group方法，直接返回计算好的数据
-		//TODO 做资产锁，防止同时打款
+		//TODO 做资产锁，防止同时增减资产
 		if(!$user_id)return;
 		if($cashtype && ($cashtype != self::CASHTYPE_JFB && $cashtype != self::CASHTYPE_CASH))return;
 
 		$fund_logs = $this->db('fund')->findAll(array('user_id'=>$user_id, 'cashtype'=>$cashtype));
+
+		$ret = array(self::CASHTYPE_JFB=>0, self::CASHTYPE_CASH=>0);
+		if($fund_logs){
+			clearTableName($fund_logs);
+			foreach($fund_logs as $fund){
+				if($fund['n']==-1){
+					$ret[$fund['cashtype']] -= $fund['amount'];
+				}
+
+				if($fund['n']==1){
+					$ret[$fund['cashtype']] += $fund['amount'];
+				}
+			}
+		}
+
+		if($cashtype){
+			return $ret[$cashtype];
+		}
+		return $ret;
+	}
+
+	/**
+	 * 获取指定订单的资产操作结果
+	 * @param  bigint  $o_id     订单ID
+	 * @param  int     $cashtype 获取资产类型，留空为全部
+	 * @param  boolean $lock     是否锁定资产，如果是，使用完需及时解锁
+	 * @return array             资产详情
+	 */
+	function getOrderBalance($o_id, $cashtype=self::CASHTYPE_JFB, $lock=false){
+
+		//TODO model底层加入group方法，直接返回计算好的数据
+		//TODO 做资产锁，防止同时增减资产
+		if(!$o_id)return;
+		if($cashtype && ($cashtype != self::CASHTYPE_JFB && $cashtype != self::CASHTYPE_CASH))return;
+
+		$fund_logs = $this->db('fund')->findAll(array('o_id'=>$o_id, 'cashtype'=>$cashtype));
 
 		$ret = array(self::CASHTYPE_JFB=>0, self::CASHTYPE_CASH=>0);
 		if($fund_logs){

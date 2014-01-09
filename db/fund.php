@@ -18,7 +18,7 @@ class Fund extends _Db {
 	function add($o_id, $user_id, $cashtype, $n, $amount){
 
 		if(!$o_id || !$user_id || !$cashtype ||!$n || !$amount){
-			throw new \Exception("[fund][add][param error]");
+			throw new \Exception("[fund][o_id{$o_id}][add][param error]");
 		}
 
 		$this->create();
@@ -35,7 +35,11 @@ class Fund extends _Db {
 		}
 
 		//联动主订单fund_id更新
-		$ret = D()->db('order')->update($o_id, $ret);
+		$ret2 = D()->db('order')->updateFundId($o_id, $ret);
+
+		if(!$ret2){
+			throw new \Exception("[fund][o_id{$o_id}][add][save fund_id error]");
+		}
 
 		return $ret;
 	}
