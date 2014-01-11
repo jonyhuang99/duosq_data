@@ -114,7 +114,7 @@ class Myuser extends _Dal {
 
 		if(!$this->isLogined())return;
 		//1-新人抽奖 2-新人任务 5-新人条件红包
-		$sent = D('order')->getSubList($this->getId(), 'cashgift', $status);
+		$sent = D('order')->getSubList('cashgift', array('user_id'=>$this->getId(), 'status'=>$status));
 		$gifttype = array();
 		if($sent){
 			foreach($sent as $s){

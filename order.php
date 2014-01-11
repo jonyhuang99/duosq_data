@@ -18,20 +18,15 @@ class Order extends _Dal {
 
 	/**
 	 * 获取用户订单列表(主订单数据)
-	 * @param  bigint  $user_id   用户ID
+	 * @param  array   $condition 搜索条件(user_id, sub, status, is_show)
 	 * @param  object  $pn        分页组件对象
-	 * @param  mix     $status    订单状态(默认全部，支持数组指定多个状态)
 	 * @param  string  $sub       子订单标识(默认全部)
 	 * @param  integer $show      每页显示几条
 	 * @param  integer $maxPages  最大页数
 	 * return  array              订单数据
 	 */
-	function getList($user_id, $pn, $status='', $sub='', $show = 20, $maxPages = 10) {
+	function getList($condition, $pn, $show = 3, $maxPages = 10) {
 
-		if(!$user_id)return;
-		$condition['user_id'] = $user_id;
-		$condition['status'] = $status;
-		$condition['sub'] = $sub;
 		$condition = arrayClean($condition);
 
 		//page = 0 返回总页数
@@ -45,35 +40,50 @@ class Order extends _Dal {
 
 		$result = $this->db('order')->findAll($condition, '', $order, $limit, $page);
 		//TODO联合子表查出子表状态
-
-		$result = $this->_renderStatus(clearTableName($result));
+		clearTableName($result);
+		$result = $this->_withSubDetail($result);
+		$result = $this->_renderStatus($result);
+		$result = $this->_renderSub($result);
 		return $result;
 	}
 
-	//获取单独主订单详情
+	/**
+	 * 获取单条主订单详情
+	 * @param  char $o_id   订单号
+	 * @return [type]       [description]
+	 */
 	function detail($o_id){
 
 		if(!$o_id)return;
-
 		$ret = $this->db('order')->find(array('o_id'=>$o_id));
 		return clearTableName($ret);
 	}
 
 	/**
 	 * 获取用户子订单列表
-	 * @param  bigint  $user_id   用户ID
-	 * @param  string  $sub       子订单标识(默认全部)
-	 * @param  mix     $status    订单状态(默认全部，支持数组指定多个状态)
-	 * @param  array   $extra     子订单额外筛选项
+	 * @param  string  $sub       子订单标识
+	 * @param  array   $condition 搜索条件(user_id, sub, status, is_show)
 	 * @return array              订单列表
 	 */
-	function getSubList($user_id, $sub, $status='', $extra=array()){
+	function getSubList($sub, $condition=array()){
 
-		if(!$user_id || !$sub)return;
-		$extra['status'] = $status;
-		$extra['user_id'] = $user_id;
+		if(!$sub)return;
+		$lists = $this->db('order_'.$sub)->findAll(arrayClean($condition));
+		clearTableName($lists);
+		$lists = $this->_withMainDetail($lists);
+		return $lists;
+	}
 
-		$ret = $this->db('order_'.$sub)->findAll(arrayClean($extra));
+	/**
+	 * 获取单条子订单详情
+	 * @param  string  $sub    子订单标识
+	 * @param  char    $o_id   订单号
+	 * @return [type]          [description]
+	 */
+	function getSubDetail($sub, $o_id){
+
+		if(!$sub)return;
+		$ret = $this->db('order_'.$sub)->find(array('o_id'=>$o_id));
 		return clearTableName($ret);
 	}
 
@@ -212,14 +222,130 @@ class Order extends _Dal {
 		return $ret;
 	}
 
+	/**
+	 * 根据不同订单，渲染订单状态字段，附加到status_display字段
+	 * @param  [type] $lists [description]
+	 * @return [type]       [description]
+	 */
+	private function _renderStatus($lists) {
 
-	function _renderStatus($list) {
+		if(!$lists)return;
+		$map_st = C('options', 'order_status');
+		$map_taobao_st = C('options', 'order_taobao_status');
+		$map_cashgift_st = C('options', 'order_taobao_status');
+		$map_reduce_st = C('options', 'order_reduce_status');
 
-		$map = C('options', 'order_status');
-		foreach ($list as & $v) {
-			if(isset($v['status']))$v['status_display'] = $map[$v['status']];
+		foreach ($lists as &$v) {
+
+			if(isset($v['status'])){
+
+				if($v['sub'] == 'taobao' && $v['status']==0){
+
+					$v['status_display'] = $map_taobao_st[$v['sub_detail']['status']];
+
+				}else if($v['sub'] == 'cashgift' && $v['status']==0){
+
+					$v['status_display'] = $map_cashgift_st[$v['sub_detail']['status']];
+
+				}else if($v['sub'] == 'reduce'){
+
+					$v['status_display'] = $map_reduce_st[$v['sub_detail']['status']];
+
+				}else{
+
+					$v['status_display'] = $map_st[$v['status']];
+
+					if($v['status'] == self::STATUS_INVALID){
+						$v['n'] = 0;
+					}
+				}
+			}
 		}
-		return $list;
+		return $lists;
+	}
+
+	/**
+	 * 根据不同子订单类型，渲染订单业务类型显示
+	 * @param  [type] $lists [description]
+	 * @return [type]        [description]
+	 */
+	private function _renderSub($lists){
+
+		if(!$lists)return;
+		foreach ($lists as &$v) {
+
+			switch ($v['sub']) {
+				case 'taobao':
+					$v['sub_display'] = '<a href="http://trade.tmall.com/detail/orderDetail.htm?spm=a1z09.2.9.15.KtRJFt&bizOrderId='.$v['sub_detail']['r_orderid'].'" target="_blank">订单编号：'.$v['sub_detail']['r_orderid'].'</a><br />'.$v['sub_detail']['r_title'];
+					break;
+				case 'mall':
+					$v['sub_display'] = D('shop')->getShopName($v['sub_detail']['sp']).'购物订单'.$v['o_id'];
+					break;
+				case 'reduce':
+					$map = C('options', 'order_reduce_type');
+					$v['sub_display'] = $map[$v['sub_detail']['type']] . $v['sub_detail']['refer_o_id'];
+					break;
+				case 'cashgift':
+					$map = C('options', 'order_cashgift_gifttype');
+					$v['sub_display'] = $map[$v['sub_detail']['gifttype']];
+					break;
+				default:
+					break;
+			}
+		}
+		return $lists;
+	}
+
+	/**
+	 * 渲染上子订单的属性，附加到sub_detail字段
+	 * @param  [type] $lists [description]
+	 * @return [type]       [description]
+	 */
+	private function _withSubDetail($lists){
+
+		if(!$lists)return;
+		$o_ids = array();
+		$marked_list = array();
+		foreach($lists as $list){
+			$o_ids[$list['sub']][] = $list['o_id'];
+			$marked_list[$list['o_id']] = $list;
+		}
+
+		foreach($o_ids as $sub => $o_id){
+			$details = $this->db('order_'.$sub)->findAll(array('o_id'=>$o_id));
+			clearTableName($details);
+			foreach ($details as $detail) {
+				$marked_list[$detail['o_id']]['sub_detail'] = $detail;
+			}
+		}
+
+		return $marked_list;
+	}
+
+	/**
+	 * 渲染上主订单的属性，附加到main_detail字段
+	 * @param  [type] $lists [description]
+	 * @return [type]       [description]
+	 */
+	private function _withMainDetail($lists){
+
+		if(!$lists)return;
+		$o_ids = array();
+		$marked_list = array();
+		foreach($lists as $list){
+			$o_ids[] = $list['o_id'];
+			$marked_list[$list['o_id']] = $list;
+		}
+
+		foreach($o_ids as $o_id){
+			$details = $this->db('order')->findAll(array('o_id'=>$o_id));
+			clearTableName($details);
+			foreach ($details as $detail) {
+				$marked_list[$detail['o_id']]['main_detail'] = $detail;
+			}
+		}
+
+		return $marked_list;
 	}
 }
 ?>

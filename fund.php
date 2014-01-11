@@ -81,33 +81,57 @@ class Fund extends _Dal {
 
 	/**
 	 * 减少用户资产
-	 * @param  bigint  $user_id  用户ID
-	 * @param  int     $cashtype 获取资产类型，留空为全部
-	 * @param  int     $amount   扣款金额(单位: 分)
-	 * @param  string  &$errcode 出错码，定义code_err.php
-	 * @return bool              是否执行成功
+	 * @param  bigint  $user_id     用户ID
+	 * @param  int     $cashtype    扣除资产类型
+	 * @param  int     $reduce_type 扣款业务类型(order_reduce db模块定义)
+	 * @param  int     $amount      扣款金额(单位: 分)
+	 * @param  string  &$errcode    出错码，定义code_err.php
+	 * @return bool                 是否执行成功
 	 */
-	function reduceBalance($user_id, $cashtype, $amount, &$errcode){
+	function reduceBalance($user_id, $reduce_type, $param, &$errcode=''){
 
-		if(!$user_id || !$cashtype || !$amount){
+		if(!$user_id || !$reduce_type){
 			$errcode = _e('sys_param_err');
 			return false;
 		}
 
-		$max = $this->getBalance($user_id, $cashtype, true);
+		D()->db('order_reduce');
+
+		//系统自动打款，需传入资产类型，数量
+		if($reduce_type == \DB\OrderReduce::TYPE_SYSPAY){
+			if(!$param['cashtype'] || !$param['amount']){
+				$errcode = _e('sys_param_err');
+				return false;
+			}
+
+			$param['refer_o_id'] = '';
+			$is_show = 1;
+		}
+
+		//扣除订单产生的资产，需传入扣除订单号，资产类型，数量
+		if($reduce_type == \DB\OrderReduce::TYPE_ORDER){
+			if(!$param['refer_o_id'] || !$param['cashtype'] || !$param['amount']){
+				$errcode = _e('sys_param_err');
+				return false;
+			}
+			$is_show = 0;
+		}
+
+		$max = $this->getBalance($user_id, $param['cashtype'], true);
 
 		if($max === false){
 			$errcode = _e('balance_locked');
 			return false;
 		}
 
-		if($max < $amount){
+		if($max < $param['amount']){
 			$errcode = _e('balance_not_enough');
 			return false;
 		}
 
 		D()->db('order_reduce');
-		$ret = D('order')->add($user_id, \DAL\Order::STATUS_PASS, 'reduce', $cashtype, \DAL\Order::N_REDUCE, $amount, array('type'=>\DB\OrderReduce::TYPE_SYSPAY));
+
+		$ret = D('order')->add($user_id, \DAL\Order::STATUS_PASS, 'reduce', $param['cashtype'], \DAL\Order::N_REDUCE, $param['amount'], array('type'=>$reduce_type, 'refer_o_id'=>$param['refer_o_id']), $is_show);
 
 		$this->unlock($user_id);
 
@@ -119,9 +143,40 @@ class Fund extends _Dal {
 		return $ret;
 	}
 
+	/**
+	 * 根据订单金额调整用户资产
+	 * @param [type] $user_id [description]
+	 * @param [type] $o_id    [description]
+	 */
+	function adjustBalanceForOrder($o_id){
+
+		if(!$o_id)return;
+
+		$m_order = D('order')->detail($o_id);
+		$money = $this->getOrderBalance($o_id, $m_order['cashtype'], true);
+		$prepare = $m_order['n'] * $m_order['amount'] - $money;
+
+		if($prepare != 0){
+			$n =  $prepare < 0? \DAL\Order::N_REDUCE: \DAL\Order::N_ADD;
+			$found_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['cashtype'], $n, abs($prepare));
+
+			//userid < 100系统账号 不触发打款
+			if($n == \DAL\Order::N_ADD && $m_order['user_id'] > 100){
+				//标记自动打款
+				D()->redis('queue')->addAutopayJob($m_order['cashtype'], $m_order['user_id']);
+			}
+
+			$this->unlock($m_order['user_id']);
+			return $found_id;
+		}
+
+		return true;
+	}
+
 	//资产解锁
 	function unlock($user_id){
 		return true;
 	}
+
 }
 ?>

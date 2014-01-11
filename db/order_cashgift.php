@@ -87,10 +87,8 @@ class OrderCashgift extends _Db {
 
 		//扣款订单状态由待处理 => 已通过，进行资产增加
 		if($from == self::STATUS_WAIT_ACTIVE && $to == self::STATUS_PASS){
-			D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['cashtype'], $m_order['n'], $m_order['amount']);
-
-			//标记自动打款
-			D()->redis('queue')->addAutopayJob($m_order['cashtype'], $m_order['user_id']);
+			//调整资产
+			D('fund')->adjustBalanceForOrder($o_id);
 		}
 	}
 

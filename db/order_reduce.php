@@ -16,6 +16,7 @@ class OrderReduce extends _Db {
 	const STATUS_PAY_ERROR = 4; //打款失败
 
 	const TYPE_SYSPAY = 1; //系统提现扣除订单
+	const TYPE_ORDER = 2; //购物订单无效扣款
 
 	/**
 	 * 新增用户扣款订单
@@ -80,11 +81,12 @@ class OrderReduce extends _Db {
 
 		//扣款订单状态由待处理 => 已通过，进行账号扣款
 		if($from == self::STATUS_WAIT_CONFIRM && $to == self::STATUS_PASS){
-			D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['cashtype'], $m_order['n'], $m_order['amount']);
+			//调整资产
+			D('fund')->adjustBalanceForOrder($o_id);
 		}
 
 		if($to == self::STATUS_PAY_DONE){
-			//TODO 通知用户，收款成功
+			//TODO 通知用户，打款成功
 		}
 	}
 

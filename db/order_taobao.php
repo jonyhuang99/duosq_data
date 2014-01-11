@@ -51,7 +51,7 @@ class OrderTaobao extends _Db {
 		}
 
 		//更新淘宝店铺佣金表
-		$ret2 = D()->db('shop_taobao')->save(array('shop'=>$data['r_shop'], 'wangwang'=>$data['r_wangwang'], 'yongjin_rate'=>$data['r_yongjin_rate']));
+		$ret2 = D()->db('shop_taobao')->save(array('shopname'=>$data['r_shopname'], 'wangwang'=>$data['r_wangwang'], 'yongjin_rate'=>$data['r_yongjin_rate']));
 
 		if(!$ret2){
 			throw new \Exception("[order_taobao][o_id:{$o_id}][add][save shop_taobao error]");
@@ -118,19 +118,11 @@ class OrderTaobao extends _Db {
 		//淘宝订单状态由待处理 => 已通过，进行账号增加流水
 		if($from == self::STATUS_WAIT_CONFIRM && $to == self::STATUS_PASS){
 
-			$money = D('fund')->getOrderBalance($o_id, $m_order['cashtype']);
-			$prepare = $m_order['n'] * $m_order['amount'] - $money;
-			$found_id = '';
-			if($prepare != 0){
-				$n =  $prepare < 0? \DAL\Order::N_REDUCE: \DAL\Order::N_ADD;
-				$found_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['cashtype'], $n, abs($prepare));
-
-				//userid < 100系统账号 不触发打款
-				if($n == \DAL\Order::N_ADD && $m_order['user_id'] > 100){
-						//标记自动打款
-						D()->redis('queue')->addAutopayJob($m_order['cashtype'], $m_order['user_id']);
-				}
+			$ret = D('fund')->adjustBalanceForOrder($o_id);
+			if(!$ret){
+				throw new \Exception("[order_taobao][o_id:{$o_id}][afterUpdateStatus][adjustBalanceForOrder error]");
 			}
+
 			//主订单状态变为已通过
 			D('order')->db('order')->update($o_id, \DAL\Order::STATUS_PASS);
 			return true;
@@ -141,11 +133,17 @@ class OrderTaobao extends _Db {
 
 			//有可能是afterUpdateRStatus传递过来，因此再次设置主状态
 			$this->update($o_id, array('status'=>self::STATUS_INVALID));
-			$money = D('fund')->getOrderBalance($o_id, $m_order['cashtype']);
+			$money = D('fund')->getOrderBalance($o_id, $m_order['cashtype'], true);
 
-			$found_id = '';
 			if($money > 0){
-				$found_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['cashtype'], \DAL\Order::N_REDUCE, $money);
+				D()->db('order_reduce');
+				$errcode = '';
+
+				$ret = D('fund')->reduceBalance($m_order['user_id'], \DB\OrderReduce::TYPE_ORDER, array('refer_o_id'=>$o_id, 'cashtype'=>$m_order['cashtype'], 'amount'=>$money), $errcode);
+
+				if(!$ret){
+					throw new \Exception("[order_taobao][o_id:{$o_id}][afterUpdateStatus][reduceBalance error]["._e($errcode, false)."]");
+				}
 			}
 
 			//主订单状态变为不通过

@@ -26,7 +26,8 @@ class Pay extends _Dal {
 		}
 
 		//生成扣款订单
-		$o_id = D('fund')->reduceBalance($user_id, \DAL\Fund::CASHTYPE_JFB, $balance, $errcode);
+		D()->db('order_reduce');
+		$o_id = D('fund')->reduceBalance($user_id, \DB\OrderReduce::TYPE_SYSPAY, array('cashtype'=>\DAL\Fund::CASHTYPE_JFB, 'amount'=>$balance), $errcode);
 		if(!$o_id){
 			$errcode = _e('jfb_reduce_order_create_err');
 			return false;

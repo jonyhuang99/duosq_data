@@ -5,7 +5,7 @@ namespace DB;
 class ShopTaobao extends _Db {
 
 	var $name = 'ShopTaobao';
-	var $primaryKey = 'name'; //指定主键
+	var $primaryKey = 'shopname'; //指定主键
 }
 
 ?>
