@@ -80,7 +80,7 @@ class Fund extends _Dal {
 	}
 
 	/**
-	 * 减少用户资产
+	 * 减少用户资产(该方法产生扣款订单，系统给用户打款，或者扣除某订单给错的资金)
 	 * @param  bigint  $user_id     用户ID
 	 * @param  int     $cashtype    扣除资产类型
 	 * @param  int     $reduce_type 扣款业务类型(order_reduce db模块定义)
@@ -144,7 +144,7 @@ class Fund extends _Dal {
 	}
 
 	/**
-	 * 根据订单金额调整用户资产
+	 * 根据订单金额调整用户资产(可用于增/减，适用于订单确认后正式操作用户资产)
 	 * @param [type] $user_id [description]
 	 * @param [type] $o_id    [description]
 	 */
@@ -159,12 +159,6 @@ class Fund extends _Dal {
 		if($prepare != 0){
 			$n =  $prepare < 0? \DAL\Order::N_REDUCE: \DAL\Order::N_ADD;
 			$found_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['cashtype'], $n, abs($prepare));
-
-			//userid < 100系统账号 不触发打款
-			if($n == \DAL\Order::N_ADD && $m_order['user_id'] > 100){
-				//标记自动打款
-				D()->redis('queue')->addAutopayJob($m_order['cashtype'], $m_order['user_id']);
-			}
 
 			$this->unlock($m_order['user_id']);
 			return $found_id;

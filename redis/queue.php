@@ -8,6 +8,9 @@ class Queue extends _Redis {
 	var $namespace = 'queue';
 	var $dsn_type = 'database';
 
+	const NOTIFY_TYPE_ORDERBACK = 1;
+	const NOTIFY_TYPE_PAYMENTCOMPLETE = 2;
+
 	/**
 	 * 增加自动打款任务
 	 * @param bigint  $user_id   用户ID
@@ -37,7 +40,8 @@ class Queue extends _Redis {
 	 * @param  [type] $user_id  [description]
 	 * @return [type]           [description]
 	 */
-	function doneAutopay($cashtype, $user_id){
+	function doneAutopayJob($cashtype, $user_id){
+
 		if(!$cashtype || !$user_id)return;
 		$ret = $this->lrem('autopay:cashtype:'.$cashtype.':paying', $user_id, -1);
 	}

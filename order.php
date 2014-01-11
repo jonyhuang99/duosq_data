@@ -25,7 +25,7 @@ class Order extends _Dal {
 	 * @param  integer $maxPages  最大页数
 	 * return  array              订单数据
 	 */
-	function getList($condition, $pn, $show = 3, $maxPages = 10) {
+	function getList($condition, $pn, $show = 10, $maxPages = 10) {
 
 		$condition = arrayClean($condition);
 
@@ -134,7 +134,7 @@ class Order extends _Dal {
 		//初始化主订单为确认状态，则触发更新子订单为确认状态，激活首次后续动作
 		if($status == self::STATUS_PASS){
 			$class = $this->_table2class('order_'.$sub);
-			$this->updateSub($o_id, $sub, array('status'=>$class::STATUS_PASS));
+			$this->updateSub($sub, $o_id, array('status'=>$class::STATUS_PASS));
 		}
 
 
@@ -151,7 +151,7 @@ class Order extends _Dal {
 	 * @param  array  $new_field 新的字段信息
 	 * @return bool              更新结果
 	 */
-	function updateSub($o_id, $sub, $new_field){
+	function updateSub($sub, $o_id, $new_field){
 
 		if(!$o_id || !$sub || !$new_field){
 			return;
@@ -218,7 +218,36 @@ class Order extends _Dal {
 			$ret_true = array();
 			$ret_true['amount'] = $amount;
 			$ret_true['o_id'] = $ret;
+
+			//在业务表层触发打款，防止加资产事务未完成，打款发现资产不足
+			D('pay')->addAutopayJob($cashtype, $user_id);
 		}
+		return $ret;
+	}
+
+	/**
+	 * 封装增加淘宝订单便捷方法
+	 * @param bigint $user_id  用户ID
+	 * @param array  $sub_data 淘宝订单数据
+	 */
+	function addTaobao($user_id, $sub_data){
+
+		//不允许重复添加
+		if($this->db('order_taobao')->find(array('r_orderid'=>$sub_data['r_orderid'], 'r_id'=>$sub_data['r_id']))){
+			return false;
+		}
+
+		if(@$sub_data['fanli']){
+			$ret = $this->add($user_id, self::STATUS_WAIT_CONFIRM, 'taobao', self::CASHTYPE_JFB, self::N_ADD, $sub_data['fanli'], $sub_data);
+		}else{
+			$ret = $this->add($user_id, self::STATUS_WAIT_CONFIRM, 'taobao', self::CASHTYPE_JFB, self::N_ZERO, 0, $sub_data);
+		}
+
+		if($ret){
+			//通知用户订单到了
+			D('notify')->addOrderBackJob($ret);
+		}
+
 		return $ret;
 	}
 

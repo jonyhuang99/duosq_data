@@ -85,9 +85,6 @@ class OrderReduce extends _Db {
 			D('fund')->adjustBalanceForOrder($o_id);
 		}
 
-		if($to == self::STATUS_PAY_DONE){
-			//TODO 通知用户，打款成功
-		}
 	}
 
 	//置空save，只允许从add/update进入

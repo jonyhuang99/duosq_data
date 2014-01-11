@@ -33,11 +33,11 @@ class OrderTaobao extends _Db {
 	 */
 	function add($o_id, $user_id, $data=array()){
 
-		if(!$o_id || !$user_id || !$data['r_orderid']){
+		if(!$o_id || !$user_id || !$data['r_orderid'] || !$data['r_id']){
 			throw new \Exception("[order_taobao][o_id:{$o_id}][add][param error]");
 		}
 
-		$exist = $this->find(array('r_orderid'=>$data['r_orderid']));
+		$exist = $this->find(array('r_orderid'=>$data['r_orderid'], 'r_id'=>$data['r_id']));
 		if($exist){
 			throw new \Exception("[order_taobao][o_id:{$o_id}][add][r_orderid:{$data['r_orderid']} existed]");
 		}
@@ -56,8 +56,6 @@ class OrderTaobao extends _Db {
 		if(!$ret2){
 			throw new \Exception("[order_taobao][o_id:{$o_id}][add][save shop_taobao error]");
 		}
-
-		//TODO:通知用户订单到了
 
 		return $ret;
 	}

@@ -52,7 +52,7 @@ class Pay extends _Dal {
 		$amount = $order_detail['amount'];
 
 		//标识扣款订单为正在打款
-		$ret = D('order')->updateSub($o_id, 'reduce', array('status'=>\DB\OrderReduce::STATUS_PAYING));
+		$ret = D('order')->updateSub('reduce', $o_id, array('status'=>\DB\OrderReduce::STATUS_PAYING));
 
 		if(!$ret){
 			$errcode = _e('jfb_reduce_order_lock_err');
@@ -67,19 +67,55 @@ class Pay extends _Dal {
 		//支付成功
 		if($ret){
 			//标识扣款订单为已打款
-			D('order')->updateSub($o_id, 'reduce', array('status'=>\DB\OrderReduce::STATUS_PAY_DONE));
+			D('order')->updateSub('reduce', $o_id, array('status'=>\DB\OrderReduce::STATUS_PAY_DONE));
 			$ret = array('amount'=>$amount, 'o_id'=>$o_id, 'alipay'=>$alipay, 'api_name'=>$api_name);
 			D('log')->pay($o_id, 1, 0, $alipay, \DAL\Fund::CASHTYPE_JFB, $amount, $api_name);
-			return $ret;
 
+			//触发打款完毕到账通知，在业务表层做，防止打款事务未完，提前通知
+			D('notify')->addPaymentCompleteJob($o_id);
+
+			return $ret;
 		}else{
 			//标识扣款订单为打款不成功
-			D('order')->updateSub($o_id, 'reduce', array('status'=>\DB\OrderReduce::STATUS_PAY_ERROR));
+			D('order')->updateSub('reduce', $o_id, array('status'=>\DB\OrderReduce::STATUS_PAY_ERROR));
 			D('log')->pay($o_id, 0, $errcode, $alipay, \DAL\Fund::CASHTYPE_JFB, $amount, $api_name);
 			return false;
 		}
 
 		return false;
+	}
+
+	/**
+	 * 添加自动打款任务
+	 * @param [type] $cashtype 资金类型
+	 * @param [type] $user_id  用户ID
+	 */
+	function addAutopayJob($cashtype, $user_id){
+
+		if(!$cashtype || !$user_id)return;
+		return D()->redis('queue')->addAutopayJob($cashtype, $user_id);
+	}
+
+	/**
+	 * 获取自动打款任务
+	 * @param [type] $cashtype 资金类型
+	 * return bigint           用户ID
+	 */
+	function getAutopayJob($cashtype){
+
+		if(!$cashtype)return;
+		return D()->redis('queue')->getAutopayJob($cashtype);
+	}
+
+	/**
+	 * 完成自动打款任务
+	 * @param [type] $cashtype 资金类型
+	 * @param [type] $user_id  用户ID
+	 */
+	function doneAutopayJob($cashtype, $user_id){
+
+		if(!$cashtype || !$user_id)return;
+		return D()->redis('queue')->doneAutopayJob($cashtype, $user_id);
 	}
 }
 ?>
