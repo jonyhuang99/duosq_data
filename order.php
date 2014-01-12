@@ -52,11 +52,16 @@ class Order extends _Dal {
 	 * @param  char $o_id   订单号
 	 * @return [type]       [description]
 	 */
-	function detail($o_id){
+	function detail($o_id, $field){
 
 		if(!$o_id)return;
 		$ret = $this->db('order')->find(array('o_id'=>$o_id));
-		return clearTableName($ret);
+		$ret = clearTableName($ret);
+		if($field && $ret){
+			return $ret[$field];
+		}else{
+			return $ret;
+		}
 	}
 
 	/**
