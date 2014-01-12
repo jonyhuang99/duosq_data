@@ -113,6 +113,13 @@ class OrderTaobao extends _Db {
 			throw new \Exception("[order_taobao][afterUpdateStatus][m_order:{$o_id} not found]");
 		}
 
+		//淘宝订单状态由 已通过 => 待审，不允许逆向，防止上传淘宝订单重置状态到待审核
+		if($from == self::STATUS_PASS && $to == self::STATUS_WAIT_CONFIRM){
+			if(!$ret){
+				throw new \Exception("[order_taobao][o_id:{$o_id}][can not from STATUS_PASS to STATUS_WAIT_CONFIRM][warn]");
+			}
+		}
+
 		//淘宝订单状态由待处理 => 已通过，进行账号增加流水
 		if($from == self::STATUS_WAIT_CONFIRM && $to == self::STATUS_PASS){
 
