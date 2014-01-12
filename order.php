@@ -31,7 +31,7 @@ class Order extends _Dal {
 
 		//page = 0 返回总页数
 		$pn->show = $show;
-		$pn->sortBy = 'createtime';
+		$pn->sortBy = 'o_id';
 		$pn->direction = 'desc';
 		$pn->maxPages = $maxPages;
 
@@ -261,7 +261,7 @@ class Order extends _Dal {
 		if(!$lists)return;
 		$map_st = C('options', 'order_status');
 		$map_taobao_st = C('options', 'order_taobao_status');
-		$map_cashgift_st = C('options', 'order_taobao_status');
+		$map_cashgift_st = C('options', 'order_cashgift_status');
 		$map_reduce_st = C('options', 'order_reduce_status');
 
 		foreach ($lists as &$v) {
@@ -272,7 +272,7 @@ class Order extends _Dal {
 
 					$v['status_display'] = $map_taobao_st[$v['sub_detail']['status']];
 
-				}else if($v['sub'] == 'cashgift' && $v['status']==0){
+				}else if($v['sub'] == 'cashgift'){
 
 					$v['status_display'] = $map_cashgift_st[$v['sub_detail']['status']];
 
@@ -290,6 +290,7 @@ class Order extends _Dal {
 				}
 			}
 		}
+
 		return $lists;
 	}
 

@@ -16,7 +16,7 @@ class Myuser extends _Dal {
 			return;
 		}
 
-		if(!valide($alipay, 'email') && !valide($alipay, 'mobile')){
+		if(!valid($alipay, 'email') && !valid($alipay, 'mobile')){
 			$err = '支付宝错误，是手机号或邮箱才对哟!';
 			return;
 		}

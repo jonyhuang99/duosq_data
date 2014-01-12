@@ -12,21 +12,24 @@ class Notify extends _Redis {
 
 	/**
 	 * 新增用户通知任务
-	 * @param  [type] $cashtype [description]
-	 * @param  [type] $user_id  [description]
-	 * @return [type]           [description]
+	 * @param  [type] $notifytype [通知类型]
+	 * @param  [type] $user_id    [description]
+	 * @return [type]             [description]
 	 */
-	function addJob($type, $user_id, $o_id){
+	function addJob($notifytype, $sendtype, $user_id, $o_id){
 
-		if(!$type || !$user_id || !$o_id)return;
-		$exist = $this->hget('type:'.$type, $user_id);
+		if(!$notifytype || !$sendtype || !$user_id || !$o_id)return;
+		$exist = $this->hget('notifytype:'.$notifytype.':sendtype:'.$sendtype, $user_id);
 		if($exist){
 			$arr = unserialize($exist);
 			$arr[$o_id] = 1;
-			$ret = $this->hset('type:'.$type, $user_id, serialize($arr));
+
+			$this->hset('notifytype:'.$notifytype.':sendtype:'.$sendtype, $user_id, serialize($arr));
+			$ret = true;
+
 		}else{
 			$arr = array($o_id=>1);
-			$ret = $this->hset('type:'.$type, $user_id, serialize($arr));
+			$ret = $this->hset('notifytype:'.$notifytype.':sendtype:'.$sendtype, $user_id, serialize($arr));
 		}
 
 		return $ret;
@@ -36,12 +39,13 @@ class Notify extends _Redis {
 	 * 获取用户通知任务
 	 * @return [type] [description]
 	 */
-	function getJob($type){
+	function getJob($notifytype, $sendtype){
 
-		if(!$type)return;
-		$ret = $this->hgetall('type:'.$type);
+		if(!$notifytype || !$sendtype)return;
+		$ret = $this->hgetall('notifytype:'.$notifytype.':sendtype:'.$sendtype);
 		if($ret){
-			$this->del('type:'.$type);
+
+			//$this->del('notifytype:'.$notifytype.':sendtype:'.$sendtype);
 			foreach($ret as $user_id => $o_id_arr){
 				$ret[$user_id] = array_keys(unserialize($o_id_arr));
 			}

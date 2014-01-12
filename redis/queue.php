@@ -8,9 +8,6 @@ class Queue extends _Redis {
 	var $namespace = 'queue';
 	var $dsn_type = 'database';
 
-	const NOTIFY_TYPE_ORDERBACK = 1;
-	const NOTIFY_TYPE_PAYMENTCOMPLETE = 2;
-
 	/**
 	 * 增加自动打款任务
 	 * @param bigint  $user_id   用户ID
