@@ -45,7 +45,7 @@ class Notify extends _Redis {
 		$ret = $this->hgetall('notifytype:'.$notifytype.':sendtype:'.$sendtype);
 		if($ret){
 
-			//$this->del('notifytype:'.$notifytype.':sendtype:'.$sendtype);
+			$this->del('notifytype:'.$notifytype.':sendtype:'.$sendtype);
 			foreach($ret as $user_id => $o_id_arr){
 				$ret[$user_id] = array_keys(unserialize($o_id_arr));
 			}
