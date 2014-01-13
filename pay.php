@@ -150,9 +150,8 @@ class Pay extends _Dal {
 		//标识扣款订单为打款不成功
 		if($errcode == _e('jfb_account_nofound')){
 
-			if($ret){//退款成功才进入支付宝错误状态
-				D('order')->updateSub('reduce', $o_id, array('status'=>\DB\OrderReduce::STATUS_ALIPAY_ERROR));
-			}
+			//更新订单状态为支付宝错误导致打款失败
+			D('order')->updateSub('reduce', $o_id, array('status'=>\DB\OrderReduce::STATUS_ALIPAY_ERROR));
 
 			//更新支付宝验证信息为无效状态
 			D('user')->validAlipay($user_id, \DAL\User::ALIPAY_VALID_ERROR);
