@@ -13,7 +13,8 @@ class OrderReduce extends _Db {
 	const STATUS_PASS = 1; //已到账[网站]
 	const STATUS_PAYING = 2; //正在支付中
 	const STATUS_PAY_DONE = 3; //已打款
-	const STATUS_PAY_ERROR = 4; //打款失败
+	const STATUS_PAY_ERROR = 4; //打款失败[详情log_pay]
+	const STATUS_ALIPAY_ERROR = 10; //打款失败[支付宝账户问题]
 
 	const TYPE_SYSPAY = 1; //系统提现扣除订单
 	const TYPE_ORDER = 2; //购物订单无效扣款
@@ -79,12 +80,23 @@ class OrderReduce extends _Db {
 			throw new \Exception("[order_reduce][afterUpdateStatus][m_order:{$o_id} not found]");
 		}
 
-		//扣款订单状态由待处理 => 已通过，进行账号扣款
+		//扣款订单状态由 待处理 => 已通过，进行账号扣款
 		if($from == self::STATUS_WAIT_CONFIRM && $to == self::STATUS_PASS){
 			//调整资产
-			D('fund')->adjustBalanceForOrder($o_id);
+			$ret = D('fund')->adjustBalanceForOrder($o_id);
+			if(!$ret){
+				throw new \Exception("[order_reduce][o_id:{$o_id}][afterUpdateStatus][adjustBalanceForOrder error]");
+			}
 		}
 
+		//扣款订单状态由 打款中/打款失败 => 打款失败[支付宝账号错误]，需要退款
+		if(($from == self::STATUS_PAYING || $from == self::STATUS_PAY_ERROR) && $to == self::STATUS_ALIPAY_ERROR){
+			//进行退款
+			$ret = D('fund')->refund($o_id);
+			if(!$ret){
+				throw new \Exception("[order_reduce][o_id:{$o_id}][afterUpdateStatus][refund error]");
+			}
+		}
 	}
 
 	//置空save，只允许从add/update进入

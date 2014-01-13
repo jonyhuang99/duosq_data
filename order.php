@@ -52,7 +52,7 @@ class Order extends _Dal {
 	 * @param  char $o_id   订单号
 	 * @return [type]       [description]
 	 */
-	function detail($o_id, $field){
+	function detail($o_id, $field=''){
 
 		if(!$o_id)return;
 		$ret = $this->db('order')->find(array('o_id'=>$o_id));
@@ -85,11 +85,16 @@ class Order extends _Dal {
 	 * @param  char    $o_id   订单号
 	 * @return [type]          [description]
 	 */
-	function getSubDetail($sub, $o_id){
+	function getSubDetail($sub, $o_id, $field=''){
 
 		if(!$sub)return;
 		$ret = $this->db('order_'.$sub)->find(array('o_id'=>$o_id));
-		return clearTableName($ret);
+		clearTableName($ret);
+		if($field){
+			return $ret[$field];
+		}else{
+			return $ret;
+		}
 	}
 
 	/**

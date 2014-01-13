@@ -83,6 +83,11 @@ class Myuser extends _Dal {
 		return $this->sess('userinfo.alipay');
 	}
 
+	//获取用户支付宝验证信息
+	function getAlipayValid(){
+		return D('user')->detail($userid, 'alipay_valid');
+	}
+
 	//获取用户当前等级
 	function getLevel(){
 		return $this->sess('userinfo.level');

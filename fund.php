@@ -7,6 +7,10 @@ class Fund extends _Dal {
 	const CASHTYPE_JFB = 1; //资金类型：集分宝
 	const CASHTYPE_CASH = 2; //资金类型：现金
 
+	const N_ADD = 1; //增加资产
+	const N_REDUCE = -1; //减少资产
+	const N_ZERO = 0; //资产不变
+
 	/**
 	 * 获取指定用户的资产余额
 	 * @param  bigint  $user_id  用户ID
@@ -144,6 +148,28 @@ class Fund extends _Dal {
 	}
 
 	/**
+	 * 退回资产，只有打款失败[支付宝账户问题]情况下
+	 * @param  [type] $o_id [description]
+	 * @return [type]       [description]
+	 */
+	function refund($o_id){
+		$m_order = D('order')->detail($o_id);
+		$sub_status = D('order')->getSubDetail('reduce', $o_id, 'status');
+
+		//只有打款失败[支付宝账户问题]情况下
+		if($sub_status != \DB\OrderReduce::STATUS_ALIPAY_ERROR)return false;
+
+		$amount = $this->getOrderBalance($o_id, $m_order['cashtype'], true);
+		if($amount < 0){
+			$found_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['cashtype'], self::N_ADD, abs($amount));
+			$this->unlock($m_order['user_id']);
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	/**
 	 * 根据订单金额调整用户资产(可用于增/减，适用于订单确认后正式操作用户资产)
 	 * @param [type] $user_id [description]
 	 * @param [type] $o_id    [description]
@@ -157,7 +183,7 @@ class Fund extends _Dal {
 		$prepare = $m_order['n'] * $m_order['amount'] - $money;
 
 		if($prepare != 0){
-			$n =  $prepare < 0? \DAL\Order::N_REDUCE: \DAL\Order::N_ADD;
+			$n =  $prepare < 0? self::N_REDUCE: self::N_ADD;
 			$found_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['cashtype'], $n, abs($prepare));
 
 			$this->unlock($m_order['user_id']);
