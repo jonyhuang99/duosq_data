@@ -191,7 +191,7 @@ class Order extends _Dal {
 	 */
 	function addCashgift($user_id, $gifttype, $amount=0){
 
-		if($amount>100)return; //保护金额
+		if($amount>500)return; //保护金额
 
 		D()->db('order_cashgift');
 		if(array_search($gifttype, array(\DB\OrderCashgift::GIFTTYPE_LUCK, \DB\OrderCashgift::GIFTTYPE_TASK, \DB\OrderCashgift::GIFTTYPE_COND_10, \DB\OrderCashgift::GIFTTYPE_COND_20, \DB\OrderCashgift::GIFTTYPE_COND_50, \DB\OrderCashgift::GIFTTYPE_COND_100))===false)return; //保护类型

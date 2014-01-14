@@ -6,8 +6,8 @@ class Myuser extends _Dal {
 
 	/**
 	 * 用户支付宝保存
-	 * @param  [type] $alipay [description]
-	 * @return 用户ID
+	 * @param  [type] $alipay 支付宝账号
+	 * @return array          用户ID，账号已存在状态
 	 */
 	function saveAlipay($alipay, &$err){
 
@@ -35,11 +35,53 @@ class Myuser extends _Dal {
 			}else{
 				$this->db()->rollback();
 			}
-
 		}
 
 		if(!$ret){
 			$err = '系统登陆错误，请稍后尝试，或联系客服！';
+		}
+		return $ret;
+	}
+
+	/**
+	 * 用户更改支付宝，仅当新支付宝没人使用
+	 * @param  [type] $alipay 支付宝账号
+	 * @return bigint         用户ID
+	 */
+	function changeAlipay($alipay, &$err){
+
+		if(!$alipay){
+			$err = '支付宝账号不能为空!';
+			return;
+		}
+
+		if(!valid($alipay, 'email') && !valid($alipay, 'mobile')){
+			$err = '支付宝错误，是手机号或邮箱才对哟!';
+			return;
+		}
+
+		if(!$this->isLogined()){
+			$err = '操作非法，请刷新页面！';
+			return;
+		}
+
+		$ret = array();
+		if($user_id = $this->db('user')->getIdByAlipay($alipay)){
+			$err = '您新支付宝已存在，请换一个支付宝!';
+			return;
+		}else{
+			$this->db()->begin();
+
+			if($ret = $this->db('user')->update($this->getId(), array('alipay'=>$alipay))){
+				$this->db()->commit();
+				$this->relogin();
+			}else{
+				$this->db()->rollback();
+			}
+		}
+
+		if(!$ret){
+			$err = '系统发生错误，请刷新页面后重试!';
 		}
 		return $ret;
 	}
@@ -85,7 +127,7 @@ class Myuser extends _Dal {
 
 	//获取用户支付宝验证信息
 	function getAlipayValid(){
-		return D('user')->detail($userid, 'alipay_valid');
+		return D('user')->detail($this->getId(), 'alipay_valid');
 	}
 
 	//获取用户当前等级
