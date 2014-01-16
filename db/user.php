@@ -18,7 +18,13 @@ class User extends _Db {
 
 		if(!$alipay)return;
 		$this->create();
-		return parent::save(array('alipay'=>$alipay, 'mark_id'=>$mark_id, 'sc_risk'=>$sc_risk));
+		I('ip2location');
+		$ip2location = new \ip2location();
+		$ip = getIp();
+		$area = $ip2location->province($ip);
+		$area_detail = $ip2location->location($ip);
+
+		return parent::save(array('alipay'=>$alipay, 'mark_id'=>$mark_id, 'sc_risk'=>$sc_risk, 'reg_ip'=>$ip, 'reg_area'=>$area, 'reg_area_detail'=>$area_detail));
 	}
 
 	//更新用户数据

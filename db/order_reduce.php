@@ -97,6 +97,14 @@ class OrderReduce extends _Db {
 				throw new \Exception("[order_reduce][o_id:{$o_id}][afterUpdateStatus][refund error]");
 			}
 		}
+
+		//标识正在打款时间，待重新打款不出现10分钟以内订单
+		if($to == self::STATUS_PAYING){
+			$ret = parent::save(array('o_id'=>$o_id, 'payingtime'=>date('Y-m-d H:i:s')));
+			if(!$ret){
+				throw new \Exception("[order_reduce][o_id:{$o_id}][afterUpdateStatus][payingtime update error]");
+			}
+		}
 	}
 
 	//置空save，只允许从add/update进入
