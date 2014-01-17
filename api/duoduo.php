@@ -71,7 +71,7 @@ class Duoduo extends _Api {
 			$action_status = 0;
 		}
 
-		D('log')->action($action_code, 1, array('operator'=>2, 'status'=>$action_status, 'data1'=>$o_id, 'data2'=>$alipay, 'data3'=>$num, 'data4'=>serialize($api_ret), 'data5'=>$errcode));
+		D('log')->action($action_code, $action_status, array('operator'=>2, 'status'=>$action_status, 'data1'=>$o_id, 'data2'=>$alipay, 'data3'=>$num, 'data4'=>serialize($api_ret), 'data5'=>$errcode));
 
 		return $ret;
 	}
