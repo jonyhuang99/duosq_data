@@ -11,7 +11,7 @@ class Duoduo extends _Api {
 	 * @param  int $num        集分宝数量
 	 * @return array           支付结果(status errcode api_result)
 	 */
-	function pay($o_id, $alipay, $num, &$errcode) {
+	function pay($o_id, $alipay, $num, &$errcode, &$api_ret) {
 
 		$p = array();
 		$p['mod'] = 'jifenbao';
@@ -71,7 +71,8 @@ class Duoduo extends _Api {
 			$action_status = 0;
 		}
 
-		D('log')->action($action_code, $action_status, array('operator'=>2, 'status'=>$action_status, 'data1'=>$o_id, 'data2'=>$alipay, 'data3'=>$num, 'data4'=>serialize($api_ret), 'data5'=>$errcode));
+		$api_ret = serialize($api_ret);
+		D('log')->action($action_code, $action_status, array('operator'=>2, 'status'=>$action_status, 'data1'=>$o_id, 'data2'=>$alipay, 'data3'=>$num, 'data4'=>$api_ret, 'data5'=>$errcode));
 
 		return $ret;
 	}

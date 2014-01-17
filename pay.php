@@ -62,14 +62,16 @@ class Pay extends _Dal {
 
 		//调用接口打款
 		$api_name = 'duoduo';
-		$ret = $this->api($api_name)->pay($o_id, $alipay, $amount, $errcode);
+		$errcode = 0;
+		$api_ret = '';
+		$ret = $this->api($api_name)->pay($o_id, $alipay, $amount, $errcode, $api_ret);
 
 		if($ret){
-			$this->_afterPaymentSucc($o_id, $user_id, \DAL\Fund::CASHTYPE_JFB, $alipay, $amount, $api_name);
+			$this->_afterPaymentSucc($o_id, $user_id, \DAL\Fund::CASHTYPE_JFB, $alipay, $amount, $api_name, $api_ret);
 			$ret = array('amount'=>$amount, 'o_id'=>$o_id, 'alipay'=>$alipay, 'api_name'=>$api_name);
 			return $ret;
 		}else{
-			$this->_afterPaymentFail($o_id, $user_id, \DAL\Fund::CASHTYPE_JFB, $alipay, $amount, $api_name, $errcode);
+			$this->_afterPaymentFail($o_id, $user_id, \DAL\Fund::CASHTYPE_JFB, $alipay, $amount, $api_name, $errcode, $api_ret);
 		}
 
 		return false;
@@ -99,13 +101,14 @@ class Pay extends _Dal {
 			//调用接口打款
 			$api_name = 'duoduo';
 			$errcode = 0;
-			$ret = $this->api($api_name)->pay($o_id, $alipay, abs($amount), $errcode);
+			$api_ret = '';
+			$ret = $this->api($api_name)->pay($o_id, $alipay, abs($amount), $errcode, $api_ret);
 
 			if($ret){
-				$this->_afterPaymentSucc($o_id, $o_detail['user_id'], \DAL\Fund::CASHTYPE_JFB, $alipay, $ret['amount'], $api_name);
+				$this->_afterPaymentSucc($o_id, $o_detail['user_id'], \DAL\Fund::CASHTYPE_JFB, $alipay, $ret['amount'], $api_name, $api_ret);
 				return true;
 			}else{
-				$this->_afterPaymentFail($o_id, $o_detail['user_id'], \DAL\Fund::CASHTYPE_JFB, $alipay, $ret['amount'], $api_name, $errcode);
+				$this->_afterPaymentFail($o_id, $o_detail['user_id'], \DAL\Fund::CASHTYPE_JFB, $alipay, $ret['amount'], $api_name, $errcode, $api_ret);
 			}
 		}
 
@@ -122,7 +125,7 @@ class Pay extends _Dal {
 	 * @param  [type] $errcode  [description]
 	 * @return [type]           [description]
 	 */
-	function _afterPaymentSucc($o_id, $user_id, $cashtype, $alipay, $amount, $api_name){
+	function _afterPaymentSucc($o_id, $user_id, $cashtype, $alipay, $amount, $api_name, $api_ret){
 
 		//标识扣款订单为已打款
 		D('order')->updateSub('reduce', $o_id, array('status'=>\DB\OrderReduce::STATUS_PAY_DONE));
@@ -131,7 +134,7 @@ class Pay extends _Dal {
 		//触发打款完毕到账通知，在业务表层做，防止打款事务未完，提前通知
 		D('notify')->addPaymentCompleteJob($o_id);
 
-		D('log')->pay($o_id, 1, 0, $alipay, $cashtype, $amount, $api_name);
+		D('log')->pay($o_id, 1, 0, $alipay, $cashtype, $amount, $api_name, $api_ret);
 		return true;
 	}
 
@@ -145,7 +148,7 @@ class Pay extends _Dal {
 	 * @param  [type] $errcode  [description]
 	 * @return [type]           [description]
 	 */
-	function _afterPaymentFail($o_id, $user_id, $cashtype, $alipay, $amount, $api_name, $errcode){
+	function _afterPaymentFail($o_id, $user_id, $cashtype, $alipay, $amount, $api_name, $errcode, $api_ret=''){
 
 		//标识扣款订单为打款不成功
 		if($errcode == _e('jfb_account_nofound')){
@@ -160,7 +163,7 @@ class Pay extends _Dal {
 			D('order')->updateSub('reduce', $o_id, array('status'=>\DB\OrderReduce::STATUS_PAY_ERROR));
 		}
 
-		D('log')->pay($o_id, 0, $errcode, $alipay, $cashtype, $amount, $api_name);
+		D('log')->pay($o_id, 0, $errcode, $alipay, $cashtype, $amount, $api_name, $api_ret);
 
 		return true;
 	}

@@ -102,7 +102,7 @@ class Log extends _Dal {
 	}
 
 	//给用户打款后，记录打款日志
-	function pay($o_id, $status, $errcode, $alipay='', $cashtype='', $amount='', $api_name=''){
+	function pay($o_id, $status, $errcode, $alipay='', $cashtype='', $amount='', $api_name='', $api_ret=''){
 
 		$data = array();
 		$data['o_id'] = $o_id;
@@ -112,6 +112,7 @@ class Log extends _Dal {
 		$data['cashtype'] = $cashtype;
 		$data['amount'] = $amount;
 		$data['api_name'] = $api_name;
+		$data['api_ret'] = $api_ret;
 		$this->db('log_pay')->create();
 		return $this->db('log_pay')->save(arrayClean($data));
 	}
