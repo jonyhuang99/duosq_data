@@ -19,7 +19,7 @@ class OrderMall extends _Db {
 
 	//对方_订单状态
 	const R_STATUS_CREATED = 0; //对方:订单创建
-	const R_STATUS_INVALID = 1; //对方:订单失效
+	const R_STATUS_INVALID = 1; //对方:订单无效
 	const R_STATUS_UNKNOW = 9; //对方:订单状态未知
 	const R_STATUS_COMPLETED = 10; //对方:订单结算
 

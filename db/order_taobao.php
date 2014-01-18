@@ -20,7 +20,6 @@ class OrderTaobao extends _Db {
 	//对方_订单状态
 	const R_STATUS_CREATED = 0; //对方:订单创建
 	const R_STATUS_PAYED = 1; //对方:订单付款
-	const R_STATUS_FAILED = 2; //对方:订单失败
 	const R_STATUS_INVALID = 3; //对方:订单失效
 	const R_STATUS_COMPLETED = 10; //对方:订单结算
 
@@ -171,7 +170,7 @@ class OrderTaobao extends _Db {
 		}
 
 		//订单子状态变为无效/失败，判断是否有打款流水平衡，扣除多余部分，主状态变为不通过
-		if( $to == self::R_STATUS_FAILED || $to == self::R_STATUS_INVALID ){
+		if( $to == self::R_STATUS_INVALID ){
 			$this->afterUpdateStatus($o_id, self::STATUS_PASS, self::STATUS_INVALID, $new_field);
 			return true;
 		}

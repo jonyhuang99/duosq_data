@@ -304,13 +304,23 @@ class Order extends _Dal {
 
 					$v['status_display'] = $map_reduce_st[$v['sub_detail']['status']];
 
-				}else{
+				}else if($v['sub'] == 'mall'){
 
-					$v['status_display'] = $map_st[$v['status']];
-
-					if($v['status'] == self::STATUS_INVALID){
-						$v['n'] = 0;
+					if($v['status'] == self::STATUS_WAIT_CONFIRM){
+						if($v['sub_detail']['buydatetime']){
+							$v['status_display'] = date('n月份确认', strtotime($v['sub_detail']['buydatetime']) + 50*DAY);
+						}else{
+							$v['status_display'] = $map_st[$v['status']];
+						}
+					}else{
+						$v['status_display'] = $map_st[$v['status']];
 					}
+				}else{
+					$v['status_display'] = $map_st[$v['status']];
+				}
+
+				if($v['status'] == self::STATUS_INVALID){
+					$v['n'] = 0;
 				}
 			}
 		}
@@ -333,7 +343,7 @@ class Order extends _Dal {
 					$v['sub_display'] = '<a href="http://trade.tmall.com/detail/orderDetail.htm?spm=a1z09.2.9.15.KtRJFt&bizOrderId='.$v['sub_detail']['r_orderid'].'" target="_blank">订单编号：'.$v['sub_detail']['r_orderid'].'</a><br />'.$v['sub_detail']['r_title'];
 					break;
 				case 'mall':
-					$v['sub_display'] = D('shop')->getShopName($v['sub_detail']['sp']).'购物订单'.$v['o_id'];
+					$v['sub_display'] = D('shop')->getName($v['sub_detail']['sp']).'购物订单'.$v['o_id'];
 					break;
 				case 'reduce':
 					$map = C('options', 'order_reduce_type');
