@@ -6,7 +6,7 @@ class Go extends _Dal {
 
 	/**
 	 * 产生跳转跟单码
-	 * @param  string $driver 驱动名称
+	 * @param  string $driver 驱动
 	 * @param  array $p       sp[商城标识] tc[渠道码] param[商品编号]
 	 * @return string         跟单码
 	 */
@@ -15,10 +15,10 @@ class Go extends _Dal {
 		if(!$driver || !$sp)return;
 		$outcode = $this->redis('outcode')->create();
 		$fanli = $this->getCommission($sp);
-
-		$driver = str_replace('GO_DRIVER\\', '', $driver);
+		$driver_n = low(str_replace('GO_DRIVER\\Driver', '', get_class($driver)));
 		$user_id = D('myuser')->getId();
-		$data = array('user_id'=>$user_id, 'driver'=>$driver, 'sp'=>$sp, 'param'=>$param, 'tc'=>$tc, 'outcode'=>$outcode, 'cashtype'=>$fanli['cashtype'], 'fanli_rate' => C('comm', 'fanli_rate'));
+
+		$data = array('user_id'=>$user_id, 'driver'=>$driver_n, 'sp'=>$sp, 'param'=>$param, 'tc'=>$tc, 'outcode'=>$outcode, 'cashtype'=>$fanli['cashtype'], 'fanli_rate' => $driver->getFanliRate());
 
 		$this->db('outcode')->create();
 		if($this->db('outcode')->save(arrayClean($data))){
@@ -64,7 +64,7 @@ class Go extends _Dal {
 	}
 
 	/**
-	 * 根据商家佣金比例
+	 * 获取商家佣金比例展示
 	 * @param  string $sp 商城标识
 	 * @param  bool $fanli 获取给会员的返利信息
 	 * @return [array] commision:佣金比例   cashtype:1-集分宝 2-现金
@@ -78,6 +78,17 @@ class Go extends _Dal {
 		$ret = array('commission'=>$info['commission'], 'cashtype'=>$info['cashtype']);
 		if(strpos($ret['commission'], '元')===false){
 			$ret['commission'] .= '%';
+
+			if(preg_match_all('/([0-9\.]+)/i', $ret['commission'], $m)){
+				foreach($m[1] as $rate){
+					$new_rate = number_format($rate * $driver->getFanliRate() / 100, 2);
+					$ret['commission'] = str_replace($rate, $new_rate, $ret['commission']);
+				}
+			}
+
+			if(strpos($ret['commission'], '-') === false){
+				$ret['commission'] = "最高".$ret['commission'];
+			}
 		}
 
 		if($fanli){

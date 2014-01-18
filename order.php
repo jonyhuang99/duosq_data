@@ -35,7 +35,6 @@ class Order extends _Dal {
 		$pn->direction = 'desc';
 		$pn->maxPages = $maxPages;
 
-
 		list($order, $limit, $page) = $pn->init($condition, array('modelClass' => $this->db('order')));
 
 		$result = $this->db('order')->findAll($condition, '', $order, $limit, $page);
@@ -147,9 +146,7 @@ class Order extends _Dal {
 			$this->updateSub($sub, $o_id, array('status'=>$class::STATUS_PASS));
 		}
 
-
 		$this->db()->commit();
-
 
 		return $o_id;
 	}
@@ -242,15 +239,32 @@ class Order extends _Dal {
 	 */
 	function addTaobao($user_id, $sub_data){
 
-		//不允许重复添加
-		if($this->db('order_taobao')->find(array('r_orderid'=>$sub_data['r_orderid'], 'r_id'=>$sub_data['r_id']))){
-			return false;
-		}
-
-		if(@$sub_data['fanli']){
+		if(@$sub_data['fanli']){//订单一开始提交已处于“已成交”状态
 			$ret = $this->add($user_id, self::STATUS_WAIT_CONFIRM, 'taobao', self::CASHTYPE_JFB, self::N_ADD, $sub_data['fanli'], $sub_data);
 		}else{
 			$ret = $this->add($user_id, self::STATUS_WAIT_CONFIRM, 'taobao', self::CASHTYPE_JFB, self::N_ZERO, 0, $sub_data);
+		}
+
+		if($ret){
+			//通知用户订单到了
+			D('notify')->addOrderBackJob($ret);
+		}
+
+		return $ret;
+	}
+
+	/**
+	 * 封装增加商城订单便捷方法
+	 * @param bigint $user_id  用户ID
+	 * @param array  $sub_data 商城订单数据
+	 */
+	function addMall($user_id, $sub_data){
+
+		if(@$sub_data['fanli']){//订单一开始提交已处于“已成交”状态
+			$ret = $this->add($user_id, self::STATUS_WAIT_CONFIRM, 'mall', $sub_data['cashtype'], self::N_ADD, $sub_data['fanli'], $sub_data);
+		}else{
+
+			$ret = $this->add($user_id, self::STATUS_WAIT_CONFIRM, 'mall', $sub_data['cashtype'], self::N_ZERO, 0, $sub_data);
 		}
 
 		if($ret){
