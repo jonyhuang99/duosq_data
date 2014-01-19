@@ -85,5 +85,55 @@ class Taobao extends _Api {
 
 		return $info;
 	}
+
+	//TODO用户搜索时，使用daemon模式获取淘点金跳转链接，默认渲染到taobao跳转页面，提高兼容性
+	function getTdjInfo($iid){
+		$rf=urlencode(u(MOD,ACT,array('iid'=>$iid)));
+		if(!preg_match('/^http/',$rf)){
+			$rf=urlencode(SITEURL.'/').$rf;
+		}
+		$pid=$this->ApiConfig->taodianjin_pid;
+
+		$md5_cache_path=md5($iid.$pid);
+		$md5_cache_path=substr($md5_cache_path,0,2).'/'.$md5_cache_path.'.json';
+		$cache_path=DDROOT.'/data/temp/taoapi/taobao.taobaoke.tdj.get/'.$md5_cache_path;
+
+		if(file_exists($cache_path) && $this->ApiConfig->Cache>0){
+			$json=file_get_contents($cache_path);
+			$is_cache=1;
+		}
+		else{
+			$json=dd_json_encode(array());
+			$pgid=md5($iid);
+			$url='http://g.click.taobao.com/load?rf='.$rf.'&pid='.$pid.'&pgid='.$pgid.'&cbh=261&cbw=1436&re=1440x900&cah=870&caw=1440&ccd=32&ctz=8&chl=2&cja=1&cpl=0&cmm=0&cf=10.0&cb=jsonp_callback_004967557514815568';
+			$a = dd_get($url);
+			preg_match('/jsonp_callback_\d+\(\{"code":"(\d+)"\}\)/',$a,$b);
+			if($b[1]!=''){
+				$url='http://g.click.taobao.com/display?cb=jsonp_callback_03655084007659234&pid='.$pid.'&wt=0&ti=7&tl=628x100&rd=1&ct=itemid%3D'.$iid.'&st=2&rf='.$rf.'&et='.$b[1].'&pgid='.$pgid.'&v=2.0';
+				$a = dd_get($url);
+				$a=preg_replace('/jsonp_callback_\d+\(/','',$a);
+				$json=preg_replace('/\)$/','',$a);
+			}
+			$is_cache=0;
+		}
+
+		$a=dd_json_decode($json,1);
+		if(is_array($a)){
+			$goods['price']=$a['data']['items'][0]['ds_reserve_price'];
+			$goods['promotion_price']=$a['data']['items'][0]['ds_discount_price'];
+			if($goods['price']<=$goods['promotion_price']){
+				$goods['promotion_price']=0;
+			}
+			$goods['click_url']=$a['data']['items'][0]['ds_item_click'];
+			$goods['shop_click_url']=$a['data']['items'][0]['ds_shop_click'];
+			if($this->ApiConfig->Cache>0 && $is_cache==1){
+				create_file($cache_path,$json);
+			}
+			return $goods;
+		}
+		else{
+			return array();
+		}
+	}
 }
 ?>

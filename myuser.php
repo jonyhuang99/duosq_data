@@ -181,7 +181,7 @@ class Myuser extends _Dal {
 		if(!$sp){
 			return $this->sess('userinfo.sp');
 		}else{
-			return $this->sess('userinfo.sp.'.$sp);
+			return intval($this->sess('userinfo.sp.'.$sp));
 		}
 	}
 
