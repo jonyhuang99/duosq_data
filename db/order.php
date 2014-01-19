@@ -95,10 +95,15 @@ class Order extends _Db {
 	 * 对于淘宝订单，待成交时未确认订单金额，因此当订单确认后，应更新真实的返利金额
 	 * @return [type] [description]
 	 */
-	function updateFanli($o_id, $fanli){
+	function updateFanli($o_id, $fanli=0){//有可能返利为0
 
-		if(!$o_id || !$fanli)return;
-		$ret = parent::save(array('o_id'=>$o_id, 'n'=>self::N_ADD, 'amount'=>$fanli));
+		if(!$o_id)return;
+		if($fanli){
+			$ret = parent::save(array('o_id'=>$o_id, 'n'=>self::N_ADD, 'amount'=>$fanli));
+		}else{
+			$ret = parent::save(array('o_id'=>$o_id, 'n'=>self::N_ZERO, 'amount'=>0));
+		}
+
 		if(!$ret){
 			throw new \Exception("[order:{$o_id}][updateFanli][save error]");
 		}
