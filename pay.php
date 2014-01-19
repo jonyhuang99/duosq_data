@@ -175,7 +175,7 @@ class Pay extends _Dal {
 	 */
 	function addAutopayJob($cashtype, $user_id){
 
-		if(!$cashtype || !$user_id)return;
+		if(!$cashtype || !$user_id || $user_id < 100)return;
 		return D()->redis('queue')->addAutopayJob($cashtype, $user_id);
 	}
 

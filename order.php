@@ -343,7 +343,7 @@ class Order extends _Dal {
 					$v['sub_display'] = '<a href="http://trade.tmall.com/detail/orderDetail.htm?spm=a1z09.2.9.15.KtRJFt&bizOrderId='.$v['sub_detail']['r_orderid'].'" target="_blank">订单编号：'.$v['sub_detail']['r_orderid'].'</a><br />'.$v['sub_detail']['r_title'];
 					break;
 				case 'mall':
-					$v['sub_display'] = '购物订单'.$v['o_id'];
+					$v['sub_display'] = '购物订单号： '.$v['sub_detail']['r_orderid'];
 					break;
 				case 'reduce':
 					$map = C('options', 'order_reduce_type');

@@ -16,7 +16,7 @@ class Notify extends _Dal {
 	function addOrderBackJob($o_id){
 
 		$detail = D('order')->detail($o_id);
-		if(!$detail)return;
+		if(!$detail || $detail['user_id'] < 100)return;
 
 		$sendtype = $this->_getSendtype($detail['user_id']);
 		$ret = $this->redis('notify')->addJob(self::NOTIFYTYPE_ORDERBACK, $sendtype, $detail['user_id'], $o_id);
@@ -39,7 +39,7 @@ class Notify extends _Dal {
 	function addPaymentCompleteJob($o_id){
 
 		$detail = D('order')->detail($o_id);
-		if(!$detail)return;
+		if(!$detail|| $detail['user_id'] < 100)return;
 
 		$sendtype = $this->_getSendtype($detail['user_id']);
 
