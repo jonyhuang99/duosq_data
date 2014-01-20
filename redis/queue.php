@@ -1,5 +1,5 @@
 <?php
-//队列操作底层
+//队列消息操作底层
 
 namespace REDIS;
 
@@ -8,39 +8,41 @@ class Queue extends _Redis {
 	var $namespace = 'queue';
 	var $dsn_type = 'database';
 
-	/**
-	 * 增加自动打款任务
-	 * @param bigint  $user_id   用户ID
-	 * @param int     $cashtype  打款类型(1:集分宝 2:现金)
-	 */
-	function addAutopayJob($cashtype, $user_id){
+	const KEY_AUTOPAY = 'autopay';
 
-		if(!$user_id || !$cashtype)return;
-		return $this->lpush('autopay:cashtype:'.$cashtype, $user_id);
+	/**
+	 * 增加消息
+	 * @param string  $key  消息类型
+	 * @param string  $msg  消息内容
+	 */
+	function add($key, $msg){
+
+		if(!$key || !$msg)return;
+		return $this->lpush($key, $msg);
 	}
 
 	/**
-	 * 摘取自动打款任务，任务进入正在进行队列
-	 * @param  int     $cashtype  打款类型(1:集分宝 2:现金)
-	 * @return [type]             [description]
+	 * 自我阻塞方式获取消息
+	 * @param  string  $key  消息类型
+	 * @return string        消息内容
 	 */
-	function getAutopayJob($cashtype){
+	function bget($key){
 
-		if(!$cashtype)return;
-		$ret = $this->brpoplpush('autopay:cashtype:'.$cashtype, 'autopay:cashtype:'.$cashtype.':paying', 30*60); //30分钟超时
+		if(!$key)return;
+		$ret = $this->brpoplpush($key, $key.':doing', 30*60); //30分钟超时
 		return $ret;
 	}
 
 	/**
-	 * 完成任务后(无论成功失败)，删除任务进行中队列
-	 * @param  [type] $cashtype [description]
-	 * @param  [type] $user_id  [description]
-	 * @return [type]           [description]
+	 * 完成消息任务后，清除消息任务进行中标识
+	 * @param string  $key  消息类型
+	 * @param string  $msg  消息内容
 	 */
-	function doneAutopayJob($cashtype, $user_id){
+	function done($key, $msg){
 
-		if(!$cashtype || !$user_id)return;
-		$ret = $this->lrem('autopay:cashtype:'.$cashtype.':paying', $user_id, -1);
+		if(!$key || !$msg)return;
+		$ret = $this->lrem($key.':doing', $msg, -1);
+		return $ret;
 	}
 }
 ?>

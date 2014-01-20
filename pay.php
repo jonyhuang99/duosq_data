@@ -176,7 +176,7 @@ class Pay extends _Dal {
 	function addAutopayJob($cashtype, $user_id){
 
 		if(!$cashtype || !$user_id || $user_id < 100)return;
-		return D()->redis('queue')->addAutopayJob($cashtype, $user_id);
+		return D()->redis('queue')->add(\REDIS\Queue::KEY_AUTOPAY.":cashtype:{$cashtype}", $user_id);
 	}
 
 	/**
@@ -187,7 +187,7 @@ class Pay extends _Dal {
 	function getAutopayJob($cashtype){
 
 		if(!$cashtype)return;
-		return D()->redis('queue')->getAutopayJob($cashtype);
+		return D()->redis('queue')->bget(\REDIS\Queue::KEY_AUTOPAY.":cashtype:{$cashtype}");
 	}
 
 	/**
@@ -198,7 +198,7 @@ class Pay extends _Dal {
 	function doneAutopayJob($cashtype, $user_id){
 
 		if(!$cashtype || !$user_id)return;
-		return D()->redis('queue')->doneAutopayJob($cashtype, $user_id);
+		return D()->redis('queue')->done(\REDIS\Queue::KEY_AUTOPAY.":cashtype:{$cashtype}", $user_id);
 	}
 }
 ?>
