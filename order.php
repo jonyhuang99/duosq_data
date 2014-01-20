@@ -135,7 +135,7 @@ class Order extends _Dal {
 
 		//订单、资产相关DB操作遇到错误均会抛异常，直接捕获，model db对象注销时自动rollback
 		}catch(\Exception $e){
-			writeLog('exception', 'dal_order_add', $e->getMessage());
+			writeLog('exception', 'DAL:order:add', $e->getMessage());
 			$this->db()->rollback();
 			return false;
 		}
@@ -170,7 +170,7 @@ class Order extends _Dal {
 			$this->db('order_'.$sub)->update($o_id, $new_field);
 
 		}catch(\Exception $e){
-			writeLog('exception', 'dal_order_update_sub', $e->getMessage());
+			writeLog('exception', 'DAL:order:update_sub', $e->getMessage());
 			$this->db()->rollback();
 			return false;
 		}
