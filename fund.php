@@ -161,7 +161,7 @@ class Fund extends _Dal {
 
 		$amount = $this->getOrderBalance($o_id, $m_order['cashtype'], true);
 		if($amount < 0){
-			$found_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['cashtype'], self::N_ADD, abs($amount));
+			$found_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['sub'], $m_order['cashtype'], self::N_ADD, abs($amount));
 			$this->unlock($m_order['user_id']);
 			return true;
 		}else{
@@ -184,7 +184,7 @@ class Fund extends _Dal {
 
 		if($prepare != 0){
 			$n =  $prepare < 0? self::N_REDUCE: self::N_ADD;
-			$found_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['cashtype'], $n, abs($prepare));
+			$found_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['sub'], $m_order['cashtype'], $n, abs($prepare));
 
 			$this->unlock($m_order['user_id']);
 			return $found_id;

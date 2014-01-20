@@ -10,12 +10,13 @@ class Fund extends _Db {
 	 * 产生用户资产变动流水
 	 * @param string $o_id     业务订单编号
 	 * @param bigint $user_id  用户ID
+	 * @param string $sub      子账单类型
 	 * @param int $cashtype    资产类型(1:集分宝 2:现金)
 	 * @param int $n           增减类型(-1:减少 1:增加)
 	 * @param int $amount      资产变更数量(单位：分)
 	 * return int              流水ID
 	 */
-	function add($o_id, $user_id, $cashtype, $n, $amount){
+	function add($o_id, $user_id, $sub, $cashtype, $n, $amount){
 
 		if(!$o_id || !$user_id || !$cashtype ||!$n || !$amount){
 			throw new \Exception("[fund][o_id{$o_id}][add][param error]");
@@ -26,6 +27,7 @@ class Fund extends _Db {
 		$data['o_id'] = $o_id;
 		$data['user_id'] = $user_id;
 		$data['cashtype'] = $cashtype;
+		$data['sub'] = $sub;
 		$data['n'] = $n;
 		$data['amount'] = $amount;
 		$ret = parent::save($data);
