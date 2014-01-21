@@ -53,9 +53,13 @@ class _Redis extends \Object {
 		list($host, $port, $db) = explode(':', $this->dsn);
 		$this->close();
 		$obj = new \Redis();
-		$obj->connect($host, $port, $this->exec_timeout);
-		if($db)$obj->select($db); //切换到指定数据库
+		$ret = $obj->connect($host, $port, $this->exec_timeout);
+		if(!$ret)return false;
+		if($db){
+			$obj->select($db); //切换到指定数据库
+		}
 		self::$connected[$this->dsn] = $obj;
+		return true;
 	}
 
 	//切换redis连接类型，返回redis模块对象

@@ -29,7 +29,7 @@ class Queue extends _Redis {
 	function bget($key){
 
 		if(!$key)return;
-		$ret = $this->brpoplpush($key, $key.':doing', 30*60); //30分钟超时
+		$ret = $this->brpoplpush($key, $key.':doing', 5); //5秒超时
 		return $ret;
 	}
 

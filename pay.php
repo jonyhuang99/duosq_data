@@ -105,10 +105,10 @@ class Pay extends _Dal {
 			$ret = $this->api($api_name)->pay($o_id, $alipay, abs($amount), $errcode, $api_ret);
 
 			if($ret){
-				$this->_afterPaymentSucc($o_id, $o_detail['user_id'], \DAL\Fund::CASHTYPE_JFB, $alipay, $ret['amount'], $api_name, $api_ret);
+				$this->_afterPaymentSucc($o_id, $o_detail['user_id'], \DAL\Fund::CASHTYPE_JFB, $alipay, $o_detail['amount'], $api_name, $api_ret);
 				return true;
 			}else{
-				$this->_afterPaymentFail($o_id, $o_detail['user_id'], \DAL\Fund::CASHTYPE_JFB, $alipay, $ret['amount'], $api_name, $errcode, $api_ret);
+				$this->_afterPaymentFail($o_id, $o_detail['user_id'], \DAL\Fund::CASHTYPE_JFB, $alipay, $o_detail['amount'], $api_name, $errcode, $api_ret);
 			}
 		}
 
