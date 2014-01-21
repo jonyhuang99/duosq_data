@@ -34,25 +34,25 @@ class Duoduo extends _Api {
 		if(MY_DEBUG_PAY_SUCC==true){
 			$api_ret = array('s'=>1);
 		}else if($p['checksum']){
-			$json = file_get_contents($url);
-			$api_ret = json_decode($json, true);
+			$api_ret = file_get_contents($url);
+			$api_return = json_decode($api_ret, true);
 		}else{
-			$api_ret = array('s'=>0, 'r'=>'校验码');
+			$api_return = array('s'=>0, 'r'=>'校验码');
 		}
 
-		if ($api_ret['s'] == 1) {
+		if ($api_return['s'] == 1) {
 			$ret = 1;
 
-		} elseif ($api_ret['s'] == 2 || $api_ret['s'] == 0) {
+		} elseif ($api_return['s'] == 2 || $api_return['s'] == 0) {
 			$ret = 0;
 
-			if (strpos($api_ret['r'], '此单提现已发放') !== false) {
+			if (strpos($api_return['r'], '此单提现已发放') !== false) {
 				$errcode = _e('jfb_trade_repeat');
-			} elseif (strpos($api_ret['r'], '没有找到用户') !== false) {
+			} elseif (strpos($api_return['r'], '没有找到用户') !== false) {
 				$errcode = _e('jfb_account_nofound');
-			} elseif (strpos($api_ret['r'], '支付宝一日内第3次提现') !== false) {
+			} elseif (strpos($api_return['r'], '支付宝一日内第3次提现') !== false) {
 				$errcode = _e('jfb_duoduo_limit_3times_pre_day');
-			} elseif (strpos($api_ret['r'], '校验码') !== false) {
+			} elseif (strpos($api_return['r'], '校验码') !== false) {
 				$errcode = _e('jfb_apikey_invalide');
 			} else {
 				$errcode = _e('jfb_api_err');
@@ -71,7 +71,6 @@ class Duoduo extends _Api {
 			$action_status = 0;
 		}
 
-		$api_ret = serialize($api_ret);
 		D('log')->action($action_code, $action_status, array('operator'=>2, 'status'=>$action_status, 'data1'=>$o_id, 'data2'=>$alipay, 'data3'=>$num, 'data4'=>$api_ret, 'data5'=>$errcode));
 
 		return $ret;
