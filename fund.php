@@ -19,7 +19,7 @@ class Fund extends _Dal {
 	 * @param  boolean $lock     是否锁定资产，如果是，使用完需及时解锁
 	 * @return array             资产详情
 	 */
-	function getBalance($user_id, $cashtype=self::CASHTYPE_JFB, $sub='', $lock=false){
+	function getBalance($user_id, $cashtype='', $sub='', $lock=false){
 
 		//TODO model底层加入group方法，直接返回计算好的数据
 		//TODO 做资产锁，防止同时增减资产
