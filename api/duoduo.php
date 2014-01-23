@@ -32,7 +32,7 @@ class Duoduo extends _Api {
 		$url = 'http://issue.duoduo123.com/api/' . '?' . http_build_query($p);
 
 		if(MY_DEBUG_PAY_SUCC==true){
-			$api_ret = array('s'=>1);
+			$api_return = array('s'=>1);
 		}else if($p['checksum']){
 			$api_ret = file_get_contents($url);
 			$api_return = json_decode($api_ret, true);

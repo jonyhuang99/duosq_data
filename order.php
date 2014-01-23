@@ -69,10 +69,10 @@ class Order extends _Dal {
 	 * @param  array   $condition 搜索条件(user_id, sub, status, is_show)
 	 * @return array              订单列表
 	 */
-	function getSubList($sub, $condition=array()){
+	function getSubList($sub, $condition=array(), $orderby='o_id ASC', $limit=1000){
 
 		if(!$sub)return;
-		$lists = $this->db('order_'.$sub)->findAll(arrayClean($condition));
+		$lists = $this->db('order_'.$sub)->findAll(arrayClean($condition), '', $orderby, $limit);
 		clearTableName($lists);
 		$lists = $this->_withMainDetail($lists);
 		return $lists;
@@ -248,6 +248,8 @@ class Order extends _Dal {
 		if($ret){
 			//通知用户订单到了
 			D('notify')->addOrderBackJob($ret);
+			//标识用户下过订单
+			D('user')->markUserHasOrder($user_id);
 		}
 
 		return $ret;
@@ -270,6 +272,8 @@ class Order extends _Dal {
 		if($ret){
 			//通知用户订单到了
 			D('notify')->addOrderBackJob($ret);
+			//标识用户下过订单
+			D('user')->markUserHasOrder($user_id);
 		}
 
 		return $ret;

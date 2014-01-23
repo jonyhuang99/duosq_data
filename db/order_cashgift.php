@@ -39,6 +39,27 @@ class OrderCashgift extends _Db {
 		$this->create();
 		$data['o_id'] = $o_id;
 		$data['user_id'] = $user_id;
+
+		$current = D('fund')->getShoppingBalance($user_id);
+
+		switch ($data['gifttype']) {
+			case self::GIFTTYPE_COND_10:
+				$data['reach'] = $current + 1000;
+				break;
+
+			case self::GIFTTYPE_COND_20:
+				$data['reach'] = $current + 2000;
+				break;
+
+			case self::GIFTTYPE_COND_50:
+				$data['reach'] = $current + 5000;
+				break;
+
+			case self::GIFTTYPE_COND_100:
+				$data['reach'] = $current + 10000;
+				break;
+		}
+
 		$ret = parent::save($data);
 		if(!$ret){
 			throw new \Exception("[order_cashgift][o_id:{$o_id}][add][save error]");
@@ -59,6 +80,10 @@ class OrderCashgift extends _Db {
 			throw new \Exception("[order_cashgift][o_id:{$o_id}][update][param error]");
 		}
 		$old_detail = $this->find(array('o_id'=>$o_id));
+
+		if(!$old_detail){
+			throw new \Exception("[order_cashgift][o_id:{$o_id}][update][o_id not exist]");
+		}
 
 		$new_field['o_id'] = $o_id;
 		$ret = parent::save(arrayClean($new_field));
@@ -85,10 +110,36 @@ class OrderCashgift extends _Db {
 			throw new \Exception("[order_cashgift][afterUpdateStatus][m_order:{$o_id} not found]");
 		}
 
-		//扣款订单状态由待处理 => 已通过，进行资产增加
+		//红包状态由待处理激活 => 已激活，进行资产增加
 		if($from == self::STATUS_WAIT_ACTIVE && $to == self::STATUS_PASS){
 			//调整资产
-			D('fund')->adjustBalanceForOrder($o_id);
+			$ret = D('fund')->adjustBalanceForOrder($o_id);
+			if(!$ret){
+				throw new \Exception("[order_cashgift][afterUpdateStatus][adjustBalanceForOrder][error]");
+			}
+
+			//主订单状态变为已通过
+			D('order')->db('order')->update($o_id, \DAL\Order::STATUS_PASS);
+
+			if(!$ret){
+				throw new \Exception("[order_cashgift][o_id:{$o_id}][m_order][update status error]");
+			}
+
+			return true;
+		}
+
+		//红包由已通过 => 不通过，进行账号扣除流水，主订单变为不通过
+		if($to == self::STATUS_INVALID){
+
+			$errcode = '';
+			$ret = D('fund')->reduceBalanceForOrder($o_id, $errcode);
+			if(!$ret){
+				throw new \Exception("[order_cashgift][o_id:{$o_id}][afterUpdateStatus][reduceBalanceForOrder error]["._e($errcode, false)."]");
+			}
+
+			//主订单状态变为不通过
+			D('order')->db('order')->update($o_id, \DAL\Order::STATUS_INVALID);
+			return true;
 		}
 	}
 

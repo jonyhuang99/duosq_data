@@ -40,6 +40,18 @@ class user extends _Dal {
 		$user_id = $this->db('user_taobao')->field('user_id', array('taobao_no'=>$no));
 		return $this->detail($user_id);
 	}
+
+	//标识用户下过单
+	function markUserHasOrder($user_id){
+		return $this->db('user')->update($user_id, array('has_order'=>1));
+	}
+
+	//判断用户是否系统内部用户
+	function sys($user_id){
+		if(!$user_id)return false;
+		if($user_id < 100)return true;
+		return false;
+	}
 }
 
 ?>

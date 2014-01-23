@@ -8,7 +8,8 @@ class Queue extends _Redis {
 	var $namespace = 'queue';
 	var $dsn_type = 'database';
 
-	const KEY_AUTOPAY = 'autopay';
+	const KEY_AUTOPAY = 'autopay'; //自动打款队列
+	const KEY_BALANCE = 'fund'; //资产变更队列
 
 	/**
 	 * 增加消息

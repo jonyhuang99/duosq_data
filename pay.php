@@ -12,7 +12,7 @@ class Pay extends _Dal {
 	 */
 	function jfb($user_id, &$errcode){
 
-		if(!$user_id){
+		if(!$user_id || D('user')->sys($user_id)){
 			$errcode = _e('sys_param_err');
 			return false;
 		}
@@ -25,23 +25,7 @@ class Pay extends _Dal {
 			return false;
 		}
 
-		//生成扣款订单
-		D()->db('order_reduce');
-		$o_id = D('fund')->reduceBalance($user_id, \DB\OrderReduce::TYPE_SYSPAY, array('cashtype'=>\DAL\Fund::CASHTYPE_JFB, 'amount'=>$balance), $errcode);
-		if(!$o_id){
-			$errcode = _e('jfb_reduce_order_create_err');
-			return false;
-		}
-
-		//从订单读出用户找出支付宝，以及打款数量
-		$order_detail = D('order')->detail($o_id);
-		if(!$order_detail){
-			$errcode = _e('order_not_exist');
-			D('log')->pay($o_id, 0, $errcode);
-			return false;
-		}
-
-		$user_detail = D('user')->detail($order_detail['user_id']);
+		$user_detail = D('user')->detail($user_id);
 		if(!$user_detail){
 			$errcode = _e('user_not_exist');
 			D('log')->pay($o_id, 0, $errcode);
@@ -49,7 +33,14 @@ class Pay extends _Dal {
 		}
 
 		$alipay = $user_detail['alipay'];
-		$amount = $order_detail['amount'];
+
+		//生成扣款订单
+		D()->db('order_reduce');
+		$o_id = D('fund')->reduceBalance($user_id, \DB\OrderReduce::TYPE_SYSPAY, array('cashtype'=>\DAL\Fund::CASHTYPE_JFB, 'amount'=>$balance), $errcode);
+		if(!$o_id){
+			$errcode = _e('jfb_reduce_order_create_err');
+			return false;
+		}
 
 		//标识扣款订单为正在打款
 		$ret = D('order')->updateSub('reduce', $o_id, array('status'=>\DB\OrderReduce::STATUS_PAYING));
@@ -64,17 +55,66 @@ class Pay extends _Dal {
 		$api_name = 'duoduo';
 		$errcode = 0;
 		$api_ret = '';
-		$ret = $this->api($api_name)->pay($o_id, $alipay, $amount, $errcode, $api_ret);
+		if($balance){ //0返利直接通过
+			$ret = $this->api($api_name)->pay($o_id, $alipay, $balance, $errcode, $api_ret);
+		}else{
+			$ret = true;
+		}
 
 		if($ret){
-			$this->_afterPaymentSucc($o_id, $user_id, \DAL\Fund::CASHTYPE_JFB, $alipay, $amount, $api_name, $api_ret);
-			$ret = array('amount'=>$amount, 'o_id'=>$o_id, 'alipay'=>$alipay, 'api_name'=>$api_name);
+			$this->_afterPaymentSucc($o_id, $user_id, \DAL\Fund::CASHTYPE_JFB, $alipay, $balance, $api_name, $api_ret);
+			$ret = array('amount'=>$balance, 'o_id'=>$o_id, 'alipay'=>$alipay, 'api_name'=>$api_name);
 			return $ret;
 		}else{
-			$this->_afterPaymentFail($o_id, $user_id, \DAL\Fund::CASHTYPE_JFB, $alipay, $amount, $api_name, $errcode, $api_ret);
+			$this->_afterPaymentFail($o_id, $user_id, \DAL\Fund::CASHTYPE_JFB, $alipay, $balance, $api_name, $errcode, $api_ret);
 		}
 
 		return false;
+	}
+
+	/**
+	 * 向用户支付现金
+	 * @param  char  $user_id   用户ID
+	 * @param  int   $errcode   错误码(见code_err.php)
+	 * @return bool             支付结果(失败:false $errcode)(成功: array('o_id','amount','alipay'))
+	 */
+	function cash($user_id, &$errcode){//TODO 改成daemon调用支付宝API自动打款
+
+		if(!$user_id || D('user')->sys($user_id)){
+			$errcode = _e('sys_param_err');
+			return false;
+		}
+
+		//获取现金余额，现金需大于10元
+		$balance = D('fund')->getBalance($user_id, \DAL\Fund::CASHTYPE_CASH);
+
+		if($balance < 1000){
+			$errcode = _e('balance_not_enough_1000_cash');
+			return false;
+		}
+
+		$user_detail = D('user')->detail($user_id);
+		if(!$user_detail){
+			$errcode = _e('user_not_exist');
+			D('log')->pay($o_id, 0, $errcode);
+			return false;
+		}
+
+		$alipay = $user_detail['alipay'];
+
+		//生成扣款订单
+		D()->db('order_reduce');
+		$o_id = D('fund')->reduceBalance($user_id, \DB\OrderReduce::TYPE_SYSPAY, array('cashtype'=>\DAL\Fund::CASHTYPE_CASH, 'amount'=>$balance), $errcode);
+		if(!$o_id){
+			$errcode = _e('cash_reduce_order_create_err');
+			return false;
+		}
+
+		//状态为已打款
+		$this->_afterPaymentSucc($o_id, $user_id, \DAL\Fund::CASHTYPE_CASH, $alipay, $balance, 'alipay_manual');
+
+		$ret = array('amount'=>$balance, 'o_id'=>$o_id, 'alipay'=>$alipay, 'api_name'=>'alipay_manual');
+		return $ret;
 	}
 
 	/**
@@ -125,7 +165,7 @@ class Pay extends _Dal {
 	 * @param  [type] $errcode  [description]
 	 * @return [type]           [description]
 	 */
-	function _afterPaymentSucc($o_id, $user_id, $cashtype, $alipay, $amount, $api_name, $api_ret){
+	function _afterPaymentSucc($o_id, $user_id, $cashtype, $alipay, $amount, $api_name, $api_ret=''){
 
 		//标识扣款订单为已打款
 		D('order')->updateSub('reduce', $o_id, array('status'=>\DB\OrderReduce::STATUS_PAY_DONE));
@@ -135,6 +175,7 @@ class Pay extends _Dal {
 		D('notify')->addPaymentCompleteJob($o_id);
 
 		D('log')->pay($o_id, 1, 0, $alipay, $cashtype, $amount, $api_name, $api_ret);
+
 		return true;
 	}
 
@@ -175,7 +216,7 @@ class Pay extends _Dal {
 	 */
 	function addAutopayJob($cashtype, $user_id){
 
-		if(!$cashtype || !$user_id || $user_id < 100)return;
+		if(!$cashtype || !$user_id || D('user')->sys($user_id))return;
 		return D()->redis('queue')->add(\REDIS\Queue::KEY_AUTOPAY.":cashtype:{$cashtype}", $user_id);
 	}
 
@@ -199,6 +240,35 @@ class Pay extends _Dal {
 
 		if(!$cashtype || !$user_id)return;
 		return D()->redis('queue')->done(\REDIS\Queue::KEY_AUTOPAY.":cashtype:{$cashtype}", $user_id);
+	}
+
+	/**
+	 * 增加待支付现金用户
+	 * @param [type] $user_id  用户ID
+	 */
+	function addWaitPaycash($user_id){//TODO 改成进入自动打款任务队列
+
+		if(!$user_id)return false;
+		if($this->db('wait_paycash')->find(array('user_id'=>$user_id))){
+			return true;
+		}
+
+		$this->db('wait_paycash')->create();
+		return $this->db('wait_paycash')->save(array('user_id'=>$user_id));
+	}
+
+	/**
+	 * 删除待支付现金用户
+	 * @param [type] $user_id  用户ID
+	 */
+	function doneWaitPaycash($user_id){//TODO 改成进入自动打款任务队列
+
+		if(!$user_id)return false;
+		$id = $this->db('wait_paycash')->field('id', array('user_id'=>$user_id));
+		if($id && $this->db('wait_paycash')->delete($id)){
+			return true;
+		}
+		return false;
 	}
 }
 ?>

@@ -15,17 +15,18 @@ class Fund extends _Dal {
 	 * 获取指定用户的资产余额
 	 * @param  bigint  $user_id  用户ID
 	 * @param  int     $cashtype 获取资产类型，留空为全部
+	 * @param  string  $sub      获取资产子订单类型，留空为全部
 	 * @param  boolean $lock     是否锁定资产，如果是，使用完需及时解锁
 	 * @return array             资产详情
 	 */
-	function getBalance($user_id, $cashtype=self::CASHTYPE_JFB, $lock=false){
+	function getBalance($user_id, $cashtype=self::CASHTYPE_JFB, $sub='', $lock=false){
 
 		//TODO model底层加入group方法，直接返回计算好的数据
 		//TODO 做资产锁，防止同时增减资产
 		if(!$user_id)return;
 		if($cashtype && ($cashtype != self::CASHTYPE_JFB && $cashtype != self::CASHTYPE_CASH))return;
 
-		$fund_logs = $this->db('fund')->findAll(array('user_id'=>$user_id, 'cashtype'=>$cashtype));
+		$fund_logs = $this->db('fund')->findAll(arrayClean(array('user_id'=>$user_id, 'cashtype'=>$cashtype, 'sub'=>$sub)));
 
 		$ret = array(self::CASHTYPE_JFB=>0, self::CASHTYPE_CASH=>0);
 		if($fund_logs){
@@ -45,6 +46,42 @@ class Fund extends _Dal {
 			return $ret[$cashtype];
 		}
 		return $ret;
+	}
+
+	/**
+	 * 获取用户购物资产总额
+	 * @param  [type] $user_id [description]
+	 * @return [type]          [description]
+	 */
+	function getShoppingBalance($user_id){
+
+		if(!$user_id)return false;
+
+		//获取购物资产
+		$balance = $this->getBalance($user_id, '', array('mall', 'taobao'));
+
+		//减去购物订单无效扣款
+		D()->db('order_reduce');
+		$reduce_orders = D('order')->getSubList('reduce', array('user_id'=>$user_id, 'type'=>\DB\OrderReduce::TYPE_ORDER), '', '');
+
+		$reduce_balance = array(self::CASHTYPE_JFB=>0, self::CASHTYPE_CASH=>0);
+		if($reduce_orders){
+			foreach ($reduce_orders as $order) {
+				$b = $this->getOrderBalance($order['o_id']);
+
+				if(isset($b[self::CASHTYPE_JFB])){
+					$reduce_balance[self::CASHTYPE_JFB] += $b[self::CASHTYPE_JFB];
+				}
+
+				if(isset($b[self::CASHTYPE_CASH])){
+					$reduce_balance[self::CASHTYPE_CASH] += $b[self::CASHTYPE_CASH];
+				}
+			}
+		}
+
+		$balance_sum = $reduce_balance[self::CASHTYPE_JFB] + $reduce_balance[self::CASHTYPE_CASH] + $balance[self::CASHTYPE_JFB] + $balance[self::CASHTYPE_CASH];
+
+		return $balance_sum;
 	}
 
 	/**
@@ -54,14 +91,14 @@ class Fund extends _Dal {
 	 * @param  boolean $lock     是否锁定资产，如果是，使用完需及时解锁
 	 * @return array             资产详情
 	 */
-	function getOrderBalance($o_id, $cashtype=self::CASHTYPE_JFB, $lock=false){
+	function getOrderBalance($o_id, $cashtype='', $lock=false){
 
 		//TODO model底层加入group方法，直接返回计算好的数据
 		//TODO 做资产锁，防止同时增减资产
 		if(!$o_id)return;
 		if($cashtype && ($cashtype != self::CASHTYPE_JFB && $cashtype != self::CASHTYPE_CASH))return;
 
-		$fund_logs = $this->db('fund')->findAll(array('o_id'=>$o_id, 'cashtype'=>$cashtype));
+		$fund_logs = $this->db('fund')->findAll(arrayClean(array('o_id'=>$o_id, 'cashtype'=>$cashtype)));
 
 		$ret = array(self::CASHTYPE_JFB=>0, self::CASHTYPE_CASH=>0);
 		if($fund_logs){
@@ -80,17 +117,19 @@ class Fund extends _Dal {
 		if($cashtype){
 			return $ret[$cashtype];
 		}
+
 		return $ret;
 	}
 
 	/**
 	 * 减少用户资产(该方法产生扣款订单，系统给用户打款，或者扣除某订单给错的资金)
+	 * (注意：应在业务层，排除该方法重复调用的风险)
 	 * @param  bigint  $user_id     用户ID
 	 * @param  int     $cashtype    扣除资产类型
 	 * @param  int     $reduce_type 扣款业务类型(order_reduce db模块定义)
 	 * @param  int     $amount      扣款金额(单位: 分)
 	 * @param  string  &$errcode    出错码，定义code_err.php
-	 * @return bool                 是否执行成功
+	 * @return string               扣款订单ID
 	 */
 	function reduceBalance($user_id, $reduce_type, $param, &$errcode=''){
 
@@ -113,7 +152,7 @@ class Fund extends _Dal {
 		}
 
 		//扣除订单产生的资产，需传入扣除订单号，资产类型，数量
-		if($reduce_type == \DB\OrderReduce::TYPE_ORDER){
+		if($reduce_type == \DB\OrderReduce::TYPE_ORDER || $reduce_type == \DB\OrderReduce::TYPE_CASHGIFT){
 			if(!$param['refer_o_id'] || !$param['cashtype'] || !$param['amount']){
 				$errcode = _e('sys_param_err');
 				return false;
@@ -121,7 +160,7 @@ class Fund extends _Dal {
 			$is_show = 0;
 		}
 
-		$max = $this->getBalance($user_id, $param['cashtype'], true);
+		$max = $this->getBalance($user_id, $param['cashtype'], '', true);
 
 		if($max === false){
 			$errcode = _e('balance_locked');
@@ -135,48 +174,119 @@ class Fund extends _Dal {
 
 		D()->db('order_reduce');
 
-		$ret = D('order')->add($user_id, \DAL\Order::STATUS_PASS, 'reduce', $param['cashtype'], \DAL\Order::N_REDUCE, $param['amount'], array('type'=>$reduce_type, 'refer_o_id'=>$param['refer_o_id']), $is_show);
+		$o_id = D('order')->add($user_id, \DAL\Order::STATUS_PASS, 'reduce', $param['cashtype'], \DAL\Order::N_REDUCE, $param['amount'], array('type'=>$reduce_type, 'refer_o_id'=>$param['refer_o_id']), $is_show);
 
 		$this->unlock($user_id);
 
-		if(!$ret){
+		if(!$o_id){
 			$errcode = _e('sys_db_save_err');
 			return false;
 		}
 
-		return $ret;
+		//发送购物资产减少消息
+		if($reduce_type == \DB\OrderReduce::TYPE_ORDER){
+			$fund_id = D('order')->getSubDetail('reduce', $o_id, 'fund_id');
+			if($fund_id)$this->sendMsg($fund_id, $m_order['user_id']);
+		}
+
+		return $o_id;
 	}
 
 	/**
-	 * 退回资产，只有打款失败[支付宝账户问题]情况下
-	 * @param  [type] $o_id [description]
-	 * @return [type]       [description]
+	 * 根据已产生资产的订单，减少用户资产(该方法产生扣款订单)
+	 * (注意：应在业务层，排除该方法重复调用的风险)
+	 * @param  string  $o_id        目标订单ID
+	 * @param  string  &$errcode    出错码，定义code_err.php
+	 * @return bool                 是否执行成功
 	 */
-	function refund($o_id){
+	function reduceBalanceForOrder($o_id, &$errcode=''){
+
 		$m_order = D('order')->detail($o_id);
+		if(!$m_order){
+			$errcode = _e('order_not_exist');return false;
+		}
+
+		$money = D('fund')->getOrderBalance($o_id, $m_order['cashtype'], true);
+
+		if($money > 0){
+
+			D()->db('order_reduce');
+			$errcode = '';
+			if($m_order['sub'] == 'taobao' || $m_order['sub'] == 'mall'){
+				$reduce_type = \DB\OrderReduce::TYPE_ORDER;
+			}else if($m_order['sub'] == 'cashgift'){
+				$reduce_type = \DB\OrderReduce::TYPE_CASHGIFT;
+			}else{
+				$errcode = _e('balance_reduce_type_error');
+				return false;
+			}
+
+			$ret = $this->reduceBalance($m_order['user_id'], $reduce_type, array('refer_o_id'=>$o_id, 'cashtype'=>$m_order['cashtype'], 'amount'=>$money), $errcode);
+
+			if(!$ret){
+				$errcode = _e('balance_reduce_order_add_err');
+				return false;
+			}
+
+		}
+		return true;
+	}
+
+	/**
+	 * 退回资产，只有打款失败[支付宝账户问题]等特殊情况下，增加退款订单
+	 * @param  [type] $o_id        [description]
+	 * @param  string &$errcode    出错码，定义code_err.php
+	 * @return bool                是否执行成功
+	 */
+	function refund($o_id, &$errcode){
+
+		if(!$o_id)return false;
+
+		$m_order = D('order')->detail($o_id);
+		if(!$m_order){
+			$errcode = _e('order_not_exist');return false;
+		}
+
 		$sub_status = D('order')->getSubDetail('reduce', $o_id, 'status');
 
+		D()->db('order_refund');
+		$exist = D('order')->getSubList('refund', array('refer_o_id'=>$o_id, 'status'=>\DB\OrderRefund::STATUS_PASS));
+		//不允许重复退款
+		if($exist){
+			$errcode = _e('refund_repeat');return false;
+		}
+
 		//只有打款失败[支付宝账户问题]情况下
-		if($sub_status != \DB\OrderReduce::STATUS_ALIPAY_ERROR)return false;
+		if($sub_status != \DB\OrderReduce::STATUS_ALIPAY_ERROR){
+			$errcode = _e('refund_only_allow_alipay_invalid');return;
+		}
 
 		$amount = $this->getOrderBalance($o_id, $m_order['cashtype'], true);
 		if($amount < 0){
-			$found_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['sub'], $m_order['cashtype'], self::N_ADD, abs($amount));
+			$ret = D('order')->add($m_order['user_id'], \DAL\Order::STATUS_PASS, 'refund', $m_order['cashtype'], \DAL\Order::N_ADD, abs($amount), array('refer_o_id'=>$o_id), 0);
 			$this->unlock($m_order['user_id']);
-			return true;
+			if($ret){
+				$errcode = _e('refund_order_add_err');
+				return true;
+			}else{
+				$errcode = _e('refund_refer_order_not_add_balance');
+				return false;
+			}
 		}else{
+			$errcode = _e('refund_refer_order_not_add_balance');
 			return false;
 		}
 	}
 
 	/**
-	 * 根据订单金额调整用户资产(可用于增/减，适用于订单确认后正式操作用户资产)
+	 * 根据订单金额平衡用户资产(可用于增/减，适用于订单确认后正式操作用户资产)
 	 * @param [type] $user_id [description]
 	 * @param [type] $o_id    [description]
+	 * @return bool                是否执行成功
 	 */
 	function adjustBalanceForOrder($o_id){
 
-		if(!$o_id)return;
+		if(!$o_id)return false;
 
 		$m_order = D('order')->detail($o_id);
 		$money = $this->getOrderBalance($o_id, $m_order['cashtype'], true);
@@ -184,18 +294,60 @@ class Fund extends _Dal {
 
 		if($prepare != 0){
 			$n =  $prepare < 0? self::N_REDUCE: self::N_ADD;
-			$found_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['sub'], $m_order['cashtype'], $n, abs($prepare));
+			$fund_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['sub'], $m_order['cashtype'], $n, abs($prepare));
 
+			//发送购物资产变更消息
+			$this->sendMsg($fund_id, $m_order['user_id']);
 			$this->unlock($m_order['user_id']);
-			return $found_id;
+			return $fund_id;
 		}
 
 		return true;
 	}
 
+	//获取流水信息
+	function detail($fund_id){
+
+		if(!$fund_id)return false;
+		$detail = $this->db('fund')->find(array('id'=>$fund_id));
+		return clearTableName($detail);
+	}
+
 	//资产解锁
 	function unlock($user_id){
 		return true;
+	}
+
+	/**
+	 * 发送购物资产变更消息
+	 * @param  int    $fund_id    资产流水ID
+	 * @param  [type] $user_id    用户ID
+	 * @return bool               是否发送成功
+	 */
+	function sendMsg($fund_id, $user_id){
+
+		if(!$fund_id || !$user_id || D('user')->sys($user_id))return;
+		return D()->redis('queue')->add(\REDIS\Queue::KEY_BALANCE, $fund_id);
+	}
+
+	/**
+	 * 获取购物资产变更消息
+	 * @return string              资产流水ID
+	 */
+	function getMsg(){
+
+		return D()->redis('queue')->bget(\REDIS\Queue::KEY_BALANCE);
+	}
+
+	/**
+	 * 完成购物资产变更消息触发的任务
+	 * @param  int    $fund_id    资产流水ID
+	 * @return bool               是否执行成功
+	 */
+	function doneMsg($fund_id){
+
+		if(!$fund_id)return;
+		return D()->redis('queue')->done(\REDIS\Queue::KEY_BALANCE, $fund_id);
 	}
 
 }

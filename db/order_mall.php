@@ -27,7 +27,7 @@ class OrderMall extends _Db {
 	 * 新增用户扣款订单
 	 * @param char    $o_id     主订单编号
 	 * @param bigint  $user_id  用户ID
-	 * @param array   $data     订单初始数据，扣款类型typ(1:系统提现)
+	 * @param array   $data     订单初始数据
 	 * return char              主订单编号
 	 */
 	function add($o_id, $user_id, $data=array()){
@@ -66,6 +66,10 @@ class OrderMall extends _Db {
 			throw new \Exception("[order_mall][o_id:{$o_id}][update][param error]");
 		}
 		$old_detail = $this->find(array('o_id'=>$o_id));
+
+		if(!$old_detail){
+			throw new \Exception("[order_mall][o_id:{$o_id}][update][o_id not exist]");
+		}
 
 		$new_field['o_id'] = $o_id;
 		$ret = parent::save(arrayClean($new_field));
@@ -123,25 +127,23 @@ class OrderMall extends _Db {
 
 			//主订单状态变为已通过
 			D('order')->db('order')->update($o_id, \DAL\Order::STATUS_PASS);
+
+			if(!$ret){
+				throw new \Exception("[order_mall][o_id:{$o_id}][m_order][update status error]");
+			}
+
 			return true;
 		}
 
-		//商城订单状态由已通过 => 不通过，进行账号扣除流水，主订单变为不通过
+		//商城订单状态 => 不通过，进行账号扣除流水，主订单变为不通过
 		if($to == self::STATUS_INVALID){
 
 			//有可能是afterUpdateRStatus传递过来，因此再次设置主状态
 			$this->update($o_id, array('status'=>self::STATUS_INVALID));
-			$money = D('fund')->getOrderBalance($o_id, $m_order['cashtype'], true);
-
-			if($money > 0){
-				D()->db('order_reduce');
-				$errcode = '';
-
-				$ret = D('fund')->reduceBalance($m_order['user_id'], \DB\OrderReduce::TYPE_ORDER, array('refer_o_id'=>$o_id, 'cashtype'=>$m_order['cashtype'], 'amount'=>$money), $errcode);
-
-				if(!$ret){
-					throw new \Exception("[order_mall][o_id:{$o_id}][afterUpdateStatus][reduceBalance error]["._e($errcode, false)."]");
-				}
+			$errcode = '';
+			$ret = D('fund')->reduceBalanceForOrder($o_id, $errcode);
+			if(!$ret){
+				throw new \Exception("[order_mall][o_id:{$o_id}][afterUpdateStatus][reduceBalanceForOrder error]["._e($errcode, false)."]");
 			}
 
 			//主订单状态变为不通过

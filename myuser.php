@@ -157,21 +157,6 @@ class Myuser extends _Dal {
 		}
 	}
 
-	function getCashGift($status=''){
-
-		if(!$this->isLogined())return;
-		//1-新人抽奖 2-新人任务 5-新人条件红包
-		$sent = D('order')->getSubList('cashgift', array('user_id'=>$this->getId(), 'status'=>$status));
-		$gifttype = array();
-		if($sent){
-			foreach($sent as $s){
-				@$gifttype[$s['gifttype']] += 1;
-			}
-		}
-
-		return $gifttype;
-	}
-
 	/**
 	 * 获取去过的商城/判断是否去过某商城($sp赋值)
 	 * 用途：跳转页面出现首次提醒
@@ -185,18 +170,25 @@ class Myuser extends _Dal {
 		}
 	}
 
-	/**
-	 * 增加去过的商城次数
-	 */
+	//增加当前用户去过的商城次数
 	function addSp($sp){
 
 		if(!$this->isLogined())return;
-
 		$count = intval($this->sess('userinfo.sp.'.$sp));
 		$count++;
 		$this->sess('userinfo.sp.'.$sp, $count);
 		$this->db('user')->update($this->getId(), array('sp'=>serialize($this->getSp())));
 		return $count;
+	}
+
+	/**
+	 * 获取当前用户的红包信息
+	 * @return [type] [description]
+	 */
+	function getCashGift($status=''){
+
+		if(!$this->isLogined())return;
+		return D('cashgift')->getSummary($this->getId(), $status);
 	}
 }
 

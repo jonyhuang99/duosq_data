@@ -1,5 +1,5 @@
 <?php
-//红包订单表操作基类，***订单相关操作出错必须throw Exception***
+//扣款订单表操作基类，***订单相关操作出错必须throw Exception***
 //子订单模块必须定义确认状态STATUS_PASS[到账网站]常量
 namespace DB;
 
@@ -18,12 +18,13 @@ class OrderReduce extends _Db {
 
 	const TYPE_SYSPAY = 1; //系统提现扣除订单
 	const TYPE_ORDER = 2; //购物订单无效扣款
+	const TYPE_CASHGIFT = 3; //现金红包订单无效扣款
 
 	/**
 	 * 新增用户扣款订单
 	 * @param char    $o_id     主订单编号
 	 * @param bigint  $user_id  用户ID
-	 * @param array   $data     订单初始数据，扣款类型typ(1:系统提现)
+	 * @param array   $data     订单初始数据，扣款类型type(1:系统提现 2:购物订单无效 3:红包订单无效)
 	 * return char              主订单编号
 	 */
 	function add($o_id, $user_id, $data=array()){
@@ -54,7 +55,12 @@ class OrderReduce extends _Db {
 		if(!$o_id || !$new_field){
 			throw new \Exception("[order_reduce][o_id:{$o_id}][update][param error]");
 		}
+
 		$old_detail = $this->find(array('o_id'=>$o_id));
+
+		if(!$old_detail){
+			throw new \Exception("[order_reduce][o_id:{$o_id}][update][o_id not exist]");
+		}
 
 		$new_field['o_id'] = $o_id;
 		$ret = parent::save(arrayClean($new_field));
