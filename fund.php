@@ -172,9 +172,7 @@ class Fund extends _Dal {
 			return false;
 		}
 
-		D()->db('order_reduce');
-
-		$o_id = D('order')->add($user_id, \DAL\Order::STATUS_PASS, 'reduce', $param['cashtype'], \DAL\Order::N_REDUCE, $param['amount'], array('type'=>$reduce_type, 'refer_o_id'=>$param['refer_o_id']), $is_show);
+		$o_id = D('order')->addReduce($user_id, array_merge($param, array('type'=>$reduce_type)));
 
 		$this->unlock($user_id);
 
@@ -238,7 +236,7 @@ class Fund extends _Dal {
 	 * @param  string &$errcode    出错码，定义code_err.php
 	 * @return bool                是否执行成功
 	 */
-	function refund($o_id, &$errcode){
+	function refund($o_id, &$errcode=''){
 
 		if(!$o_id)return false;
 
@@ -263,7 +261,14 @@ class Fund extends _Dal {
 
 		$amount = $this->getOrderBalance($o_id, $m_order['cashtype'], true);
 		if($amount < 0){
-			$ret = D('order')->add($m_order['user_id'], \DAL\Order::STATUS_PASS, 'refund', $m_order['cashtype'], \DAL\Order::N_ADD, abs($amount), array('refer_o_id'=>$o_id), 0);
+
+			$sub_data = array();
+			$sub_data['cashtype'] = $m_order['cashtype'];
+			$sub_data['refer_o_id'] = $o_id;
+			$sub_data['amount'] = abs($amount);
+
+			$ret = D('order')->addRefund($m_order['user_id'], $sub_data);
+
 			$this->unlock($m_order['user_id']);
 			if($ret){
 				$errcode = _e('refund_order_add_err');

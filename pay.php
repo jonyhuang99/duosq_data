@@ -10,7 +10,7 @@ class Pay extends _Dal {
 	 * @param  int   $errcode   错误码(见code_err.php)
 	 * @return bool             支付结果(失败:false $errcode)(成功: array('o_id','amount','alipay'))
 	 */
-	function jfb($user_id, &$errcode){
+	function jfb($user_id, &$errcode=''){
 
 		if(!$user_id || D('user')->sys($user_id)){
 			$errcode = _e('sys_param_err');
@@ -171,10 +171,11 @@ class Pay extends _Dal {
 		D('order')->updateSub('reduce', $o_id, array('status'=>\DB\OrderReduce::STATUS_PAY_DONE));
 		//更新支付宝验证信息
 		D('user')->validAlipay($user_id, \DAL\User::ALIPAY_VALID_JFB);
-		//触发打款完毕到账通知，在业务表层做，防止打款事务未完，提前通知
-		D('notify')->addPaymentCompleteJob($o_id);
 
 		D('log')->pay($o_id, 1, 0, $alipay, $cashtype, $amount, $api_name, $api_ret);
+
+		//触发打款完毕到账通知，在业务表层做，防止打款事务未完，提前通知
+		D('notify')->addPaymentCompleteJob($o_id);
 
 		return true;
 	}

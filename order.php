@@ -280,6 +280,31 @@ class Order extends _Dal {
 	}
 
 	/**
+	 * 封装增加扣款订单便捷方法
+	 * @param bigint  $user_id  用户ID
+	 * @param array   $sub_data 扣款订单数据
+	 * @param integer $is_show  是否显示在个人中心
+	 */
+	function addReduce($user_id, $sub_data, $is_show=1){
+
+		$ret = D('order')->add($user_id, self::STATUS_PASS, 'reduce', $sub_data['cashtype'], self::N_REDUCE, $sub_data['amount'], $sub_data);
+
+		return $ret;
+	}
+
+	/**
+	 * 封装增加退款订单便捷方法
+	 * @param bigint  $user_id  用户ID
+	 * @param array   $sub_data 退款订单数据
+	 */
+	function addRefund($user_id, $sub_data){
+
+		$ret = D('order')->add($user_id, self::STATUS_PASS, 'refund', $sub_data['cashtype'], self::N_ADD, $sub_data['amount'], $sub_data, 0);
+
+		return $ret;
+	}
+
+	/**
 	 * 根据不同订单，渲染订单状态字段，附加到status_display字段
 	 * @param  [type] $lists [description]
 	 * @return [type]       [description]
