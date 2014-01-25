@@ -17,7 +17,13 @@ class Item extends _Dal {
 				return json_decode($cache['content'], true);
 			return false;//商品无返利
 		}
-		$detail = $this->api($sp)->getItemDetail($param);
+
+		//任务链接永远有返利
+		if($param == C('comm', 'newgift_task_pid')){
+			$detail = array('p_title'=>'多省钱(duosq.com)粘贴网址开启红包专用商品', 'p_seller'=>'多省钱官方店', 'p_price'=>'10.00', 'p_pic_url'=>'http://www.duosq.com/img/avatar.png', 'has_fanli'=>1);
+		}else{
+			$detail = $this->api($sp)->getItemDetail($param);
+		}
 
 		if (!isset($detail['errcode'])) {
 			if (@$detail['has_fanli']) {
