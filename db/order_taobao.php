@@ -85,6 +85,18 @@ class OrderTaobao extends _Db {
 
 		clearTableName($old_detail);
 
+		//返利变化，及时更改订单返利
+		if(isset($new_field['fanli'])){
+			if($old_detail['fanli'] != $new_field['fanli']){
+				D()->db('order')->updateFanli($o_id, $new_field['fanli']);
+
+				//如果订单已返利，则进行订单资产平衡
+				if($old_detail['status'] == self::STATUS_PASS){
+					$ret = D('fund')->adjustBalanceForOrder($o_id);
+				}
+			}
+		}
+
 		//触发主状态变化，主状态在后台审核时会更新
 		if(isset($new_field['status'])){
 
@@ -168,7 +180,6 @@ class OrderTaobao extends _Db {
 		//淘宝订单子状态由 其他状态 => 已成交，子订单主状态变为待审，修改主订单金额，资产操作为增加
 		if( $to == self::R_STATUS_COMPLETED){
 
-			D()->db('order')->updateFanli($o_id, $new_field['fanli']);
 			$this->update($o_id, array('status'=>self::STATUS_WAIT_CONFIRM));
 			return true;
 		}
