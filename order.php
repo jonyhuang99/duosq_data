@@ -227,7 +227,8 @@ class Order extends _Dal {
 			$ret_true['o_id'] = $ret;
 
 			//在业务表层触发打款，防止加资产事务未完成，打款发现资产不足
-			D('pay')->addAutopayJob($cashtype, $user_id);
+			if($status == self::STATUS_PASS)
+				D('pay')->addAutopayJob($cashtype, $user_id);
 		}
 		return $ret;
 	}
