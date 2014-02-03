@@ -8,18 +8,21 @@ class Queue extends _Redis {
 	var $namespace = 'queue';
 	var $dsn_type = 'database';
 
+	static $QUEUE_DATA = array();
+
 	const KEY_AUTOPAY = 'autopay'; //自动打款队列
 	const KEY_BALANCE = 'fund'; //资产变更队列
 
 	/**
-	 * 增加消息
+	 * 增加消息，静态缓存
 	 * @param string  $key  消息类型
 	 * @param string  $msg  消息内容
 	 */
 	function add($key, $msg){
 
 		if(!$key || !$msg)return;
-		return $this->lpush($key, $msg);
+		self::$QUEUE_DATA[] = array('key'=>$key, 'msg'=>$msg);
+		return true;
 	}
 
 	/**
@@ -44,6 +47,20 @@ class Queue extends _Redis {
 		if(!$key || !$msg)return;
 		$ret = $this->lrem($key.':doing', $msg, -1);
 		return $ret;
+	}
+
+	/**
+	 * 提交静态缓存中的消息
+	 * @return [type] [description]
+	 */
+	function __destruct(){
+
+		if(self::$QUEUE_DATA){
+			foreach(self::$QUEUE_DATA as $data){
+				$this->lpush($data['key'], $data['msg']);
+			}
+		}
+		return true;
 	}
 }
 ?>

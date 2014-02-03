@@ -52,6 +52,8 @@ class Duoduo extends _Api {
 				$errcode = _e('jfb_account_nofound');
 			} elseif (strpos($api_return['r'], '支付宝一日内第3次提现') !== false) {
 				$errcode = _e('jfb_duoduo_limit_3times_pre_day');
+			} elseif (strpos($api_return['r'], '集分宝余额不足') !== false) {
+				$errcode = _e('jfb_not_enough');
 			} elseif (strpos($api_return['r'], '校验码') !== false) {
 				$errcode = _e('jfb_apikey_invalide');
 			} else {
