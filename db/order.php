@@ -115,8 +115,14 @@ class Order extends _Db {
 	 * @param char    $o_id     主订单编号
 	 * @param int     $user_id  对应用户ID
 	 */
-	function updateUserid($o_id, $user_id){
+	function updateUserId($o_id, $user_id){
+		if(!$o_id || !$user_id)return;
+		$ret = parent::save(array('o_id'=>$o_id, 'user_id'=>$user_id));
 
+		if(!$ret){
+			throw new \Exception("[order:{$o_id}][updateUserId][save error]");
+		}
+		return $ret;
 	}
 
 	//置空save，只允许从add/update进入
