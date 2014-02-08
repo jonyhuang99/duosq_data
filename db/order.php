@@ -110,6 +110,15 @@ class Order extends _Db {
 		return $ret;
 	}
 
+	/**
+	 * 更新主订单对应用户ID
+	 * @param char    $o_id     主订单编号
+	 * @param int     $user_id  对应用户ID
+	 */
+	function updateUserid($o_id, $user_id){
+
+	}
+
 	//置空save，只允许从add/update进入
 	function save(){}
 }
