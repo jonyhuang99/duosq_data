@@ -13,7 +13,7 @@ class Outcode extends _Redis {
 	function create() {
 
 		$date = date('ymd');
-		$key = 'id::' . $date;
+		$key = 'date:' . $date;
 		$current = $this->incr($key);
 		$this->expire($key, DAY * 2);
 		return $date . pad($current, 6);
