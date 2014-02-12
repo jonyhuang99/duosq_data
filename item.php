@@ -9,7 +9,7 @@ class Item extends _Dal {
 
 		if (!$sp || !$param) return false;
 		$log_obj = $this->db('cache_api_item');
-		$cache = $log_obj->find(array('sp' => $sp, 'p_id' => $param, 'created' => date('Y-m-d')));
+		$cache = $log_obj->find(array('sp' => $sp, 'p_id' => $param, 'createdate' => date('Y-m-d')));
 		clearTableName($cache);
 
 		if ($cache){
