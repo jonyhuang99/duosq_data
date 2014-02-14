@@ -92,6 +92,15 @@ class OrderMall extends _Db {
 			}
 		}
 
+		//用户ID变化，当主订单状态未打款前，都可以修正
+		if(isset($new_field['user_id']) && D('user')->sys($new_field['user_id']) == false && D('user')->sys($old_detail['user_id'])){
+			//修正主订单用户ID
+			$main_status = D('order')->detail($o_id, 'status');
+			if($main_status != \DAL\Order::STATUS_PASS){
+				D('order')->db('order')->updateUserid($o_id, $new_field['user_id']);
+			}
+		}
+
 		//触发主状态变化，主状态在后台审核时会更新
 		if(isset($new_field['status'])){
 

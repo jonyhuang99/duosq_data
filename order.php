@@ -127,7 +127,6 @@ class Order extends _Dal {
 		try{
 
 			$o_id = $this->redis('order')->createId();
-
 			$sub_table = 'order_'.$sub;
 			$this->db('order')->add($o_id, $user_id, $status, $sub, $cashtype, $n, $amount, $is_show);
 
@@ -225,10 +224,6 @@ class Order extends _Dal {
 			$ret_true = array();
 			$ret_true['amount'] = $amount;
 			$ret_true['o_id'] = $ret;
-
-			//在业务表层触发打款，防止加资产事务未完成，打款发现资产不足
-			if($status == self::STATUS_PASS)
-				D('pay')->addAutopayJob($cashtype, $user_id);
 		}
 		return $ret;
 	}
@@ -301,6 +296,18 @@ class Order extends _Dal {
 	function addRefund($user_id, $sub_data){
 
 		$ret = D('order')->add($user_id, self::STATUS_PASS, 'refund', $sub_data['cashtype'], self::N_ADD, $sub_data['amount'], $sub_data, 0);
+
+		return $ret;
+	}
+
+	/**
+	 * 封装增加邀请好友奖励订单便捷方法
+	 * @param bigint  $user_id  用户ID
+	 * @param array   $sub_data 奖励订单数据
+	 */
+	function addInvite($user_id, $sub_data){
+
+		$ret = D('order')->add($user_id, self::STATUS_PASS, 'invite', self::CASHTYPE_CASH, self::N_ADD, $sub_data['amount'], $sub_data, 0);
 
 		return $ret;
 	}
@@ -382,6 +389,10 @@ class Order extends _Dal {
 				case 'cashgift':
 					$map = C('options', 'order_cashgift_gifttype');
 					$v['sub_display'] = $map[$v['sub_detail']['gifttype']];
+					break;
+				case 'invite':
+					$alipay = D('user')->detail($v['sub_detail']['child_id'], 'alipay');
+					$v['sub_display'] = '好友['.mask($alipay).']购物分成奖励';
 					break;
 				default:
 					break;

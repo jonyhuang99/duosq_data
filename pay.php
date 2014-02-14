@@ -211,39 +211,6 @@ class Pay extends _Dal {
 	}
 
 	/**
-	 * 添加自动打款任务
-	 * @param [type] $cashtype 资金类型
-	 * @param [type] $user_id  用户ID
-	 */
-	function addAutopayJob($cashtype, $user_id){
-
-		if(!$cashtype || !$user_id || D('user')->sys($user_id))return;
-		return D()->redis('queue')->add(\REDIS\Queue::KEY_AUTOPAY.":cashtype:{$cashtype}", $user_id);
-	}
-
-	/**
-	 * 获取自动打款任务
-	 * @param [type] $cashtype 资金类型
-	 * return bigint           用户ID
-	 */
-	function getAutopayJob($cashtype){
-
-		if(!$cashtype)return;
-		return D()->redis('queue')->bget(\REDIS\Queue::KEY_AUTOPAY.":cashtype:{$cashtype}");
-	}
-
-	/**
-	 * 完成自动打款任务
-	 * @param [type] $cashtype 资金类型
-	 * @param [type] $user_id  用户ID
-	 */
-	function doneAutopayJob($cashtype, $user_id){
-
-		if(!$cashtype || !$user_id)return;
-		return D()->redis('queue')->done(\REDIS\Queue::KEY_AUTOPAY.":cashtype:{$cashtype}", $user_id);
-	}
-
-	/**
 	 * 增加待支付现金用户
 	 * @param [type] $user_id  用户ID
 	 */

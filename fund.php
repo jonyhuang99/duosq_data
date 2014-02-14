@@ -85,6 +85,34 @@ class Fund extends _Dal {
 	}
 
 	/**
+	 * 获取用户邀请指定下线用户总共获得的提成
+	 * @param  [type] $user_id  上游用户ID
+	 * @param  [type] $child_id 下游用户ID
+	 * @return [type]           [description]
+	 */
+	function getInviteRewardBalance($user_id, $child_id){
+
+		$reward_orders = D('order')->getSubList('invite', array('user_id'=>$user_id, 'child_id'=>$child_id), '', '');
+		if($reward_orders){
+			foreach ($reward_orders as $order) {
+				$b = $this->getOrderBalance($order['o_id']);
+
+				if(isset($b[self::CASHTYPE_JFB])){
+					$reduce_balance[self::CASHTYPE_JFB] += $b[self::CASHTYPE_JFB];
+				}
+
+				if(isset($b[self::CASHTYPE_CASH])){
+					$reduce_balance[self::CASHTYPE_CASH] += $b[self::CASHTYPE_CASH];
+				}
+			}
+		}
+
+		$balance_sum = $reduce_balance[self::CASHTYPE_JFB] + $reduce_balance[self::CASHTYPE_CASH] + $balance[self::CASHTYPE_JFB] + $balance[self::CASHTYPE_CASH];
+
+		return $balance_sum;
+	}
+
+	/**
 	 * 获取指定订单的资产操作结果
 	 * @param  bigint  $o_id     订单ID
 	 * @param  int     $cashtype 获取资产类型，留空为全部

@@ -31,6 +31,16 @@ class Myuser extends _Dal {
 			if($user_id = $this->db('user')->add($alipay, D('mark')->getId(), D('mark')->getScRisk())){
 				$ret['user_id'] = $user_id;
 				$ret['exist'] = false;
+
+				//保存邀请好友
+				if($_COOKIE['parent_id']){
+					$parent_id = deID($_COOKIE['parent_id']);
+					if($parent_id){
+						D('friend')->saveInvite($user_id, $parent_id);
+						//互为朋友圈
+						D('friend')->addQuan($parent_id, $user_id);
+					}
+				}
 				$this->db()->commit();
 			}else{
 				$this->db()->rollback();
