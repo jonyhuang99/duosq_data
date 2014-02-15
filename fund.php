@@ -93,22 +93,22 @@ class Fund extends _Dal {
 	function getInviteRewardBalance($user_id, $child_id){
 
 		$reward_orders = D('order')->getSubList('invite', array('user_id'=>$user_id, 'child_id'=>$child_id), '', '');
+
+		$reward_balance = array(self::CASHTYPE_JFB=>0, self::CASHTYPE_CASH=>0);
 		if($reward_orders){
 			foreach ($reward_orders as $order) {
 				$b = $this->getOrderBalance($order['o_id']);
-
 				if(isset($b[self::CASHTYPE_JFB])){
-					$reduce_balance[self::CASHTYPE_JFB] += $b[self::CASHTYPE_JFB];
+					$reward_balance[self::CASHTYPE_JFB] += $b[self::CASHTYPE_JFB];
 				}
 
 				if(isset($b[self::CASHTYPE_CASH])){
-					$reduce_balance[self::CASHTYPE_CASH] += $b[self::CASHTYPE_CASH];
+					$reward_balance[self::CASHTYPE_CASH] += $b[self::CASHTYPE_CASH];
 				}
 			}
 		}
 
-		$balance_sum = $reduce_balance[self::CASHTYPE_JFB] + $reduce_balance[self::CASHTYPE_CASH] + $balance[self::CASHTYPE_JFB] + $balance[self::CASHTYPE_CASH];
-
+		$balance_sum = $reward_balance[self::CASHTYPE_JFB] + $reward_balance[self::CASHTYPE_CASH];
 		return $balance_sum;
 	}
 

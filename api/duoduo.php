@@ -33,6 +33,7 @@ class Duoduo extends _Api {
 
 		if(MY_DEBUG_PAY_SUCC==true){
 			$api_return = array('s'=>1);
+			$api_ret = '模拟支付';
 		}else if($p['checksum']){
 			$api_ret = file_get_contents($url);
 			$api_return = json_decode($api_ret, true);

@@ -33,12 +33,12 @@ class OrderTaobao extends _Db {
 	function add($o_id, $user_id, $data=array()){
 
 		if(!$o_id || !$user_id || !$data['r_orderid'] || !$data['r_id']){
-			throw new \Exception("[order_taobao][o_id:{$o_id}][add][param error]");
+			throw new \Exception("[order_taobao][error][o_id:{$o_id}][add][param error]");
 		}
 
 		$exist = $this->find(array('r_orderid'=>$data['r_orderid'], 'r_id'=>$data['r_id']));
 		if($exist){
-			throw new \Exception("[order_taobao][o_id:{$o_id}][add][r_orderid:{$data['r_orderid']} existed]");
+			throw new \Exception("[order_taobao][error][o_id:{$o_id}][add][r_orderid:{$data['r_orderid']} existed]");
 		}
 
 		$this->create();
@@ -46,14 +46,14 @@ class OrderTaobao extends _Db {
 		$data['user_id'] = $user_id;
 		$ret = parent::save($data);
 		if(!$ret){
-			throw new \Exception("[order_taobao][o_id:{$o_id}][add][save error]");
+			throw new \Exception("[order_taobao][error][o_id:{$o_id}][add]");
 		}
 
 		//更新淘宝店铺佣金表
 		$ret2 = D()->db('shop_taobao')->save(array('shopname'=>$data['r_shopname'], 'wangwang'=>$data['r_wangwang'], 'yongjin_rate'=>$data['r_yongjin_rate']));
 
 		if(!$ret2){
-			throw new \Exception("[order_taobao][o_id:{$o_id}][add][save shop_taobao error]");
+			throw new \Exception("[order_taobao][error][o_id:{$o_id}][add][save shop_taobao error]");
 		}
 
 		return $ret;
@@ -67,20 +67,20 @@ class OrderTaobao extends _Db {
 	function update($o_id, $new_field){
 
 		if(!$o_id || !$new_field){
-			throw new \Exception("[order_taobao][o_id:{$o_id}][update][param error]");
+			throw new \Exception("[order_taobao][error][o_id:{$o_id}][update][param error]");
 		}
 
 		$old_detail = $this->find(array('o_id'=>$o_id));
 
 		if(!$old_detail){
-			throw new \Exception("[order_taobao][o_id:{$o_id}][update][o_id not exist]");
+			throw new \Exception("[order_taobao][error][o_id:{$o_id}][update][o_id not exist]");
 		}
 
 		$new_field['o_id'] = $o_id;
 		$ret = parent::save(arrayClean($new_field));
 
 		if(!$ret){
-			throw new \Exception("[order_taobao][o_id:{$o_id}][update][save error]");
+			throw new \Exception("[order_taobao][error][o_id:{$o_id}][save]");
 		}
 
 		clearTableName($old_detail);
@@ -136,12 +136,12 @@ class OrderTaobao extends _Db {
 		$m_order = D('order')->detail($o_id);
 
 		if(!$m_order){
-			throw new \Exception("[order_taobao][afterUpdateStatus][m_order:{$o_id} not found]");
+			throw new \Exception("[order_taobao][error][afterUpdateStatus][m_order:{$o_id} not found]");
 		}
 
 		//淘宝订单状态由 已通过 => 待审，不允许逆向，防止上传淘宝订单重置状态到待审核
 		if($from == self::STATUS_PASS && $to == self::STATUS_WAIT_CONFIRM){
-			throw new \Exception("[order_taobao][o_id:{$o_id}][can not from STATUS_PASS to STATUS_WAIT_CONFIRM][warn]");
+			throw new \Exception("[order_taobao][warn][o_id:{$o_id}][can not from STATUS_PASS to STATUS_WAIT_CONFIRM]");
 		}
 
 		//淘宝订单状态由待处理 => 已通过，进行账号增加流水
@@ -149,17 +149,22 @@ class OrderTaobao extends _Db {
 
 			$ret = D('fund')->adjustBalanceForOrder($o_id);
 			if(!$ret){
-				throw new \Exception("[order_taobao][o_id:{$o_id}][afterUpdateStatus][adjustBalanceForOrder error]");
+				throw new \Exception("[order_taobao][error][o_id:{$o_id}][afterUpdateStatus][adjustBalanceForOrder]");
 			}
 
 			//主订单状态变为已通过
 			$ret = D('order')->db('order')->update($o_id, \DAL\Order::STATUS_PASS);
 
 			if(!$ret){
-				throw new \Exception("[order_taobao][o_id:{$o_id}][m_order][update status error]");
+				throw new \Exception("[order_taobao][error][o_id:{$o_id}][m_order][update status]");
 			}
 
 			return true;
+		}
+
+		//不允许从其他状态变为通过
+		if($from != self::STATUS_PASS && $to == self::STATUS_PASS){
+			throw new \Exception("[order_taobao][error][o_id:{$o_id}][m_order][can not from({$from}) to({$to})]");
 		}
 
 		//淘宝订单状态 => 不通过，进行账号扣除流水，主订单变为不通过

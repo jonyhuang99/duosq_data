@@ -33,7 +33,7 @@ class OrderMall extends _Db {
 	function add($o_id, $user_id, $data=array()){
 
 		if(!$o_id || !$user_id || !$data['r_orderid']){
-			throw new \Exception("[order_mall][o_id:{$o_id}][add][param error]");
+			throw new \Exception("[order_mall][error][o_id:{$o_id}][add][param error]");
 		}
 
 		//判断是否已存在
@@ -41,7 +41,7 @@ class OrderMall extends _Db {
 
 		if($exist){
 
-			throw new \Exception("[order_mall][o_id:{$o_id}][add][r_orderid:{$data['r_orderid']} existed]");
+			throw new \Exception("[order_mall][error][o_id:{$o_id}][add][r_orderid:{$data['r_orderid']} existed]");
 		}
 
 		$this->create();
@@ -49,7 +49,7 @@ class OrderMall extends _Db {
 		$data['user_id'] = $user_id;
 		$ret = parent::save($data);
 		if(!$ret){
-			throw new \Exception("[order_mall][o_id:{$o_id}][add][save error]");
+			throw new \Exception("[order_mall][error][o_id:{$o_id}][add]");
 		}
 
 		return $ret;
@@ -63,19 +63,19 @@ class OrderMall extends _Db {
 	function update($o_id, $new_field){
 
 		if(!$o_id || !$new_field){
-			throw new \Exception("[order_mall][o_id:{$o_id}][update][param error]");
+			throw new \Exception("[order_mall][error][o_id:{$o_id}][update][param error]");
 		}
 		$old_detail = $this->find(array('o_id'=>$o_id));
 
 		if(!$old_detail){
-			throw new \Exception("[order_mall][o_id:{$o_id}][update][o_id not exist]");
+			throw new \Exception("[order_mall][error][o_id:{$o_id}][update][o_id not exist]");
 		}
 
 		$new_field['o_id'] = $o_id;
 		$ret = parent::save(arrayClean($new_field));
 
 		if(!$ret){
-			throw new \Exception("[order_mall][o_id:{$o_id}][update][save error]");
+			throw new \Exception("[order_mall][error][o_id:{$o_id}][update]");
 		}
 
 		clearTableName($old_detail);
@@ -130,12 +130,12 @@ class OrderMall extends _Db {
 		$m_order = D('order')->detail($o_id);
 
 		if(!$m_order){
-			throw new \Exception("[order_mall][afterUpdateStatus][m_order:{$o_id} not found]");
+			throw new \Exception("[order_mall][error][afterUpdateStatus][m_order:{$o_id} not found]");
 		}
 
 		//商城订单状态由 已通过 => 待审，不允许逆向，防止上传商城订单重置状态到待审核
 		if($from == self::STATUS_PASS && $to == self::STATUS_WAIT_CONFIRM){
-			throw new \Exception("[order_mall][o_id:{$o_id}][can not from STATUS_PASS to STATUS_WAIT_CONFIRM][warn]");
+			throw new \Exception("[order_mall][warn][o_id:{$o_id}][can not from STATUS_PASS to STATUS_WAIT_CONFIRM]");
 		}
 
 		//商城订单状态由待处理 => 已通过，进行账号增加流水
@@ -143,17 +143,22 @@ class OrderMall extends _Db {
 
 			$ret = D('fund')->adjustBalanceForOrder($o_id);
 			if(!$ret){
-				throw new \Exception("[order_mall][o_id:{$o_id}][afterUpdateStatus][adjustBalanceForOrder error]");
+				throw new \Exception("[order_mall][error][o_id:{$o_id}][afterUpdateStatus][adjustBalanceForOrder error]");
 			}
 
 			//主订单状态变为已通过
 			D('order')->db('order')->update($o_id, \DAL\Order::STATUS_PASS);
 
 			if(!$ret){
-				throw new \Exception("[order_mall][o_id:{$o_id}][m_order][update status error]");
+				throw new \Exception("[order_mall][error][o_id:{$o_id}][m_order][update status error]");
 			}
 
 			return true;
+		}
+
+		//不允许从其他状态变为通过
+		if($from != self::STATUS_PASS && $to == self::STATUS_PASS){
+			throw new \Exception("[order_mall][error][o_id:{$o_id}][m_order][can not from({$from}) to({$to})]");
 		}
 
 		//商城订单状态 => 不通过，进行账号扣除流水，主订单变为不通过
@@ -164,7 +169,7 @@ class OrderMall extends _Db {
 			$errcode = '';
 			$ret = D('fund')->reduceBalanceForOrder($o_id, $errcode);
 			if(!$ret){
-				throw new \Exception("[order_mall][o_id:{$o_id}][afterUpdateStatus][reduceBalanceForOrder error]["._e($errcode, false)."]");
+				throw new \Exception("[order_mall][error][o_id:{$o_id}][afterUpdateStatus][reduceBalanceForOrder error]["._e($errcode, false)."]");
 			}
 
 			//主订单状态变为不通过
@@ -177,7 +182,7 @@ class OrderMall extends _Db {
 
 		$m_order = D('order')->detail($o_id);
 		if(!$m_order){
-			throw new \Exception("[order_mall][afterUpdateStatus][m_order:{$o_id} not found]");
+			throw new \Exception("[order_mall][error][afterUpdateStatus][m_order:{$o_id} not found]");
 		}
 
 		//商城订单子状态由 其他状态 => 已成交，子订单主状态变为待审，修改主订单金额，资产操作为增加

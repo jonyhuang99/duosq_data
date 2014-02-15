@@ -36,7 +36,7 @@ class Myuser extends _Dal {
 				if($_COOKIE['parent_id']){
 					$parent_id = deID($_COOKIE['parent_id']);
 					if($parent_id){
-						D('friend')->saveInvite($user_id, $parent_id);
+						D('friend')->addInvite($user_id, $parent_id);
 						//互为朋友圈
 						D('friend')->addQuan($parent_id, $user_id);
 					}
