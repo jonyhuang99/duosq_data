@@ -125,6 +125,9 @@ class Fund extends _Dal {
 
 		if(!$user_id)return 0;
 		$amount = $this->db('friend_quan_reward')->findSum('amount', array('recevier'=>$user_id));
+		if(D('myuser')->hasRobtime() != '0000-00-00 00:00:00'){
+			$amount += 1;
+		}
 		return $amount;
 	}
 
