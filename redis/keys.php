@@ -5,7 +5,7 @@ namespace REDIS;
 
 class Keys extends _Redis {
 
-	var $namespace = 'keys';
+	protected $namespace = 'keys';
 
 	/**
 	 * 多多集分宝打款key，12小时过期，value为空表示获取数据

@@ -115,7 +115,7 @@ class Myuser extends _Dal {
 		D('log')->searchSave();
 
 		//加载到cookie方便静态js直接调用
-		setcookie('display_name', mask($this->getAlipay()), time() + YEAR, '/');
+		setcookie('display_name', $this->getNickname(), time() + YEAR, '/');
 
 		return true;
 	}
@@ -150,9 +150,24 @@ class Myuser extends _Dal {
 		return $this->sess('userinfo.sc_risk');
 	}
 
+	//获取用户昵称
+	function getNickname(){
+
+		if($this->sess('userinfo.nickname')){
+			return $this->sess('userinfo.nickname');
+		}else{
+			return mask($this->getAlipay());
+		}
+	}
+
 	//判断用户是否登录
 	function isLogined(){
 		return $this->sess('userinfo.islogined')?true:false;
+	}
+
+	//判断用户是否抢过官方红包
+	function hasRobtime(){
+		return D('user')->detail($this->getId(), 'has_robtime');
 	}
 
 	//存取随机计算的新人抽奖集分宝数量
@@ -189,6 +204,18 @@ class Myuser extends _Dal {
 		$this->sess('userinfo.sp.'.$sp, $count);
 		$this->db('user')->update($this->getId(), array('sp'=>serialize($this->getSp())));
 		return $count;
+	}
+
+	//更新自己的昵称
+	function updateNickname($nickname){
+
+		if(strlen($nickname)>20)return false;
+		if(!$nickname){
+			$this->db('user')->update($this->getId(), array('nickname'=>$nickname));
+			$this->sess('userinfo.nickname', $nickname);
+			setcookie('display_name', $this->getNickname(), time() + YEAR, '/');
+			return true;
+		}
 	}
 
 	/**

@@ -5,7 +5,8 @@ namespace REDIS;
 
 class Order extends _Redis {
 
-	var $namespace = 'order';
+	protected $namespace = 'order';
+	protected $dsn_type = 'database';
 	/**
 	 * 生成20位主订单号，格式[Ymd-His-4位incr]，每秒支持1万订单
 	 * @return [string] [主订单号]

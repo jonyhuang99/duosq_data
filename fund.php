@@ -50,8 +50,8 @@ class Fund extends _Dal {
 
 	/**
 	 * 获取用户购物资产总额
-	 * @param  [type] $user_id [description]
-	 * @return [type]          [description]
+	 * @param  bigint $user_id  用户ID
+	 * @return bigint           金额(单位:分)
 	 */
 	function getShoppingBalance($user_id){
 
@@ -86,13 +86,17 @@ class Fund extends _Dal {
 
 	/**
 	 * 获取用户邀请指定下线用户总共获得的提成
-	 * @param  [type] $user_id  上游用户ID
-	 * @param  [type] $child_id 下游用户ID
-	 * @return [type]           [description]
+	 * @param  bigint $user_id  上游用户ID
+	 * @param  bigint $child_id 下游用户ID
+	 * @return bigint           金额(单位:分)
 	 */
-	function getInviteRewardBalance($user_id, $child_id){
+	function getInviteRewardBalance($user_id, $child_id=''){
 
-		$reward_orders = D('order')->getSubList('invite', array('user_id'=>$user_id, 'child_id'=>$child_id), '', '');
+		if($child_id){
+			$reward_orders = D('order')->getSubList('invite', array('user_id'=>$user_id, 'child_id'=>$child_id), '', '');
+		}else{
+			$reward_orders = D('order')->getSubList('invite', array('user_id'=>$user_id), '', '');
+		}
 
 		$reward_balance = array(self::CASHTYPE_JFB=>0, self::CASHTYPE_CASH=>0);
 		if($reward_orders){
@@ -110,6 +114,30 @@ class Fund extends _Dal {
 
 		$balance_sum = $reward_balance[self::CASHTYPE_JFB] + $reward_balance[self::CASHTYPE_CASH];
 		return $balance_sum;
+	}
+
+	/**
+	 * 获取用户抢得的朋友圈红包总金额
+	 * @param  bigint $user_id  用户ID
+	 * @return bigint           金额(单位:分)
+	 */
+	function getQuanRewardBalance($user_id){
+
+		if(!$user_id)return 0;
+		$amount = $this->db('friend_quan_reward')->findSum('amount', array('recevier'=>$user_id));
+		return $amount;
+	}
+
+	/**
+	 * 获取用户朋友圈排出的红包总金额
+	 * @param  bigint $user_id  用户ID
+	 * @return bigint           金额(单位:分)
+	 */
+	function getQuanRewardSendBalance($user_id){
+
+		if(!$user_id)return 0;
+		$amount = $this->db('friend_quan_reward')->findSum('amount', array('user_id'=>$user_id));
+		return $amount;
 	}
 
 	/**

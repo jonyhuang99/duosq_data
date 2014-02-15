@@ -5,8 +5,8 @@ namespace REDIS;
 
 class Queue extends _Redis {
 
-	var $namespace = 'queue';
-	var $dsn_type = 'database';
+	protected $namespace = 'queue';
+	protected $dsn_type = 'database';
 
 	static $QUEUE_DATA = array();
 

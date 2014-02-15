@@ -22,6 +22,18 @@ class user extends _Dal {
 		}
 	}
 
+	//获取用户昵称
+	function getNickname($user_id){
+
+		if($this->sys($user_id))return '多省钱官方';
+		$nickname = $this->detail($user_id, 'nickname');
+		if($nickname){
+			return $nickname;
+		}else{
+			return mask($this->detail($user_id, 'alipay'));
+		}
+	}
+
 	//用户支付宝验证信息更新
 	function validAlipay($user_id, $level=0){
 
