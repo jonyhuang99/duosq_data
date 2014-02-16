@@ -97,6 +97,26 @@ class Order extends _Dal {
 	}
 
 	/**
+	 * 搜索相关子订单
+	 * @param  string  $sub       子订单标识
+	 * @param  array   $condition 搜索条件
+	 * @param  bool    $one       仅搜索唯一订单
+	 * @return array              搜索结果
+	 */
+	function searchSubOrders($sub, $condition, $one=false){
+
+		if(!$condition)return;
+		if($one){
+			$ret = $this->db('order_'.$sub)->find($condition);
+		}else{
+			$ret = $this->db('order_'.$sub)->findAll($condition);
+		}
+		if($ret){
+			return clearTableName($ret);
+		}
+	}
+
+	/**
 	 * 新增用户子订单&主订单，如果主订单状态为已到账，则新增用户资产流水
 	 * @param bigint  $user_id  用户ID
 	 * @param int     $status   主订单初始状态，状态常量定义见开篇
@@ -148,6 +168,32 @@ class Order extends _Dal {
 		$this->db()->commit();
 
 		return $o_id;
+	}
+
+	/**
+	 * 更新主订单信息
+	 * @param  char   $o_id      主订单编号
+	 * @param  array  $new_field 新的字段信息
+	 * @return bool              更新结果
+	 */
+	function update($o_id, $new_field){
+
+		if(!$o_id || !$new_field){
+			return;
+		}
+
+		$this->db()->begin();
+		try{
+			$this->db('order')->update($o_id, $new_field);
+
+		}catch(\Exception $e){
+			writeLog('exception', 'DAL:order:update', $e->getMessage());
+			$this->db()->rollback();
+			return false;
+		}
+
+		$this->db()->commit();
+		return true;
 	}
 
 	/**

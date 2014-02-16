@@ -120,7 +120,7 @@ class OrderCashgift extends _Db {
 			}
 
 			//主订单状态变为已通过
-			D('order')->db('order')->update($o_id, \DAL\Order::STATUS_PASS);
+			D('order')->update($o_id, \DAL\Order::STATUS_PASS);
 
 			if(!$ret){
 				throw new \Exception("[order_cashgift][o_id:{$o_id}][m_order][update status error]");
@@ -139,7 +139,7 @@ class OrderCashgift extends _Db {
 			}
 
 			//主订单状态变为不通过
-			D('order')->db('order')->update($o_id, \DAL\Order::STATUS_INVALID);
+			D('order')->update($o_id, \DAL\Order::STATUS_INVALID);
 			return true;
 		}
 	}

@@ -226,7 +226,8 @@ class Fund extends _Dal {
 			return false;
 		}
 
-		if($max < $param['amount']){
+		//但扣款类型不为系统打款，允许扣到负
+		if($max < $param['amount'] && $reduce_type != \DB\OrderReduce::TYPE_SYSPAY){
 			$errcode = _e('balance_not_enough');
 			return false;
 		}
@@ -242,8 +243,8 @@ class Fund extends _Dal {
 
 		//发送购物资产减少消息
 		if($reduce_type == \DB\OrderReduce::TYPE_ORDER){
-			$fund_id = D('order')->getSubDetail('reduce', $o_id, 'fund_id');
-			if($fund_id)$this->sendMsg($fund_id, $m_order['user_id']);
+			$fund_id = D('order')->detail($o_id, 'fund_id');
+			if($fund_id)$this->sendMsg($fund_id, $user_id);
 		}
 
 		return $o_id;

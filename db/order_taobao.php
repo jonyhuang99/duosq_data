@@ -106,7 +106,6 @@ class OrderTaobao extends _Db {
 			}
 		}
 
-
 		//触发主状态变化，主状态在后台审核时会更新
 		if(isset($new_field['status'])){
 
@@ -153,7 +152,7 @@ class OrderTaobao extends _Db {
 			}
 
 			//主订单状态变为已通过
-			$ret = D('order')->db('order')->update($o_id, \DAL\Order::STATUS_PASS);
+			$ret = D('order')->update($o_id, \DAL\Order::STATUS_PASS);
 
 			if(!$ret){
 				throw new \Exception("[order_taobao][error][o_id:{$o_id}][m_order][update status]");
@@ -170,9 +169,6 @@ class OrderTaobao extends _Db {
 		//淘宝订单状态 => 不通过，进行账号扣除流水，主订单变为不通过
 		if($to == self::STATUS_INVALID){
 
-			//有可能是afterUpdateRStatus传递过来，因此再次设置主状态
-			$this->update($o_id, array('status'=>self::STATUS_INVALID));
-
 			$errcode = '';
 			$ret = D('fund')->reduceBalanceForOrder($o_id, $errcode);
 			if(!$ret){
@@ -180,7 +176,7 @@ class OrderTaobao extends _Db {
 			}
 
 			//主订单状态变为不通过
-			D('order')->db('order')->update($o_id, \DAL\Order::STATUS_INVALID);
+			D('order')->update($o_id, \DAL\Order::STATUS_INVALID);
 			return true;
 		}
 	}
@@ -201,6 +197,8 @@ class OrderTaobao extends _Db {
 
 		//订单子状态变为无效/失败，判断是否有打款流水平衡，扣除多余部分，主状态变为不通过
 		if( $to == self::R_STATUS_INVALID ){
+
+			$ret = parent::save(array('o_id'=>$o_id, 'status'=>self::STATUS_INVALID));
 			$this->afterUpdateStatus($o_id, self::STATUS_PASS, self::STATUS_INVALID, $new_field);
 			return true;
 		}

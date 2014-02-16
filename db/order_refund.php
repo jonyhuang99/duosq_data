@@ -98,7 +98,7 @@ class OrderRefund extends _Db {
 			}
 
 			//主订单状态变为不通过
-			D('order')->db('order')->update($o_id, \DAL\Order::STATUS_INVALID);
+			D('order')->update($o_id, \DAL\Order::STATUS_INVALID);
 			return true;
 		}
 	}
