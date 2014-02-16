@@ -227,7 +227,7 @@ class Fund extends _Dal {
 		}
 
 		//但扣款类型不为系统打款，允许扣到负
-		if($max < $param['amount'] && $reduce_type != \DB\OrderReduce::TYPE_SYSPAY){
+		if($max < $param['amount'] && $reduce_type == \DB\OrderReduce::TYPE_SYSPAY){
 			$errcode = _e('balance_not_enough');
 			return false;
 		}

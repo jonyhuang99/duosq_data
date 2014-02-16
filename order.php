@@ -434,7 +434,16 @@ class Order extends _Dal {
 					break;
 				case 'reduce':
 					$map = C('options', 'order_reduce_type');
-					$v['sub_display'] = $map[$v['sub_detail']['type']] . $v['sub_detail']['refer_o_id'];
+					$order_id = '';
+					if($v['sub_detail']['type'] == \DB\OrderReduce::TYPE_ORDER){
+						$sub = $this->detail($v['sub_detail']['refer_o_id'], 'sub');
+						$order_id = $this->getSubDetail($sub, $v['sub_detail']['refer_o_id'], 'r_orderid');
+						$order_id = "[{$order_id}]";
+					}else if($v['sub_detail']['refer_o_id']){
+						$order_id = $v['sub_detail']['refer_o_id'];
+						$order_id = "[{$order_id}]";
+					}
+					$v['sub_display'] = $map[$v['sub_detail']['type']].$order_id;
 					break;
 				case 'cashgift':
 					$map = C('options', 'order_cashgift_gifttype');
