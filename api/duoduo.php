@@ -44,10 +44,10 @@ class Duoduo extends _Api {
 		if ($api_return['s'] == 1) {
 			$ret = 1;
 
-		} elseif ($api_return['s'] == 2 || $api_return['s'] == 0) {
+		} elseif ($api_return['s'] == 2 || !$api_return['s']) {
 			$ret = 0;
 
-			if (strpos($api_return['r'], '此单提现已发放') !== false) {
+			if (strpos($api_return['r'], '此单提现已发放') !== false || stripos($api_return['r'], 'Duplicate') !== false) {
 				$errcode = _e('jfb_trade_repeat');
 			} elseif (strpos($api_return['r'], '没有找到用户') !== false || strpos($api_return['r'], 'LOGIN_STATUS_NEED_ACTIVATE') !== false) {
 				$errcode = _e('jfb_account_nofound');

@@ -61,7 +61,8 @@ class Pay extends _Dal {
 			$ret = true;
 		}
 
-		if($ret){
+		//重复打款也算成功
+		if($ret || $errcode == _e('jfb_trade_repeat')){
 			$this->_afterPaymentSucc($o_id, $user_id, \DAL\Fund::CASHTYPE_JFB, $alipay, $balance, $api_name, $api_ret);
 			$ret = array('amount'=>$balance, 'o_id'=>$o_id, 'alipay'=>$alipay, 'api_name'=>$api_name);
 			return $ret;
@@ -122,7 +123,7 @@ class Pay extends _Dal {
 	 * @param  [type] $o_id [description]
 	 * @return [type]       [description]
 	 */
-	function jfbRetry($o_id){
+	function jfbRetry($o_id, &$err){
 
 		//确保已经足额扣款
 		$o_detail = D('order')->detail($o_id);
@@ -144,11 +145,13 @@ class Pay extends _Dal {
 			$api_ret = '';
 			$ret = $this->api($api_name)->pay($o_id, $alipay, abs($amount), $errcode, $api_ret);
 
-			if($ret){
+			//重复打款也算成功
+			if($ret || $errcode == _e('jfb_trade_repeat')){
 				$this->_afterPaymentSucc($o_id, $o_detail['user_id'], \DAL\Fund::CASHTYPE_JFB, $alipay, $o_detail['amount'], $api_name, $api_ret);
 				return true;
 			}else{
 				$this->_afterPaymentFail($o_id, $o_detail['user_id'], \DAL\Fund::CASHTYPE_JFB, $alipay, $o_detail['amount'], $api_name, $errcode, $api_ret);
+				$err = $api_ret;
 			}
 		}
 
