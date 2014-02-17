@@ -49,7 +49,7 @@ class Duoduo extends _Api {
 
 			if (strpos($api_return['r'], '此单提现已发放') !== false || stripos($api_return['r'], 'Duplicate') !== false) {
 				$errcode = _e('jfb_trade_repeat');
-			} elseif (strpos($api_return['r'], '没有找到用户') !== false || strpos($api_return['r'], 'LOGIN_STATUS_NEED_ACTIVATE' || strpos($api_return['r'], 'CARD_FREEZE') !== false)) {
+			} elseif (strpos($api_return['r'], '没有找到用户') !== false || stripos($api_return['r'], 'LOGIN_STATUS_NEED_ACTIVATE' || stripos($api_return['r'], 'CARD_FREEZE') !== false)) {
 				$errcode = _e('jfb_account_nofound');
 			} elseif (strpos($api_return['r'], '支付宝一日内第3次提现') !== false) {
 				$errcode = _e('jfb_duoduo_limit_3times_pre_day');
