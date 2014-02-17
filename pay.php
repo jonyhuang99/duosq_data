@@ -32,6 +32,13 @@ class Pay extends _Dal {
 			return false;
 		}
 
+		//支付宝账号有问题，不打款
+		if($user_detail['alipay_valid'] == \DAL\User::ALIPAY_VALID_ERROR){
+			$errcode = _e('jfb_account_nofound');
+			D('log')->pay($o_id, 0, $errcode);
+			return false;
+		}
+
 		$alipay = $user_detail['alipay'];
 
 		//生成扣款订单
