@@ -42,22 +42,23 @@ class OrderCashgift extends _Db {
 		$data['user_id'] = $user_id;
 
 		$current = D('fund')->getShoppingBalance($user_id);
+		$max_reach = intval($this->field('reach', array('user_id'=>$user_id), 'reach DESC'));
 
 		switch ($data['gifttype']) {
 			case self::GIFTTYPE_COND_10:
-				$data['reach'] = $current + 1000;
+				$data['reach'] = $max_reach + $current + 1000;
 				break;
 
 			case self::GIFTTYPE_COND_20:
-				$data['reach'] = $current + 2000;
+				$data['reach'] = $max_reach + $current + 2000;
 				break;
 
 			case self::GIFTTYPE_COND_50:
-				$data['reach'] = $current + 5000;
+				$data['reach'] = $max_reach + $current + 5000;
 				break;
 
 			case self::GIFTTYPE_COND_100:
-				$data['reach'] = $current + 10000;
+				$data['reach'] = $max_reach + $current + 10000;
 				break;
 		}
 
