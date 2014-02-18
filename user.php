@@ -64,6 +64,13 @@ class user extends _Dal {
 		if($user_id < 100)return true;
 		return false;
 	}
+
+	//判断7天内C段IP是否注册过
+	function checkIpC($ip_c){
+		$day = date('Y-m-d', time() - 7*86400);
+		$hit = $this->db('user')->query("SELECT * FROM user WHERE reg_ip like '{$ip_c}.%' AND createdate>'{$day}'");
+		if($hit)return true;
+	}
 }
 
 ?>
