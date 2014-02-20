@@ -1,11 +1,11 @@
 <?php
-//各类存于监控信息管理底层
+//各类报警发送记录底层
 
 namespace REDIS;
 
-class Monitor extends _Redis {
+class Alarm extends _Redis {
 
-	protected $namespace = 'monitor';
+	protected $namespace = 'alarm';
 
 	/**
 	 * 合并重复报警

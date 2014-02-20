@@ -28,7 +28,7 @@ class Myuser extends _Dal {
 		}else{
 			$this->db()->begin();
 
-			if($user_id = $this->db('user')->add($alipay, D('mark')->getId(), D('mark')->getScRisk())){
+			if($user_id = $this->db('user')->add($alipay, D('mark')->getId(), D('mark')->getScRisk(), D('track')->get())){
 				$ret['user_id'] = $user_id;
 				$ret['exist'] = false;
 

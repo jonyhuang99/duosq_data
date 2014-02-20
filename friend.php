@@ -82,7 +82,7 @@ class Friend extends _Dal {
 		$detail = D('order')->detail($o_id);
 		if($detail['status'] == \DAL\Order::STATUS_PASS){
 
-			//仅当好友关系超过2人时有效
+			//仅当好友关系超过N人时有效
 			if(count($this->getQuanFriends($detail['user_id'])) < C('comm', 'friend_quan_valid_number_num'))return false;
 
 			$amount = ceil($detail['amount'] * C('comm', 'friend_quan_reward_rate')/100);

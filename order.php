@@ -148,6 +148,16 @@ class Order extends _Dal {
 
 			$o_id = $this->redis('order')->createId();
 			$sub_table = 'order_'.$sub;
+
+			//深度黑名单不增加任何资产
+			if($n == self::N_ADD && $amount){
+				$user_status = D('user')->getStatus($user_id);
+				if($user_status == \DAL\User::STATUS_BLACK_2){
+					$n = N_ZERO;
+					$amount = 0;
+				}
+			}
+
 			$this->db('order')->add($o_id, $user_id, $status, $sub, $cashtype, $n, $amount, $is_show);
 
 			$this->db($sub_table)->add($o_id, $user_id, $sub_data);

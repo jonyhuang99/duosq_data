@@ -9,6 +9,9 @@ class user extends _Dal {
 	const ALIPAY_VALID_TRUENAME = 2;
 	const ALIPAY_VALID_ERROR = 10;
 
+	const STATUS_BLACK_1 = 11; //黑名单-收入打折
+	const STATUS_BLACK_2 = 12; //黑名单-收入为0
+
 	//获取用户信息
 	function detail($user_id, $field = false){
 
@@ -22,6 +25,12 @@ class user extends _Dal {
 		}
 	}
 
+	//支付宝到用户ID的转换
+	function Alipay2userid($alipay){
+		if($alipay)
+			return $this->db('user')->field('id', array('alipay'=>$alipay));
+	}
+
 	//获取用户昵称
 	function getNickname($user_id){
 
@@ -32,6 +41,11 @@ class user extends _Dal {
 		}else{
 			return mask($this->detail($user_id, 'alipay'));
 		}
+	}
+
+	//返回用户状态
+	function getStatus($user_id){
+		return $this->detail($user_id, 'status');
 	}
 
 	//用户支付宝验证信息更新
@@ -58,23 +72,24 @@ class user extends _Dal {
 		return $this->db('user')->update($user_id, array('has_order'=>1));
 	}
 
+	//标识用户为黑名单
+	function markBlack($user_id, $status=11){
+		if(!$status)return;
+		if(is_array($user_id)){
+			foreach($user_id as $id){
+				$ret = $this->db('user')->update($id, array('status'=>$status));
+			}
+		}else{
+			$ret = $this->db('user')->update($user_id, array('status'=>$status));
+		}
+		return true;
+	}
+
 	//判断用户是否系统内部用户
 	function sys($user_id){
 		if(!$user_id)return false;
 		if($user_id < 100)return true;
 		return false;
-	}
-
-	//判断7天内C段IP是否注册过
-	function checkIpC($ip_c){
-		$day = date('Y-m-d', time() - 7*86400);
-		$alipay = D('myuser')->getAlipay();
-		if($alipay){//跳过自己，防止任务集分宝误判
-			$hit = $this->db('user')->query("SELECT * FROM user WHERE reg_ip like '{$ip_c}.%' AND createdate>'{$day}' AND alipay <> '{$alipay}'");
-		}else{
-			$hit = $this->db('user')->query("SELECT * FROM user WHERE reg_ip like '{$ip_c}.%' AND createdate>'{$day}'");
-		}
-		if($hit)return true;
 	}
 }
 
