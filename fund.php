@@ -241,12 +241,6 @@ class Fund extends _Dal {
 			return false;
 		}
 
-		//发送购物资产减少消息
-		if($reduce_type == \DB\OrderReduce::TYPE_ORDER){
-			$fund_id = D('order')->detail($o_id, 'fund_id');
-			if($fund_id)$this->sendMsg($fund_id, $user_id);
-		}
-
 		return $o_id;
 	}
 
@@ -361,8 +355,11 @@ class Fund extends _Dal {
 			$n =  $prepare < 0? self::N_REDUCE: self::N_ADD;
 			$fund_id = D()->db('fund')->add($o_id, $m_order['user_id'], $m_order['sub'], $m_order['cashtype'], $n, abs($prepare));
 
-			//发送购物资产变更消息
-			$this->sendMsg($fund_id, $m_order['user_id']);
+			if($prepare > 0){
+				//发送资产增加流水消息
+				$this->sendMsg($fund_id, $m_order['user_id']);
+			}
+
 			$this->unlock($m_order['user_id']);
 			return $fund_id;
 		}
