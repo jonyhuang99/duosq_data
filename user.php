@@ -45,6 +45,7 @@ class user extends _Dal {
 
 	//返回用户状态
 	function getStatus($user_id){
+
 		return $this->detail($user_id, 'status');
 	}
 
@@ -77,10 +78,13 @@ class user extends _Dal {
 		if(!$status)return;
 		if(is_array($user_id)){
 			foreach($user_id as $id){
-				$ret = $this->db('user')->update($id, array('status'=>$status));
+				//系统名单用户除外
+				if(!$this->sys($id))
+					$ret = $this->db('user')->update($id, array('status'=>$status));
 			}
 		}else{
-			$ret = $this->db('user')->update($user_id, array('status'=>$status));
+			if(!$this->sys($id))
+				$ret = $this->db('user')->update($user_id, array('status'=>$status));
 		}
 		return true;
 	}
