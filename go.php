@@ -14,7 +14,7 @@ class Go extends _Dal {
 
 		if(!$driver || !$sp)return;
 		$outcode = $this->redis('outcode')->create();
-		$fanli = $this->getCommission($sp);
+		$fanli = $driver->getCommission($sp);
 		$driver_n = low(str_replace('GO_DRIVER\\Driver', '', get_class($driver)));
 		$user_id = D('myuser')->getId();
 
@@ -61,47 +61,6 @@ class Go extends _Dal {
 				return $loaded[$sp];
 			}
 		}
-	}
-
-	/**
-	 * 获取商家佣金比例展示
-	 * @param  string $sp 商城标识
-	 * @param  bool $fanli 获取给会员的返利信息
-	 * @return [array] commision:佣金比例   cashtype:1-集分宝 2-现金
-	 */
-	function getCommission($sp, $fanli=true){
-
-		$driver = $this->getDriver($sp);
-		if(!$driver)return;
-		$info = $driver->supported($sp);
-
-		$ret = array('commission'=>$info['commission'], 'cashtype'=>$info['cashtype']);
-		if(strpos($ret['commission'], '元')===false){
-			$ret['commission'] .= '%';
-
-			if(preg_match_all('/([0-9\.]+)/i', $ret['commission'], $m)){
-				foreach($m[1] as $rate){
-					$new_rate = number_format($rate * $driver->getFanliRate() / 100, 2);
-					$ret['commission'] = str_replace($rate, $new_rate, $ret['commission']);
-				}
-			}
-
-			if(strpos($ret['commission'], '-') === false){
-				$ret['commission'] = "最高".$ret['commission'];
-			}
-		}
-
-		if($fanli){
-			if(@$info['commission_fanli']){
-				$ret['commission'] = $info['commission_fanli'];
-			}
-		}else{
-			if(@$info['commission_union']){
-				$ret['commission'] = $info['commission_union'];
-			}
-		}
-
-		return $ret;
 	}
 }
 ?>

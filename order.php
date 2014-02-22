@@ -153,7 +153,7 @@ class Order extends _Dal {
 			if($n == self::N_ADD && $amount){
 				$user_status = D('user')->getStatus($user_id);
 				if($user_status == \DAL\User::STATUS_BLACK_2){
-					$n = N_ZERO;
+					$n = self::N_ZERO;
 					$amount = 0;
 				}
 			}

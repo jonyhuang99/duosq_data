@@ -20,7 +20,7 @@ class Item extends _Dal {
 
 		//任务链接永远有返利
 		if($param == C('comm', 'newgift_task_pid')){
-			$detail = array('p_title'=>'多省钱(duosq.com)粘贴网址开启红包专用商品', 'p_seller'=>'多省钱官方店', 'p_price'=>'10.00', 'p_pic_url'=>'http://www.duosq.com/img/avatar.png', 'has_fanli'=>1);
+			$detail = array('p_title'=>'多省钱(duosq.com)粘贴网址开启红包专用商品', 'p_seller'=>'多省钱官方店', 'p_price'=>'10.00', 'p_pic_url'=>'http://www.duosq.com/img/avatar.png', 'has_fanli'=>1, 'key'=>'newgift_task_pid');
 		}else{
 			$detail = $this->api($sp)->getItemDetail($param);
 		}

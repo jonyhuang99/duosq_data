@@ -15,6 +15,9 @@ class Shop extends _Dal {
 
 		if(!$sp)return;
 		$shop = $this->detail($sp);
+		if(mb_strlen($shop['name'], 'utf8')<3){
+			$shop['name'] = $shop['name'].'商城';
+		}
 		return $shop['name'];
 	}
 }
