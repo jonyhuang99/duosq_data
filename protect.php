@@ -8,7 +8,7 @@ class Protect extends _Dal {
 	function attackReg(){
 
 		$same_ip_c = date('Y-m-d', time() - 3*86400); //相同的注册IP_C时间区间
-		$same_agent  = date('Y-m-d H:i:s', time() - 6*3600); //相同的客户端时间区间
+		$same_agent  = date('Y-m-d H:i:s', time() - 300); //相同的客户端时间区间
 		$same_area = date('Y-m-d H:i:s', time() - 600);//相同的地区区间
 
 		$my_id = D('myuser')->getId();
