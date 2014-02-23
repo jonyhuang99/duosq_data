@@ -8,7 +8,7 @@ class Protect extends _Dal {
 	function attackReg(){
 
 		$same_ip_c = date('Y-m-d', time() - 3*86400); //相同的注册IP_C时间区间
-		$same_agent  = date('Y-m-d H:i:s', time() - 300); //相同的客户端时间区间
+		$same_agent  = date('Y-m-d H:i:s', time() - 600); //相同的客户端时间区间
 		$same_area = date('Y-m-d H:i:s', time() - 600);//相同的地区区间
 
 		$my_id = D('myuser')->getId();
@@ -44,7 +44,8 @@ class Protect extends _Dal {
 		if(strlen($agent) > 65){
 			$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'agent'=>"{$agent}",'createtime'=>"> {$same_agent}"));
 			$count_agent = fieldSet($ret, 'id');
-
+			//进一步放行客户端
+			if(count($count_agent) < 4) $count_agent = array();
 			if($count_agent){
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'agent', 'data2'=>$agent, 'data4'=>join(',',$count_agent)));
 			}
