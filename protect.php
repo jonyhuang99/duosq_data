@@ -23,7 +23,7 @@ class Protect extends _Dal {
 		$action_code = 100; //恶意注册拦截
 
 		//IP C段相同
-		$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_ip'=>"like {$ip_c}%",'createdate'=>"> {$same_ip_c}"));
+		$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_ip'=>"like {$ip_c}.%",'createdate'=>"> {$same_ip_c}"));
 		$count_ip = fieldSet($ret, 'id');
 		if($count_ip){
 			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'ip', 'data2'=>$ip_c, 'data4'=>join(',',$count_ip)));
@@ -53,7 +53,7 @@ class Protect extends _Dal {
 		//地区相同
 		$area = getAreaByIp();
 		if(mb_strlen($area, 'utf8')>4){
-			$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'agent'=>"{$agent}",'createtime'=>"> {$same_area}"));
+			$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_area_detail'=>"{$area}",'createtime'=>"> {$same_area}"));
 			$count_area = fieldSet($ret, 'id');
 
 			if($count_area){
@@ -102,7 +102,7 @@ class Protect extends _Dal {
 		if($type == 'reg'){
 			$sent = $this->redis('alarm')->sent('register:ip:'.getIp());
 			if(!$sent){
-				sendSms(C('comm', 'sms_monitor'), 100, array('time'=>'', 'ip'=>getIp(), 'area'=>getAreaByIp(), 'alipay'=>D('myuser')->getAlipay()));
+				sendSms(C('comm', 'sms_monitor'), 100, array('time'=>date('m-d H:i:s'), 'ip'=>getIp(), 'area'=>getAreaByIp(), 'alipay'=>D('myuser')->getAlipay()));
 			}
 		}
 	}
