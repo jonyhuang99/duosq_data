@@ -45,7 +45,7 @@ class Protect extends _Dal {
 			$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'agent'=>"{$agent}",'createtime'=>"> {$same_agent}"));
 			$count_agent = fieldSet($ret, 'id');
 			//进一步放行客户端
-			if(count($count_agent) < 4) $count_agent = array();
+			if(count($count_agent) < 6) $count_agent = array();
 			if($count_agent){
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'agent', 'data2'=>$agent, 'data4'=>join(',',$count_agent)));
 			}

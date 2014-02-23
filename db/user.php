@@ -25,8 +25,13 @@ class User extends _Db {
 		$area_detail = $ip2location->location($ip);
 		$agent = getAgent();
 		$utmo = D('track')->get();
+		if($_COOKIE['referer']){
+			$referer = $_COOKIE['referer'];
+		}else{
+			$referer = '';
+		}
 
-		return parent::save(array('alipay'=>$alipay, 'mark_id'=>$mark_id, 'sc_risk'=>$sc_risk, 'reg_ip'=>$ip, 'reg_area'=>$area, 'reg_area_detail'=>$area_detail, 'utmo'=>$utmo, 'agent'=>$agent));
+		return parent::save(array('alipay'=>$alipay, 'mark_id'=>$mark_id, 'sc_risk'=>$sc_risk, 'reg_ip'=>$ip, 'reg_area'=>$area, 'reg_area_detail'=>$area_detail, 'utmo'=>$utmo, 'agent'=>$agent, 'referer'=>$referer));
 	}
 
 	//更新用户数据
