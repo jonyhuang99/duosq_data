@@ -86,7 +86,7 @@ class Protect extends _Dal {
 			$parent_status = D('user')->getStatus($parent_id);
 
 			if($parent_id && $parent_status == \DAL\User::STATUS_BLACK_2){
-				D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2);
+				D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_1);
 
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'parent', 'data2'=>$parent_id));
 
