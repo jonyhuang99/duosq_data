@@ -55,7 +55,14 @@ class Mark extends _Dal {
 	 * @return [type] [description]
 	 */
 	function getId(){
-		return intval(@$_COOKIE['mark']);
+
+		$mark_id = intval(@$_COOKIE['mark']);
+		if($mark_id){
+			if($this->detail($mark_id)){
+				return $mark_id;
+			}
+		}
+		return false;
 	}
 
 	/**

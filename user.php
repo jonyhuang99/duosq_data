@@ -46,7 +46,20 @@ class user extends _Dal {
 	//返回用户状态
 	function getStatus($user_id){
 
+		if(!$user_id)return false;
 		return $this->detail($user_id, 'status');
+	}
+
+	//是否黑名单
+	function isBlack($user_id){
+
+		if(!$user_id)return false;
+		$status = $this->getStatus($user_id);
+		if($status == self::STATUS_BLACK_1 || $status == self::STATUS_BLACK_2){
+			return true;
+		}else{
+			return false;
+		}
 	}
 
 	//用户支付宝验证信息更新

@@ -14,7 +14,7 @@ class User extends _Db {
 	}
 
 	//新增用户
-	function add($alipay, $mark_id=0, $sc_risk=0, $utmo=''){
+	function add($alipay, $mark_id=0, $sc_risk=0){
 
 		if(!$alipay)return;
 		$this->create();
@@ -23,8 +23,10 @@ class User extends _Db {
 		$ip = getIp();
 		$area = $ip2location->province($ip);
 		$area_detail = $ip2location->location($ip);
+		$agent = getAgent();
+		$utmo = D('track')->get();
 
-		return parent::save(array('alipay'=>$alipay, 'mark_id'=>$mark_id, 'sc_risk'=>$sc_risk, 'reg_ip'=>$ip, 'reg_area'=>$area, 'reg_area_detail'=>$area_detail, 'utmo'=>$utmo));
+		return parent::save(array('alipay'=>$alipay, 'mark_id'=>$mark_id, 'sc_risk'=>$sc_risk, 'reg_ip'=>$ip, 'reg_area'=>$area, 'reg_area_detail'=>$area_detail, 'utmo'=>$utmo, 'agent'=>$agent));
 	}
 
 	//更新用户数据

@@ -28,18 +28,17 @@ class Myuser extends _Dal {
 		}else{
 			$this->db()->begin();
 
-			if($user_id = $this->db('user')->add($alipay, D('mark')->getId(), D('mark')->getScRisk(), D('track')->get())){
+			if($user_id = $this->db('user')->add($alipay, D('mark')->getId(), D('mark')->getScRisk())){
 				$ret['user_id'] = $user_id;
 				$ret['exist'] = false;
 
 				//保存邀请好友
-				if($_COOKIE['parent_id']){
-					$parent_id = deID($_COOKIE['parent_id']);
-					if($parent_id){
-						D('friend')->addInvite($user_id, $parent_id);
-						//互为朋友圈
-						D('friend')->addQuan($parent_id, $user_id);
-					}
+				$parent_id = getParentId();
+
+				if($parent_id){
+					D('friend')->addInvite($user_id, $parent_id);
+					//互为朋友圈
+					D('friend')->addQuan($parent_id, $user_id);
 				}
 				$this->db()->commit();
 			}else{
@@ -168,6 +167,11 @@ class Myuser extends _Dal {
 	//判断用户是否抢过官方红包
 	function hasRobtime(){
 		return D('user')->detail($this->getId(), 'has_robtime');
+	}
+
+	//判断用户是否黑名单
+	function isBlack(){
+		return D('user')->isBlack($this->getId());
 	}
 
 	//存取随机计算的新人抽奖集分宝数量
