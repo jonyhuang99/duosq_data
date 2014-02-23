@@ -8,13 +8,14 @@ class Protect extends _Dal {
 	function attackReg(){
 
 		$same_ip_c = date('Y-m-d', time() - 3*86400); //相同的注册IP_C时间区间
-		$same_agent  = date('Y-m-d H:i:s', time() - 600); //相同的客户端时间区间
-		$same_area = date('Y-m-d H:i:s', time() - 600);//相同的地区区间
+		$same_agent  = date('Y-m-d H:i:s', time() - 100); //相同的客户端时间区间
+		$same_area = date('Y-m-d H:i:s', time() - 100);//相同的地区区间
 
 		$my_id = D('myuser')->getId();
 		if(!$my_id)return true;
 
-		$ip_c = getIpByLevel('c');
+		//$ip_c = getIpByLevel('c');
+		$ip = getIp();
 		$user_ids = array();
 		$count_ip = array();
 		$count_utmo = array();
@@ -23,10 +24,10 @@ class Protect extends _Dal {
 		$action_code = 100; //恶意注册拦截
 
 		//IP C段相同
-		$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_ip'=>"like {$ip_c}.%",'createdate'=>"> {$same_ip_c}"));
+		$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_ip'=>$ip,'createdate'=>"> {$same_ip_c}"));
 		$count_ip = fieldSet($ret, 'id');
 		if($count_ip){
-			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'ip', 'data2'=>$ip_c, 'data4'=>join(',',$count_ip)));
+			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'ip', 'data2'=>$ip, 'data4'=>join(',',$count_ip)));
 		}
 
 		//utmo重复注册
@@ -68,7 +69,7 @@ class Protect extends _Dal {
 
 			$this->alarm('reg');
 
-			if(count($user_ids) < 4){
+			if(count($user_ids) < 5){
 				//本人加入1级黑名单(购物打折，给上游提成减少)
 				if($my_id)D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_1);
 			}else{

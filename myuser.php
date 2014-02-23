@@ -169,6 +169,24 @@ class Myuser extends _Dal {
 		return D('user')->detail($this->getId(), 'has_robtime');
 	}
 
+	//劣质流量判断
+	function isPoor(){
+
+		if($this->isBlack()){
+			return true;
+		}
+
+		if(D('mark')->getId()){
+			return false;
+		}
+
+		if(isGoodReferer()){
+			return false;
+		}
+
+		return true;
+	}
+
 	//判断用户是否黑名单
 	function isBlack(){
 		return D('user')->isBlack($this->getId());
