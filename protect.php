@@ -111,7 +111,7 @@ class Protect extends _Dal {
 				$sent = $this->redis('alarm')->sent('register:protected', 900);
 				$level = '普通';
 			}else{
-				$sent = $this->redis('alarm')->sent('register:protected:ip:'.getIp());
+				$sent = $this->redis('alarm')->sent('register:protected:high', 300);
 				$level = '深度';
 			}
 
