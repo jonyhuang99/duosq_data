@@ -16,7 +16,7 @@ class Speed extends _Redis {
 	 */
 	function isSafe($obj, $expire, $limit, $wait=true) {
 
-		if(!$obj)return;
+		if(!$obj || !$expire || !$limit)return;
 		$key = "expire:{$expire}:limit:{$limit}:obj:{$obj}";
 		$count = $this->get($key);
 
@@ -42,6 +42,43 @@ class Speed extends _Redis {
 			}
 			return $count;
 		}
+	}
+
+	/**
+	 * 单独按指定频率进行累计
+	 * @return [type] [description]
+	 */
+	function sincr($obj, $expire, $limit){
+
+		if(!$obj || !$expire || !$limit)return;
+		$key = "expire:{$expire}:limit:{$limit}:obj:{$obj}";
+
+		$times = $this->incr($key);
+
+		if (1 == $times) { //次数超过1次，封锁指定时间
+			$this->expire($key, $expire);
+		}
+
+		if ($times > $limit) { //超过限制，进行延迟
+			$this->expire($key, $expire);
+		}
+
+		return $times;
+	}
+
+	/**
+	 * 单独获取次数
+	 * @param  [type] $obj    [description]
+	 * @param  [type] $expire [description]
+	 * @param  [type] $limit  [description]
+	 * @return [type]         [description]
+	 */
+	function sget($obj, $expire, $limit){
+
+		if(!$obj || !$expire || !$limit)return;
+		$key = "expire:{$expire}:limit:{$limit}:obj:{$obj}";
+		$times = $this->get($key);
+		return $times;
 	}
 }
 ?>

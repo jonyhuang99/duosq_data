@@ -104,7 +104,7 @@ class Protect extends _Dal {
 		if($type == 'reg'){
 			$sent = $this->redis('alarm')->sent('register:ip:'.getIp());
 			if(!$sent){
-				sendSms(C('comm', 'sms_monitor'), 100, array('time'=>date('m-d H:i:s'), 'ip'=>getIp(), 'area'=>getAreaByIp(), 'alipay'=>D('myuser')->getAlipay()));
+				//sendSms(C('comm', 'sms_monitor'), 100, array('time'=>date('m-d H:i:s'), 'ip'=>getIp(), 'area'=>getAreaByIp(), 'alipay'=>D('myuser')->getAlipay()));
 			}
 		}
 	}
