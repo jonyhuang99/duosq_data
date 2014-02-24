@@ -22,12 +22,14 @@ class Protect extends _Dal {
 		$count_agent = array();
 		$count_area = array();
 		$action_code = 100; //恶意注册拦截
+		$reason = '';
 
 		//IP C段相同
 		$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_ip'=>"like {$ip}%",'createdate'=>"> {$same_ip_c}"));
 		$count_ip = fieldSet($ret, 'id');
 		if($count_ip){
 			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'ip', 'data2'=>$ip, 'data4'=>join(',',$count_ip)));
+			$reason[] = 'ip';
 		}
 
 		//utmo重复注册
@@ -37,6 +39,7 @@ class Protect extends _Dal {
 			$count_utmo = fieldSet($ret, 'id');
 			if($count_utmo){
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'utmo', 'data2'=>$utmo, 'data4'=>join(',',$count_utmo)));
+				$reason[] = 'utmo';
 			}
 		}
 
@@ -49,6 +52,7 @@ class Protect extends _Dal {
 			if(count($count_agent) < 6) $count_agent = array();
 			if($count_agent){
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'agent', 'data2'=>$agent, 'data4'=>join(',',$count_agent)));
+				$reason[] = 'agent';
 			}
 		}
 
@@ -67,15 +71,16 @@ class Protect extends _Dal {
 
 		if($user_ids){
 
-			$this->alarm('reg');
-
 			if(count($user_ids) < 4){
 				//本人加入1级黑名单(购物打折，给上游提成减少)
 				if($my_id)D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_1);
+				$this->alarm('reg', $reason);
+
 			}else{
 				//恶意用户，有关的用户全部加入2级黑名单(不新增任何购物收入)
 				//if($my_id)$user_ids[] = $my_id;
 				D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2);
+				$this->alarm('reg', $reason, true);
 			}
 
 			return true;
@@ -90,7 +95,7 @@ class Protect extends _Dal {
 
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'parent', 'data2'=>$parent_id));
 
-				$this->alarm('reg');
+				$this->alarm('reg', array('parent'), true);
 				return true;
 			}
 		}
@@ -99,12 +104,19 @@ class Protect extends _Dal {
 	}
 
 	//统一发送报警
-	private function alarm($type){
+	private function alarm($type, $reason, $emergent=false){
 
 		if($type == 'reg'){
-			$sent = $this->redis('alarm')->sent('register:protected', 600);
+			if($emergent){
+				$sent = $this->redis('alarm')->sent('register:protected', 900);
+				$level = '普通';
+			}else{
+				$sent = $this->redis('alarm')->sent('register:protected:ip:'.getIp());
+				$level = '深度';
+			}
+
 			if(!$sent){
-				sendSms(C('comm', 'sms_monitor'), 100, array('time'=>date('m-d H:i:s'), 'ip'=>getIp(), 'area'=>getAreaByIp(), 'alipay'=>D('myuser')->getAlipay()));
+				sendSms(C('comm', 'sms_monitor'), 100, array('time'=>date('H:i:s'), 'ip'=>getIp(), 'area'=>getAreaByIp(), 'alipay'=>D('myuser')->getAlipay(), 'level'=>$level, 'reason'=>join(',',$reason)));
 			}
 		}
 	}
