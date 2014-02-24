@@ -96,7 +96,7 @@ class user extends _Dal {
 					$ret = $this->db('user')->update($id, array('status'=>$status));
 			}
 		}else{
-			if(!$this->sys($id))
+			if(!$this->sys($user_id))
 				$ret = $this->db('user')->update($user_id, array('status'=>$status));
 		}
 		return true;
