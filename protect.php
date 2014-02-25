@@ -87,7 +87,7 @@ class Protect extends _Dal {
 		}else{
 
 			//如果父亲是深度黑名单
-			$parent_id = getParentId();
+			$parent_id = getCookieParentId();
 			$parent_status = D('user')->getStatus($parent_id);
 
 			if($parent_id && $parent_status == \DAL\User::STATUS_BLACK_2){

@@ -36,7 +36,7 @@ class User extends _Db {
 		$status = 1;
 		if($referer){
 			D('user');
-			if(isPoorReferer()){
+			if(D('referer')->isPoor()){
 				$status = \DAL\User::STATUS_BLACK_1;
 			}
 		}

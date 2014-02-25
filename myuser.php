@@ -33,12 +33,17 @@ class Myuser extends _Dal {
 				$ret['exist'] = false;
 
 				//保存邀请好友
-				$parent_id = getParentId();
+				$parent_id = getCookieParentId();
 
 				if($parent_id){
 					D('friend')->addInvite($user_id, $parent_id);
 					//互为朋友圈
-					D('friend')->addQuan($parent_id, $user_id);
+					if($_GET['allow']=='not'){
+						D('friend')->addQuan($parent_id, $user_id, 0);
+					}else{
+						D('friend')->addQuan($parent_id, $user_id);
+					}
+
 				}
 				$this->db()->commit();
 			}else{
@@ -180,7 +185,7 @@ class Myuser extends _Dal {
 			return false;
 		}
 
-		if(isGoodReferer()){
+		if(D('referer')->isGood()){
 			return false;
 		}
 
@@ -193,13 +198,18 @@ class Myuser extends _Dal {
 	}
 
 	//存取随机计算的新人抽奖集分宝数量
-	function newgift($amount=0){
+	function newgift($amount=0, $get=false){
 
-		if($amount){
-			$this->sess('newgift', $amount);
+		if(!$get){
+			if($amount){
+				$this->sess('newgift', $amount);
+			}else{
+				$amount = $this->sess('newgift');
+				$this->sess('newgift', null);
+				return $amount;
+			}
 		}else{
 			$amount = $this->sess('newgift');
-			$this->sess('newgift', null);
 			return $amount;
 		}
 	}
