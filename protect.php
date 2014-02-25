@@ -7,11 +7,13 @@ class Protect extends _Dal {
 	//判断注册攻击，保护注册模块
 	function attackReg(){
 
+		$attack = false;
 		$same_ip_c = date('Y-m-d', time() - 86400); //相同的注册IP_C时间区间
 		$same_agent  = date('Y-m-d H:i:s', time() - 30); //相同的客户端时间区间
 		$same_area = date('Y-m-d H:i:s', time() - 120);//相同的地区区间
 
 		$my_id = D('myuser')->getId();
+		$my_alipay = D('myuser')->getAlipay();
 		if(!$my_id)return true;
 
 		//$ip_c = getIpByLevel('c');
@@ -82,8 +84,8 @@ class Protect extends _Dal {
 				D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2);
 				$this->alarm('reg', $reason, true);
 			}
+			$attack = true;
 
-			return true;
 		}else{
 
 			//如果父亲是深度黑名单
@@ -96,11 +98,20 @@ class Protect extends _Dal {
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'parent', 'data2'=>$parent_id));
 
 				$this->alarm('reg', array('parent'), true);
-				return true;
+				$attack = true;
 			}
 		}
 
-		return false;
+		//如果命中黑名单，直接深度黑名单
+		if($this->db('black')->find(array('alipay'=>low($my_alipay)))){
+
+			D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2);
+			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'black', 'data2'=>$my_alipay));
+			$this->alarm('reg', array('black hit'), true);
+			$attack = true;
+		}
+
+		return $attack;
 	}
 
 	//统一发送报警
