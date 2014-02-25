@@ -367,7 +367,7 @@ class Order extends _Dal {
 	 */
 	function addInvite($user_id, $sub_data){
 
-		$ret = D('order')->add($user_id, self::STATUS_PASS, 'invite', self::CASHTYPE_CASH, self::N_ADD, $sub_data['amount'], $sub_data, 0);
+		$ret = D('order')->add($user_id, self::STATUS_PASS, 'invite', self::CASHTYPE_CASH, self::N_ADD, $sub_data['amount'], $sub_data);
 
 		return $ret;
 	}
