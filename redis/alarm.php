@@ -8,19 +8,50 @@ class Alarm extends _Redis {
 	protected $namespace = 'alarm';
 
 	/**
-	 * 合并重复报警
+	 * 累计监控条目，释放达到时间，返回释放信号
 	 * @param  string  $key       合并的业务
-	 * @param  integer $expire    过期时间
-	 * @return [type]             array()
+	 * @param  integer $duration  累计时长
+	 * @param  string  $entry     叠加的条目(用,隔开多个)
+	 * @return false/array        false:累计中  array:释放报警
 	 */
-	function sent($key='',$expire=3600){
+	function release($key='', $duration=3600, $entry='default'){
 
-		if($this->get($key)){
-			return true;
-		}else{
-			$this->set($key, 1, $expire);
-			return false;
+		$cache = $this->hgetall($key);
+
+		$all_entry = $this->_merge($cache, $entry);
+
+		if(!$cache){
+			$all_entry['expire_on'] = time() + $duration;
 		}
+
+		//累计时长达到，释放内容
+		if(@$cache['expire_on'] && $cache['expire_on'] < time()){
+
+			$this->del($key);
+			unset($all_entry['expire_on']);
+			return $all_entry;
+		}else{
+
+			//继续累计
+			foreach($all_entry as $single=>$count){
+				$this->hset($key, $single, $count);
+			}
+		}
+
+		return false;
+	}
+
+	//进行合并条目
+	private function _merge($now, $entry){
+		if(!$entry){
+			return $now;
+		}
+		if(!$now)$now = array();
+		$arr = explode(',',$entry);
+		foreach($arr as $a){
+			$now[$a] = @$now[$a] + 1;
+		}
+		return $now;
 	}
 }
 ?>
