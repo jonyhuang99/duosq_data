@@ -174,22 +174,9 @@ class Myuser extends _Dal {
 		return D('user')->detail($this->getId(), 'has_robtime');
 	}
 
-	//劣质流量判断
-	function isPoor(){
-
-		if($this->isBlack()){
-			return true;
-		}
-
-		if(D('mark')->getId()){
-			return false;
-		}
-
-		if(D('referer')->isGood()){
-			return false;
-		}
-
-		return true;
+	//判断用户是否允许赠送新人红包
+	function canGetCashgift(){
+		return D('user')->detail($this->getId(), 'can_get_cashgift');
 	}
 
 	//判断用户是否黑名单
@@ -212,6 +199,11 @@ class Myuser extends _Dal {
 			$amount = $this->sess('newgift');
 			return $amount;
 		}
+	}
+
+	//严格识别
+	function newgiftWantMore(){
+
 	}
 
 	/**

@@ -45,7 +45,7 @@ class Speed extends _Redis {
 	}
 
 	/**
-	 * 单独按指定频率进行累计
+	 * 单独按指定频率进行累计(带延迟惩罚)
 	 * @return [type] [description]
 	 */
 	function sincr($obj, $expire, $limit){
@@ -60,7 +60,7 @@ class Speed extends _Redis {
 		}
 
 		if ($times > $limit) { //超过限制，进行延迟
-			$this->expire($key, $expire);
+			$this->expire($key, $expire*2);
 		}
 
 		return $times;

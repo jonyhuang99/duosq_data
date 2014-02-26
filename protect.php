@@ -8,16 +8,19 @@ class Protect extends _Dal {
 	function attackReg(){
 
 		$attack = false;
-		$same_ip_c = date('Y-m-d', time() - 86400); //相同的注册IP_C时间区间
+		$same_ip_c = date('Y-m-d', time() - DAY*7); //相同的注册IP_C时间区间
 		$same_agent  = date('Y-m-d H:i:s', time() - 30); //相同的客户端时间区间
 		$same_area = date('Y-m-d H:i:s', time() - 120);//相同的地区区间
+		$same_day =  date('Y-m-d H:i:s', time() - DAY); //当天
+		$same_hour =  date('Y-m-d H:i:s', time() - HOUR); //上小时
 
 		$my_id = D('myuser')->getId();
 		$my_alipay = D('myuser')->getAlipay();
 		if(!$my_id)return true;
 
 		//$ip_c = getIpByLevel('c');
-		$ip = getIpByLevel('c');
+		$ip = getIp();
+		$ip_c = getIpByLevel('c');
 		$user_ids = array();
 		$count_ip = array();
 		$count_utmo = array();
@@ -26,27 +29,46 @@ class Protect extends _Dal {
 		$action_code = 100; //恶意注册拦截
 		$entry = array();
 
+		//utmo重复注册
+		$utmo = D('track')->get();
+		//客户端相同
+		$agent = getAgent();
+		//地区相同
+		I('ip2location');
+		$ip2location = new \ip2location();
+		$ip = getIp();
+		$area_detail = $ip2location->location($ip);
+		if(mb_strlen($area_detail, 'utf8')>4 && strpos($area_detail, '深圳市')===false){
+			$area_limit = 3;
+		}else{
+			$area_limit = 5;
+		}
+
+		//严格识别重复领取，命中则该用户无红包领取权，用户防范正常用户输入多个账号
+		$strict1 = $this->db('user')->find(array('id'=>"<> {$my_id}",'reg_ip'=>"like {$ip_c}%",'agent'=>$agent,'createdate'=>"> {$same_day}"));
+		$strict2 = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_area_detail'=>$area_detail,'agent'=>$agent,'createdate'=>"> {$same_hour}"));
+		if($strict1 || count($strict2)>$area_limit){
+			D('user')->markUserCashgiftInvalid($my_id);
+		}
+
 		//IP C段相同
-		$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_ip'=>"like {$ip}%",'createdate'=>"> {$same_ip_c}"));
+		$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_ip'=>"like {$ip_c}%",'createdate'=>"> {$same_ip_c}"));
 		$count_ip = fieldSet($ret, 'id');
 		if($count_ip){
-			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'ip', 'data2'=>$ip, 'data4'=>join(',',$count_ip)));
+			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'ip', 'data2'=>$ip_c, 'data4'=>join(',',$count_ip)));
 			$entry[] = 'ip';
 		}
 
-		//utmo重复注册
-		$utmo = D('track')->get();
 		if($utmo){
 			$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}", 'utmo'=>$utmo));
 			$count_utmo = fieldSet($ret, 'id');
 			if($count_utmo){
+				D('user')->markUserCashgiftInvalid($my_id);
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'utmo', 'data2'=>$utmo, 'data4'=>join(',',$count_utmo)));
 				$entry[] = 'utmo';
 			}
 		}
 
-		//客户端相同
-		$agent = getAgent();
 		if(strlen($agent) > 80){
 			$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'agent'=>"{$agent}",'createtime'=>"> {$same_agent}"));
 			$count_agent = fieldSet($ret, 'id');
@@ -58,14 +80,12 @@ class Protect extends _Dal {
 			}
 		}
 
-		//地区相同
-		$area = getAreaByIp();
-		if(mb_strlen($area, 'utf8')>4){
-			$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_area_detail'=>"{$area}",'createtime'=>"> {$same_area}"));
+		if(mb_strlen($area_detail, 'utf8')>4){
+			$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_area_detail'=>$area_detail,'createtime'=>"> {$same_area}"));
 			$count_area = fieldSet($ret, 'id');
 
 			if($count_area){
-				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'area', 'data2'=>$area, 'data4'=>join(',',$count_area)));
+				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'area', 'data2'=>$area_detail, 'data4'=>join(',',$count_area)));
 			}
 		}
 

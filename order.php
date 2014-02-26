@@ -244,7 +244,7 @@ class Order extends _Dal {
 	function addCashgift($user_id, $gifttype, $amount=0, $refer_o_id=''){
 
 		//if($amount>5000)return; //保护金额
-
+		if(!D('user')->detail($user_id, 'can_get_cashgift'))return true;
 		D()->db('order_cashgift');
 		if(array_search($gifttype, array(\DB\OrderCashgift::GIFTTYPE_LUCK, \DB\OrderCashgift::GIFTTYPE_TASK, \DB\OrderCashgift::GIFTTYPE_QUAN, \DB\OrderCashgift::GIFTTYPE_COND_10, \DB\OrderCashgift::GIFTTYPE_COND_20, \DB\OrderCashgift::GIFTTYPE_COND_50, \DB\OrderCashgift::GIFTTYPE_COND_100))===false)return; //保护类型
 
@@ -276,6 +276,26 @@ class Order extends _Dal {
 				$cashtype = self::CASHTYPE_CASH;
 				$status = self::STATUS_PASS;
 				break;
+		}
+
+		if($gifttype == \DB\OrderCashgift::GIFTTYPE_LUCK || $gifttype == \DB\OrderCashgift::GIFTTYPE_TASK){
+			//B段IP速度控制，超速进入审核
+			$limit = 5;
+			$times = $this->redis('speed')->sincr('send_cashgift:ip_b:'.getIpByLevel('b'), DAY, $limit);
+			if($times > $limit){
+				$status = self::STATUS_WAIT_CONFIRM;
+			}
+
+			//做支付宝手机号前7位审核队列
+			$alipay = D('user')->detail($user_id, 'alipay');
+			if(valid($alipay, 'mobile')){
+				$mobile_pre = substr($alipay, 0, 7);
+				$limit = 5;
+				$times = $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$mobile_pre, DAY, $limit);
+				if($times > $limit){
+					$status = self::STATUS_WAIT_CONFIRM;
+				}
+			}
 		}
 
 		//TODO 不允许重复增加新人礼包
