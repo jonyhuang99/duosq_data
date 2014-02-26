@@ -13,6 +13,7 @@ class Friend extends _Dal {
 	function addInvite($user_id, $parent_id){
 
 		if(!$user_id || !$parent_id)return;
+		if($user_id == $parent_id)return;
 		$this->db('friend_invite')->create();
 		return $this->db('friend_invite')->save(array('user_id'=>$user_id, 'parent_id'=>$parent_id));
 	}
@@ -24,6 +25,9 @@ class Friend extends _Dal {
 	 * @param integer $agree    [description]
 	 */
 	function addQuan($sender, $recevier, $agree=1){
+
+		if(!$user_id || !$parent_id)return;
+		if($sender == $recevier)return;
 
 		if($this->db('friend_quan')->find(array('sender'=>$sender, 'recevier'=>$recevier))){
 			return false;//不能重复发起申请
