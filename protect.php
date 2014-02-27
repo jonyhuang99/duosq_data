@@ -132,7 +132,7 @@ class Protect extends _Dal {
 		}
 
 		//如果支付命中规则，直接深度黑名单
-		if(preg_match('/tb[0-9\_]{5,}@163.com/i', $my_alipay)){
+		if(preg_match('/tb[0-9\_]{5,}@163.com/i', $my_alipay) || preg_match('/16127.+?163\.com/i', $my_alipay)){
 
 			D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2);
 			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'black', 'data2'=>$my_alipay));
