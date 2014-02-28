@@ -34,10 +34,7 @@ class Protect extends _Dal {
 		//客户端相同
 		$agent = getAgent();
 		//地区相同
-		I('ip2location');
-		$ip2location = new \ip2location();
-		$ip = getIp();
-		$area_detail = $ip2location->location($ip);
+		$area_detail = getAreaByIp('', 'detail');
 		if(mb_strlen($area_detail, 'utf8')>4 && strpos($area_detail, '深圳市')===false){
 			$area_limit = 3;
 		}else{

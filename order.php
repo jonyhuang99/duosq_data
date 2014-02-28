@@ -243,10 +243,20 @@ class Order extends _Dal {
 	 */
 	function addCashgift($user_id, $gifttype, $amount=0, $refer_o_id=''){
 
-		//if($amount>5000)return; //保护金额
-		if(!D('user')->detail($user_id, 'can_get_cashgift'))return true;
+		$new_cashgift_type = array();
+		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_LUCK;
+		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_TASK;
+		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_10;
+		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_20;
+		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_50;
+		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_100;
+
+		$all_cashgift_type = $new_cashgift_type;
+		$all_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_QUAN;
+
+		if(!D('user')->detail($user_id, 'can_get_cashgift') && in_array($gifttype, $new_cashgift_type))return true;
 		D()->db('order_cashgift');
-		if(array_search($gifttype, array(\DB\OrderCashgift::GIFTTYPE_LUCK, \DB\OrderCashgift::GIFTTYPE_TASK, \DB\OrderCashgift::GIFTTYPE_QUAN, \DB\OrderCashgift::GIFTTYPE_COND_10, \DB\OrderCashgift::GIFTTYPE_COND_20, \DB\OrderCashgift::GIFTTYPE_COND_50, \DB\OrderCashgift::GIFTTYPE_COND_100))===false)return; //保护类型
+		if(array_search($gifttype, $all_cashgift_type)===false)return; //保护类型
 
 		$status = self::STATUS_WAIT_CONFIRM;
 
@@ -295,6 +305,15 @@ class Order extends _Dal {
 				if($times > $limit){
 					$status = self::STATUS_WAIT_CONFIRM;
 				}
+			}
+
+			//1小时内、同地区、同浏览器，进入审核
+			$agent = getAgent();
+			$area_detail = getAreaByIp('', 'detail');
+			$limit = 2;
+			$times = $this->redis('speed')->sincr('send_cashgift:area:'.$area_detail.':agent:'.md5($agent), HOUR, $limit);
+			if($times > $limit){
+				$status = self::STATUS_WAIT_CONFIRM;
 			}
 		}
 
