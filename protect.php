@@ -151,10 +151,10 @@ class Protect extends _Dal {
 
 		if($type == 'reg'){
 			if($emergent){
-				$need_release = $this->redis('alarm')->release('register:normal', 900, join(',',$entry));
+				$need_release = $this->redis('alarm')->release('register:normal', 1800, join(',',$entry));
 				$level = '普通';
 			}else{
-				$need_release = $this->redis('alarm')->release('register:attack', 900, join(',',$entry));
+				$need_release = $this->redis('alarm')->release('register:attack', 1800, join(',',$entry));
 				$level = '深度';
 			}
 
