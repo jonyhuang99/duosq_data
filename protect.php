@@ -120,12 +120,18 @@ class Protect extends _Dal {
 		}
 
 		//如果命中黑名单，直接深度黑名单
-		if($this->db('black')->find(array('alipay'=>low($my_alipay)))){
+		if($this->db('black')->find(array('alipay'=>low($my_alipay))) || $this->redis('speed')->sget('send_cashgift:black_list:ip:'.$ip_c, DAY, 1)){
 
 			D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2);
 			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'black', 'data2'=>$my_alipay));
-			$this->alarm('reg', array('black list'), true);
+			$this->alarm('reg', array('black_list'), true);
 			$attack = true;
+
+			//只要该IP_C新增过黑名单，接下来1天，所有账号均进黑名单
+			$times = $this->redis('speed')->sincr('send_cashgift:black_list:ip:'.$ip_c, DAY, 1);
+			if($times > 1){
+				$this->alarm('reg', array('black_ip'), true);
+			}
 		}
 
 		//如果支付命中规则，直接深度黑名单
@@ -133,7 +139,7 @@ class Protect extends _Dal {
 
 			D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2);
 			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'black', 'data2'=>$my_alipay));
-			$this->alarm('reg', array('black rule'), true);
+			$this->alarm('reg', array('black_rule'), true);
 			$attack = true;
 		}
 
