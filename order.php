@@ -288,7 +288,7 @@ class Order extends _Dal {
 				break;
 		}
 
-		if($gifttype == \DB\OrderCashgift::GIFTTYPE_LUCK || $gifttype == \DB\OrderCashgift::GIFTTYPE_TASK){
+		if($amount && ($gifttype == \DB\OrderCashgift::GIFTTYPE_LUCK || $gifttype == \DB\OrderCashgift::GIFTTYPE_TASK)){
 			//B段IP速度控制，超速进入审核
 			$limit = 5;
 			$times = $this->redis('speed')->sincr('send_cashgift:ip_b:'.getIpByLevel('b'), DAY, $limit);
