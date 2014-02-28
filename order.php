@@ -155,6 +155,7 @@ class Order extends _Dal {
 				if($user_status == \DAL\User::STATUS_BLACK_2){
 					$n = self::N_ZERO;
 					$amount = 0;
+					$status = self::STATUS_PASS;
 				}
 			}
 
