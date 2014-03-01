@@ -118,7 +118,7 @@ class user extends _Dal {
 		}else{
 			if(!$this->sys($user_id)){
 				if(!$this->db('user')->find(array('id'=>$user_id, 'status'=>"> $status"))){
-					$o_reason = $this-detail($user_id, 'reason');
+					$o_reason = $this->detail($user_id, 'reason');
 					if($o_reason){
 						$reason = $o_reason . ',' . $reason;
 					}
