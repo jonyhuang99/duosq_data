@@ -71,7 +71,6 @@ class Protect extends _Dal {
 			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'eyou', 'data2'=>$my_alipay));
 				$entry[] = 'eyou';
 		}
-
 		//严格识别完成
 
 		if(strlen($agent) > 80){

@@ -100,21 +100,29 @@ class user extends _Dal {
 	}
 
 	//标识用户为黑名单
-	function markBlack($user_id, $status=11){
+	function markBlack($user_id, $status=11, $reason='reg_acttack'){
 		if(!$status)return;
 		if(is_array($user_id)){
 			foreach($user_id as $id){
 				//系统名单用户除外
 				if(!$this->sys($id)){
 					if(!$this->db('user')->find(array('id'=>$id, 'status'=>"> $status"))){
-						$ret = $this->db('user')->update($id, array('status'=>$status));
+						$o_reason = $this-detail($id, 'reason');
+						if($o_reason){
+							$reason = $o_reason . ',' . $reason;
+						}
+						$ret = $this->db('user')->update($id, array('status'=>$status,'reason'=>$reason));
 					}
 				}
 			}
 		}else{
 			if(!$this->sys($user_id)){
 				if(!$this->db('user')->find(array('id'=>$user_id, 'status'=>"> $status"))){
-					$ret = $this->db('user')->update($user_id, array('status'=>$status));
+					$o_reason = $this-detail($user_id, 'reason');
+					if($o_reason){
+						$reason = $o_reason . ',' . $reason;
+					}
+					$ret = $this->db('user')->update($user_id, array('status'=>$status,'reason'=>$reason));
 				}
 			}
 		}

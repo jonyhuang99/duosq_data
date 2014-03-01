@@ -10,7 +10,6 @@ class Queue extends _Redis {
 
 	static $QUEUE_DATA = array();
 
-	const KEY_AUTOPAY = 'autopay'; //自动打款队列
 	const KEY_BALANCE = 'fund'; //资产变更队列
 
 	/**
