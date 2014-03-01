@@ -25,6 +25,13 @@ class user extends _Dal {
 		}
 	}
 
+	//搜索用户
+	function search($condition){
+
+		$ret = $this->db('user')->findAll($condition);
+		return clearTableName($ret);
+	}
+
 	//支付宝到用户ID的转换
 	function Alipay2userid($alipay){
 		if($alipay)

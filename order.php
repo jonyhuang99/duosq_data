@@ -290,11 +290,15 @@ class Order extends _Dal {
 		}
 
 		if($amount && ($gifttype == \DB\OrderCashgift::GIFTTYPE_LUCK || $gifttype == \DB\OrderCashgift::GIFTTYPE_TASK)){
+
+			$review_reason = array();
+
 			//B段IP速度控制，超速进入审核
 			$limit = 5;
 			$times = $this->redis('speed')->sincr('send_cashgift:ip_b:'.getIpByLevel('b'), DAY, $limit);
 			if($times > $limit){
 				$status = self::STATUS_WAIT_CONFIRM;
+				$review_reason['ip_b'] = getIpByLevel('b');
 			}
 
 			//做支付宝手机号前7位审核队列
@@ -305,6 +309,7 @@ class Order extends _Dal {
 				$times = $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$mobile_pre, DAY, $limit);
 				if($times > $limit){
 					$status = self::STATUS_WAIT_CONFIRM;
+					$review_reason['mobile_pre'] = $mobile_pre;
 				}
 			}
 
@@ -315,11 +320,18 @@ class Order extends _Dal {
 			$times = $this->redis('speed')->sincr('send_cashgift:area:'.$area_detail.':agent:'.md5($agent), HOUR, $limit);
 			if($times > $limit){
 				$status = self::STATUS_WAIT_CONFIRM;
+				$review_reason['area_agent'] = array('area_detail'=>$area_detail, 'agent'=>$agent);
 			}
 		}
 
+		if(@$review_reason){
+			$review_reason = serialize($review_reason);
+		}else{
+			$review_reason = '';
+		}
+
 		//TODO 不允许重复增加新人礼包
-		$ret = $this->add($user_id, $status, 'cashgift', $cashtype, self::N_ADD, $amount, array('gifttype'=>$gifttype, 'refer_o_id'=>$refer_o_id));
+		$ret = $this->add($user_id, $status, 'cashgift', $cashtype, self::N_ADD, $amount, array('gifttype'=>$gifttype, 'refer_o_id'=>$refer_o_id, 'review_reason'=>$review_reason));
 		if($ret){
 			$ret_true = array();
 			$ret_true['amount'] = $amount;
