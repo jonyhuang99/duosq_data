@@ -156,6 +156,7 @@ class Order extends _Dal {
 					$n = self::N_ZERO;
 					$amount = 0;
 					$status = self::STATUS_PASS;
+					$is_show = 0;
 				}
 			}
 

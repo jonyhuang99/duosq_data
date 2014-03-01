@@ -66,6 +66,14 @@ class Protect extends _Dal {
 			}
 		}
 
+		if(stripos($my_alipay, 'eyou.com')!==false){
+			D('user')->markUserCashgiftInvalid($my_id);
+			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'eyou', 'data2'=>$my_alipay, 'data4'=>join(',',$count_utmo)));
+				$entry[] = 'eyou';
+		}
+
+		//严格识别完成
+
 		if(strlen($agent) > 80){
 			$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'agent'=>"{$agent}",'createtime'=>"> {$same_agent}"));
 			$count_agent = fieldSet($ret, 'id');
