@@ -90,7 +90,8 @@ class user extends _Dal {
 
 	//标识用户下过单
 	function markUserHasOrder($user_id){
-		return $this->db('user')->update($user_id, array('has_order'=>1));
+		$has_order = $this->detail($user_id, 'has_order');
+		return $this->db('user')->update($user_id, array('has_order'=>$has_order+1));
 	}
 
 	//标识用户下过单

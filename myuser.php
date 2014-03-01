@@ -149,9 +149,19 @@ class Myuser extends _Dal {
 		return $this->sess('userinfo.level');
 	}
 
+	//获取用户来源
+	function getReferer(){
+		return $this->sess('userinfo.referer');
+	}
+
 	//获取用户来源风险等级
 	function getScRisk(){
 		return $this->sess('userinfo.sc_risk');
+	}
+
+	//获取用户来源标识ID
+	function getMarkId(){
+		return $this->sess('userinfo.mark_id');
 	}
 
 	//获取用户昵称

@@ -18,12 +18,7 @@ class Referer extends _Dal {
 		//没有来源即为廉价流量
 		if(!$referer)return false;
 
-		$referers = C('comm', 'referer_poor');
-		foreach ($referers as $u) {
-			if (stripos(urldecode($referer), $u) !== false){
-				return true;
-			}
-		}
+		return $this->isHit($referer, 'referer_poor');
 	}
 
 	//判断是否优质来源
@@ -40,12 +35,20 @@ class Referer extends _Dal {
 		//没有来源即为廉价流量
 		if(!$referer)return false;
 
-		$referers = C('comm', 'referer_good');
+		return $this->isHit($referer, 'referer_good');
+	}
+
+	//对比来源是否命中指定来源池
+	function isHit($referer, $conf='referer_poor'){
+
+		$referers = C('comm', $conf);
 		foreach ($referers as $u) {
 			if (stripos(urldecode($referer), $u) !== false){
 				return true;
 			}
 		}
+
+		return false;
 	}
 
 	//有效的推广来源
