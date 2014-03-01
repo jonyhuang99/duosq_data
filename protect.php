@@ -8,7 +8,7 @@ class Protect extends _Dal {
 	function attackReg(){
 
 		$attack = false;
-		$same_ip_c = date('Y-m-d', time() - DAY*7); //相同的注册IP_C时间区间
+		$same_ip_c = date('Y-m-d', time() - DAY*2); //相同的注册IP_C时间区间
 		$same_agent  = date('Y-m-d H:i:s', time() - 30); //相同的客户端时间区间
 		$same_area = date('Y-m-d H:i:s', time() - 120);//相同的地区区间
 		$same_day =  date('Y-m-d H:i:s', time() - DAY); //当天
