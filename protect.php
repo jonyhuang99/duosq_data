@@ -68,7 +68,7 @@ class Protect extends _Dal {
 
 		if(stripos($my_alipay, 'eyou.com')!==false){
 			D('user')->markUserCashgiftInvalid($my_id);
-			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'eyou', 'data2'=>$my_alipay, 'data4'=>join(',',$count_utmo)));
+			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'eyou', 'data2'=>$my_alipay));
 				$entry[] = 'eyou';
 		}
 
