@@ -305,7 +305,7 @@ class Order extends _Dal {
 			$alipay = D('user')->detail($user_id, 'alipay');
 			if(valid($alipay, 'mobile')){
 				$mobile_pre = substr($alipay, 0, 7);
-				$limit = 5;
+				$limit = 4;
 				$times = $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$mobile_pre, DAY, $limit);
 				if($times > $limit){
 					$status = self::STATUS_WAIT_CONFIRM;
