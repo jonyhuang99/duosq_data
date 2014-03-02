@@ -49,7 +49,11 @@ class Alarm extends _Redis {
 		if(!$now)$now = array();
 		$arr = explode(',',$entry);
 		foreach($arr as $a){
-			$now[$a] = @$now[$a] + 1;
+			$step = 1;
+			if(strpos($a, ':')){
+				list($a, $step) = explode(':', $a);
+			}
+			$now[$a] = @$now[$a] + $step;
 		}
 		return $now;
 	}
