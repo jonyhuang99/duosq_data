@@ -294,7 +294,7 @@ class Order extends _Dal {
 			$review_reason = array();
 
 			//B段IP速度控制，超速进入审核
-			$limit = 5;
+			$limit = 4;
 			$times = $this->redis('speed')->sincr('send_cashgift:ip_b:'.getIpByLevel('b'), DAY, $limit);
 			if($times > $limit){
 				$status = self::STATUS_WAIT_CONFIRM;
