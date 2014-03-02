@@ -28,7 +28,7 @@ class user extends _Dal {
 	//搜索用户
 	function search($condition){
 
-		$ret = $this->db('user')->findAll($condition);
+		$ret = $this->db('user')->findAll($condition, '', 'id DESC');
 		return clearTableName($ret);
 	}
 

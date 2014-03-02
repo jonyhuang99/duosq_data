@@ -294,7 +294,7 @@ class Order extends _Dal {
 			$review_reason = array();
 
 			//B段IP速度控制，超速进入审核
-			$limit = 4;
+			$limit = 3;
 			$times = $this->redis('speed')->sincr('send_cashgift:ip_b:'.getIpByLevel('b'), DAY, $limit);
 			if($times > $limit){
 				$status = self::STATUS_WAIT_CONFIRM;
@@ -305,7 +305,7 @@ class Order extends _Dal {
 			$alipay = D('user')->detail($user_id, 'alipay');
 			if(valid($alipay, 'mobile')){
 				$mobile_pre = substr($alipay, 0, 7);
-				$limit = 4;
+				$limit = 3;
 				$times = $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$mobile_pre, DAY, $limit);
 				if($times > $limit){
 					$status = self::STATUS_WAIT_CONFIRM;
