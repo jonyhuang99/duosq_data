@@ -84,8 +84,18 @@ class user extends _Dal {
 	function getUserByTaobaoNo($no){
 
 		if(!$no)return;
-		$user_id = $this->db('user_taobao')->field('user_id', array('taobao_no'=>$no));
-		return $this->detail($user_id);
+		$hit = $this->db('user_taobao')->findAll(array('taobao_no'=>$no));
+		$user_ids = array();
+		if($hit){
+			clearTableName($hit);
+			foreach($hit as $h){
+				$user_ids[$h['user_id']] = 1;
+			}
+		}
+
+		if($user_ids){
+			return array_keys($user_ids);
+		}
 	}
 
 	//标识用户下过单

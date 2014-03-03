@@ -56,14 +56,15 @@ class Log extends _Dal {
 		if(!$sp)return;
 		if(!$type)return;
 
-
-		if(is_array($content))$content = json_encode($content);
+		if(is_array($content))$en_content = json_encode($content);
 
 		//做商城合法性判断
 		if(!D('shop')->detail($sp))return;
 		$data = array();
 		$data['type'] = $type;
-		$data['content'] = $content;
+		$data['content'] = $en_content;
+		if(is_array($content) && isset($content['p_seller']))
+		$data['seller'] = $content['p_seller'];
 		$data['area'] = getAreaByIp();
 		$data['client'] = getBrowser();
 		$data['user_id'] = D('myuser')->getId();
