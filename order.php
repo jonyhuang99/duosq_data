@@ -443,12 +443,11 @@ class Order extends _Dal {
 
 				if($v['sub'] == 'taobao' && $v['status']==0){
 
-					$v['status_display'] = $map_taobao_st[$v['sub_detail']['status']];
-
-				}if($v['sub'] == 'taobao' && $v['n']==0){
-
-					$v['status_display'] = '账号异常';
-
+					if($v['n'] == 0 && $v['amount'] > 0){
+						$v['status_display'] = '账号异常';
+					}else{
+						$v['status_display'] = $map_taobao_st[$v['sub_detail']['status']];
+					}
 				}else if($v['sub'] == 'cashgift'){
 
 					$v['status_display'] = $map_cashgift_st[$v['sub_detail']['status']];

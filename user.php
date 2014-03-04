@@ -80,7 +80,7 @@ class user extends _Dal {
 		return $this->db('user')->update($user_id, array('alipay_valid'=>$level));
 	}
 
-	//根据淘宝订单末位，拉出匹配的用户
+	//根据淘宝订单标识，拉出匹配的用户
 	function getUserByTaobaoNo($no){
 
 		if(!$no)return;
@@ -98,6 +98,27 @@ class user extends _Dal {
 		}
 	}
 
+	//找出用户淘宝订单标识
+	function getTaobaoNo($user_id, $ex_valid=false){
+
+		if(!$user_id)return;
+		if($ex_valid){
+			$hit = $this->db('user_taobao')->findAll(array('user_id'=>$user_id, 'valid'=>0));
+		}else{
+			$hit = $this->db('user_taobao')->findAll(array('user_id'=>$user_id));
+		}
+
+		$taobao_no = array();
+		if($hit){
+			clearTableName($hit);
+			foreach($hit as $h){
+				$taobao_no[] = $h['taobao_no'];
+			}
+		}
+
+		return $taobao_no;
+	}
+
 	//标识用户下过单
 	function markUserHasOrder($user_id){
 		$has_order = $this->detail($user_id, 'has_order');
@@ -110,7 +131,7 @@ class user extends _Dal {
 	}
 
 	//标识用户为黑名单
-	function markBlack($user_id, $status=11, $reason='reg_acttack'){
+	function markBlack($user_id, $status, $reason='reg_acttack'){
 		if(!$status)return;
 		if(is_array($user_id)){
 			foreach($user_id as $id){
@@ -137,6 +158,21 @@ class user extends _Dal {
 			}
 		}
 		return true;
+	}
+
+	//解除用户黑名单
+	function unMarkBlack($user_id, $reason='has_order'){
+		$detail = $this->detail($user_id);
+		$o_reason = $detail['reason'];
+		$status = $detail['status'];
+
+		if($status < self::STATUS_BLACK_2)return true;
+
+		if($o_reason && $reason != $o_reason){
+			$reason = $o_reason . ',' . $reason;
+		}
+		$ret = $this->db('user')->update($user_id, array('status'=>self::STATUS_BLACK_1,'reason'=>$reason));
+		return $ret;
 	}
 
 	//判断用户是否系统内部用户
