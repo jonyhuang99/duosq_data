@@ -347,10 +347,16 @@ class Order extends _Dal {
 	 */
 	function addTaobao($user_id, $sub_data){
 
-		if(@$sub_data['fanli']){//订单一开始提交已处于“已成交”状态
-			$ret = $this->add($user_id, self::STATUS_WAIT_CONFIRM, 'taobao', self::CASHTYPE_JFB, self::N_ADD, $sub_data['fanli'], $sub_data);
+		$this->db('order_taobao');
+		if($sub_data['status'] == \DB\OrderTaobao::STATUS_INVALID){
+			$status = self::STATUS_INVALID;
 		}else{
-			$ret = $this->add($user_id, self::STATUS_WAIT_CONFIRM, 'taobao', self::CASHTYPE_JFB, self::N_ZERO, 0, $sub_data);
+			$status = self::STATUS_WAIT_CONFIRM;
+		}
+		if(@$sub_data['fanli']){//订单一开始提交已处于“已成交”状态
+			$ret = $this->add($user_id, $status, 'taobao', self::CASHTYPE_JFB, self::N_ADD, $sub_data['fanli'], $sub_data);
+		}else{
+			$ret = $this->add($user_id, $status, 'taobao', self::CASHTYPE_JFB, self::N_ZERO, $sub_data['fanli'], $sub_data);
 		}
 
 		if($ret){
@@ -370,11 +376,17 @@ class Order extends _Dal {
 	 */
 	function addMall($user_id, $sub_data){
 
-		if(@$sub_data['fanli']){//订单一开始提交已处于“已成交”状态
-			$ret = $this->add($user_id, self::STATUS_WAIT_CONFIRM, 'mall', $sub_data['cashtype'], self::N_ADD, $sub_data['fanli'], $sub_data);
+		$this->db('order_mall');
+		if($sub_data['status'] == \DB\OrderMall::STATUS_INVALID){
+			$status = self::STATUS_INVALID;
 		}else{
+			$status = self::STATUS_WAIT_CONFIRM;
+		}
 
-			$ret = $this->add($user_id, self::STATUS_WAIT_CONFIRM, 'mall', $sub_data['cashtype'], self::N_ZERO, 0, $sub_data);
+		if(@$sub_data['fanli']){//订单一开始提交已处于“已成交”状态
+			$ret = $this->add($user_id, $status, 'mall', $sub_data['cashtype'], self::N_ADD, $sub_data['fanli'], $sub_data);
+		}else{
+			$ret = $this->add($user_id, $status, 'mall', $sub_data['cashtype'], self::N_ZERO, 0, $sub_data);
 		}
 
 		if($ret){

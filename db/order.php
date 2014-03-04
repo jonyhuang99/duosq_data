@@ -99,7 +99,14 @@ class Order extends _Db {
 
 		if(!$o_id)return;
 		if($fanli){
-			$ret = parent::save(array('o_id'=>$o_id, 'n'=>self::N_ADD, 'amount'=>$fanli));
+
+			$old = $this->find(array('o_id'=>$o_id));
+			clearTableName($old);
+			if($old['n']==0 && $old['amount']==0){
+				$ret = parent::save(array('o_id'=>$o_id, 'n'=>self::N_ADD, 'amount'=>$fanli));
+			}else{
+				$ret = parent::save(array('o_id'=>$o_id, 'amount'=>$fanli));
+			}
 		}else{
 			$ret = parent::save(array('o_id'=>$o_id, 'n'=>self::N_ZERO, 'amount'=>0));
 		}
