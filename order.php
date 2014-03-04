@@ -482,10 +482,6 @@ class Order extends _Dal {
 				}else{
 					$v['status_display'] = $map_st[$v['status']];
 				}
-
-				if($v['status'] == self::STATUS_INVALID){
-					$v['n'] = 0;
-				}
 			}
 		}
 
