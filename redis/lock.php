@@ -8,6 +8,7 @@ class Lock extends _Redis {
 	protected $dsn_type = 'database';
 
 	const LOCK_QUAN_REWARD = 'quan_reward';
+	const LOCK_CASHGIFT_ADD = 'cashgift_add';
 
 	/**
 	 * 获得一个业务锁
@@ -23,6 +24,9 @@ class Lock extends _Redis {
 		switch ($trade_type) {
 			case self::LOCK_QUAN_REWARD:
 				$expire = 5;
+				break;
+			case self::LOCK_CASHGIFT_ADD:
+				$expire = 10;
 				break;
 		}
 
