@@ -294,7 +294,7 @@ class Order extends _Dal {
 			$review_reason = array();
 
 			//B段IP速度控制，超速进入审核
-			$limit = 3;
+			$limit = 2;
 			$times = $this->redis('speed')->sincr('send_cashgift:ip_b:'.getIpByLevel('b'), DAY, $limit);
 			if($times > $limit){
 				$status = self::STATUS_WAIT_CONFIRM;
@@ -317,7 +317,7 @@ class Order extends _Dal {
 			$agent = getAgent();
 			$area_detail = getAreaByIp('', 'detail');
 			$limit = 2;
-			$times = $this->redis('speed')->sincr('send_cashgift:area:'.$area_detail.':agent:'.md5($agent), HOUR, $limit);
+			$times = $this->redis('speed')->sincr('send_cashgift:area:'.$area_detail.':agent:'.md5($agent), HOUR*2, $limit);
 			if($times > $limit){
 				$status = self::STATUS_WAIT_CONFIRM;
 				$review_reason['area_agent'] = array('area_detail'=>$area_detail, 'agent'=>$agent);
