@@ -139,7 +139,7 @@ class user extends _Dal {
 				if(!$this->sys($id)){
 					if(!$this->db('user')->find(array('id'=>$id, 'status'=>"> $status"))){
 						$o_reason = $this-detail($id, 'reason');
-						if($o_reason && $reason != $o_reason){
+						if($o_reason && stripos($o_reason, $reason)===false){
 							$reason = $o_reason . ',' . $reason;
 						}
 						$ret = $this->db('user')->update($id, array('status'=>$status,'reason'=>$reason));
@@ -150,7 +150,7 @@ class user extends _Dal {
 			if(!$this->sys($user_id)){
 				if(!$this->db('user')->find(array('id'=>$user_id, 'status'=>"> $status"))){
 					$o_reason = $this->detail($user_id, 'reason');
-					if($o_reason && $reason != $o_reason){
+					if($o_reason && stripos($o_reason, $reason)===false){
 						$reason = $o_reason . ',' . $reason;
 					}
 					$ret = $this->db('user')->update($user_id, array('status'=>$status,'reason'=>$reason));
