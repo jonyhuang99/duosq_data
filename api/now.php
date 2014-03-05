@@ -17,7 +17,7 @@ class Now extends _Api {
 		if($channel == 'default'){
 			$apitype = 3; // $apitype 通道选择 0：默认通道； 2：通道2； 3：即时通道；
 		}else{
-			$apitype = 30; // $apitype 通道选择 0：默认通道； 2：通道2； 3：即时通道；
+			$apitype = 3; // $apitype 通道选择 0：默认通道； 2：通道2； 3：即时通道；
 		}
 
 		$respxml=$this->client->sendSMS($mobile, g2u($message, true), $time, $apitype);

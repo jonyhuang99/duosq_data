@@ -80,15 +80,18 @@ class OrderMall extends _Db {
 
 		clearTableName($old_detail);
 
-		//返利变化，及时更改订单返利
+		//返利变化，及时更改订单返利，订单审核过了就不能再变，防止返利来回跳动
+		//TODO实在是审核后在变化，需要走特殊通道调整
 		if(isset($new_field['fanli'])){
-			if($old_detail['fanli'] != $new_field['fanli']){
+			if($old_detail['fanli'] != $new_field['fanli'] && ($old_detail['status']!=self::STATUS_PASS && $old_detail['status']!=self::STATUS_INVALID)){
 				D()->db('order')->updateFanli($o_id, $new_field['fanli']);
 
 				//如果订单已返利，则进行订单资产平衡
 				if($old_detail['status'] == self::STATUS_PASS){
 					$ret = D('fund')->adjustBalanceForOrder($o_id);
 				}
+			}else{
+				unset($new_field['fanli']);
 			}
 		}
 
@@ -161,6 +164,11 @@ class OrderMall extends _Db {
 			throw new \Exception("[order_mall][error][o_id:{$o_id}][m_order][can not from({$from}) to({$to})]");
 		}
 
+		//不允许更改不通过的订单
+		if($from == self::STATUS_INVALID){
+			throw new \Exception("[order_mall][error][o_id:{$o_id}][m_order][can not from({$from})]");
+		}
+
 		//商城订单状态 => 不通过，进行账号扣除流水，主订单变为不通过
 		if($to == self::STATUS_INVALID){
 
@@ -183,6 +191,11 @@ class OrderMall extends _Db {
 		$m_order = D('order')->detail($o_id);
 		if(!$m_order){
 			throw new \Exception("[order_mall][error][afterUpdateStatus][m_order:{$o_id} not found]");
+		}
+
+		//不允许更改失效的订单
+		if($from == self::R_STATUS_INVALID){
+			throw new \Exception("[order_mall][afterUpdateStatus][sub_order][can not from({$from})]");
 		}
 
 		//商城订单子状态由 其他状态 => 已成交，子订单主状态变为待审，修改主订单金额，资产操作为增加
