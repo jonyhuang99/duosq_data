@@ -39,14 +39,14 @@ class user extends _Dal {
 	}
 
 	//获取用户昵称
-	function getNickname($user_id){
+	function getNickname($user_id, $short=false){
 
 		if($this->sys($user_id))return '多省钱官方';
 		$nickname = $this->detail($user_id, 'nickname');
 		if($nickname){
 			return $nickname;
 		}else{
-			return mask($this->detail($user_id, 'alipay'));
+			return mask($this->detail($user_id, 'alipay'), 'alipay', 4, $short);
 		}
 	}
 

@@ -199,6 +199,8 @@ class Fund extends _Dal {
 
 		D()->db('order_reduce');
 
+		$is_show = 1;
+
 		//系统自动打款，需传入资产类型，数量
 		if($reduce_type == \DB\OrderReduce::TYPE_SYSPAY){
 			if(!$param['cashtype'] || !$param['amount']){
@@ -232,7 +234,7 @@ class Fund extends _Dal {
 			return false;
 		}
 
-		$o_id = D('order')->addReduce($user_id, array_merge($param, array('type'=>$reduce_type)));
+		$o_id = D('order')->addReduce($user_id, array_merge($param, array('type'=>$reduce_type)), $is_show);
 
 		$this->unlock($user_id);
 
