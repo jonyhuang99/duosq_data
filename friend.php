@@ -19,6 +19,44 @@ class Friend extends _Dal {
 	}
 
 	/**
+	 * 获取上游用户邀请好友情况
+	 * @param  bigint $parent_id 上游用户ID
+	 * @param  integer $in_days   [description]
+	 * @return [type]             [description]
+	 */
+	function getInvitedUsers($parent_id, $in_days = 0){
+
+		if(!$parent_id)return;
+		if($in_days){
+			$after = date('Y-m-d', time() - $in_days * DAY);
+			$users = $this->db('friend_invite')->findAll(array('parent_id'=>$parent_id, 'createtime'=>"> {$after}"));
+		}else{
+			$users = $this->db('friend_invite')->findAll(array('parent_id'=>$parent_id));
+		}
+
+		return clearTableName($users);
+	}
+
+	/**
+	 * 获取上游用户邀请好友数量
+	 * @param  bigint $parent_id 上游用户ID
+	 * @param  integer $in_days   [description]
+	 * @return [type]             [description]
+	 */
+	function getInviteUserNum($parent_id, $in_days = 0){
+
+		if(!$parent_id)return;
+		if($in_days){
+			$after = date('Y-m-d', time() - $in_days * DAY);
+			$num = $this->db('friend_invite')->findCount(array('parent_id'=>$parent_id, 'createtime'=>"> {$after}"));
+		}else{
+			$num = $this->db('friend_invite')->findCount(array('parent_id'=>$parent_id));
+		}
+
+		return $num;
+	}
+
+	/**
 	 * 增加朋友圈关系
 	 * @param bigint  $sender   主动添加人
 	 * @param bigint  $recevier 被邀请人
@@ -86,6 +124,7 @@ class Friend extends _Dal {
 	 */
 	function addQuanReward($o_id){
 
+		if(!$o_id)return;
 		$detail = D('order')->detail($o_id);
 		if($detail['status'] == \DAL\Order::STATUS_PASS){
 
@@ -147,9 +186,14 @@ class Friend extends _Dal {
 	 * @param  [type] $quan_reward_id [description]
 	 * @return [type]                 [description]
 	 */
-	function getQuanRewardDetail($quan_reward_id){
+	function getQuanRewardDetail($id, $is_o_id=false){
 
-		$detail = $this->db('friend_quan_reward')->find(array('id'=>$quan_reward_id));
+		if($is_o_id){
+			$detail = $this->db('friend_quan_reward')->find(array('o_id'=>$id));
+		}else{
+			$detail = $this->db('friend_quan_reward')->find(array('id'=>$id));
+		}
+
 		return clearTableName($detail);
 	}
 

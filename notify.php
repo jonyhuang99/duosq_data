@@ -9,6 +9,7 @@ class Notify extends _Dal {
 	const NOTIFYTYPE_PAYMENTCOMPLETE = 2;
 	const NOTIFYTYPE_CASHGIFT_ACTIVED = 3;
 	const NOTIFYTYPE_QUAN_REWARD_CREATED = 4;
+	const NOTIFYTYPE_INVITE_STAT = 5;
 
 	//通知发送方式
 	const SENDTYPE_EMAIL = 'email';
