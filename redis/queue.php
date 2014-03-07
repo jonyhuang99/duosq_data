@@ -58,6 +58,7 @@ class Queue extends _Redis {
 			foreach(self::$QUEUE_DATA as $data){
 				$this->lpush($data['key'], $data['msg']);
 			}
+			self::$QUEUE_DATA = array();
 		}
 		return true;
 	}
