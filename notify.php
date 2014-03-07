@@ -39,6 +39,7 @@ class Notify extends _Dal {
 		$user_id = D('order')->detail($o_id, 'user_id');
 		$friends = D('friend')->getQuanFriends($user_id, false);
 
+		if(!$friends)return;
 		foreach($friends as $friend_id){
 			$sendtype = $this->_getSendtype($friend_id);
 			$this->redis('notify')->addJob(self::NOTIFYTYPE_QUAN_REWARD_CREATED, $sendtype, $friend_id, $o_id);
