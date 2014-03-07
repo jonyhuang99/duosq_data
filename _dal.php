@@ -123,6 +123,18 @@ class _Dal extends \Object {
 		}
 	}
 
+	//情况缓存的对象
+	function clear($obj_name=''){
+		if($obj_name && isset(self::$_loaded[$obj_name])){
+			unset(self::$_loaded[$obj_name]);
+			return;
+		}
+
+		if(!$obj_name){
+			self::$_loaded = array();
+		}
+	}
+
 	//快捷方法，返回表对应的带命名空间的DB操作类名
 	protected function _table2class($table_name){
 		$sub_class_name = \inflector::camelize($table_name);
