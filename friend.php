@@ -26,7 +26,7 @@ class Friend extends _Dal {
 	 */
 	function addQuan($sender, $recevier, $agree=1){
 
-		if(!$user_id || !$parent_id)return;
+		if(!$sender || !$recevier)return;
 		if($sender == $recevier)return;
 
 		if($this->db('friend_quan')->find(array('sender'=>$sender, 'recevier'=>$recevier))){
