@@ -53,7 +53,7 @@ class Friend extends _Dal {
 	 * @param  [type] $user_id [description]
 	 * @return [type]          [description]
 	 */
-	function getQuanFriends($user_id){
+	function getQuanFriends($user_id, $inc_sys=true){
 
 		if(!$user_id)return false;
 		$my_invite = $this->db('friend_quan')->findAll(array('sender'=>$user_id, 'agree'=>1));
@@ -73,7 +73,10 @@ class Friend extends _Dal {
 			}
 		}
 
-		$friends[C('comm', 'sysuser_friend')] = 1;
+		if($inc_sys){
+			$friends[C('comm', 'sysuser_friend')] = 1;
+		}
+
 		return array_keys($friends);
 	}
 
@@ -87,13 +90,21 @@ class Friend extends _Dal {
 		if($detail['status'] == \DAL\Order::STATUS_PASS){
 
 			//仅当好友关系超过N人时有效
-			if(count($this->getQuanFriends($detail['user_id'])) < C('comm', 'friend_quan_valid_number_num'))return false;
+			$friends = $this->getQuanFriends($detail['user_id']);
+			if(count($friends) < C('comm', 'friend_quan_valid_number_num'))return false;
 
 			$amount = ceil($detail['amount'] * C('comm', 'friend_quan_reward_rate')/100);
 			if($amount){
 				$this->db('friend_quan_reward')->create();
 				$ret = $this->db('friend_quan_reward')->save(array('user_id'=>$detail['user_id'], 'o_id'=>$o_id, 'amount'=>$amount));
-				return array('user_id'=>$detail['user_id'], 'amount'=>$amount);
+				if($ret){
+					//发送红包产生知会消息
+					D('notify')->addQuanRewardCreatedJob($o_id);
+
+					return array('user_id'=>$detail['user_id'], 'amount'=>$amount);
+				}else{
+					return false;
+				}
 			}
 		}
 	}

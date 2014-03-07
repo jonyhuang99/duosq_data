@@ -11,13 +11,23 @@ class Now extends _Api {
 		$this->client = new \SMS();
 	}
 
+	/**
+	 * 通道列表：
+	 * 3 - 通道二（通知类）(发送1条扣去1条)
+	 * 33 - 通道三(发送1条扣去1条)
+	 * 2 - 即时通道二（营销类）(发送1条扣去1.3条)
+	 * 9 - 即时通道三（通知验证）(发送1条扣去1.3条)
+	 * 10 - 促销通道(发送1条扣去1.3条)
+	 * 10 - 促销通道(发送1条扣去1.3条)
+	 * 30 - 正规短信(可回复)(发送1条扣去1.3条)
+	 */
 	function sendSms($mobile, $message, $channel='default'){
 
 		$time = time();
 		if($channel == 'default'){
-			$apitype = 3; // $apitype 通道选择 0：默认通道； 2：通道2； 3：即时通道；
+			$apitype = 3;
 		}else{
-			$apitype = 3; // $apitype 通道选择 0：默认通道； 2：通道2； 3：即时通道；
+			$apitype = 3;
 		}
 
 		$respxml=$this->client->sendSMS($mobile, g2u($message, true), $time, $apitype);
