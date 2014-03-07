@@ -48,7 +48,7 @@ class _Dal extends \Object {
 		$obj_name = \inflector::camelize($m);
 		require_once '_redis.php';
 
-		if (include "data/redis/{$m}.php") {
+		if (include_once "data/redis/{$m}.php") {
 
 			$obj_name = "\\REDIS\\{$obj_name}";
 			self::$_loaded[$m_key] = new $obj_name;
