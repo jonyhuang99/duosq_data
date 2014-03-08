@@ -86,6 +86,17 @@ class Log extends _Dal {
 		return $this->db('log_search')->save(arrayClean($data));
 	}
 
+	/**
+	 * 记录用户点击记录
+	 * @param  string  $tag  点击标记
+	 * @return bool          [description]
+	 */
+	function click($tag){
+
+		if(!$tag || !D('myuser')->isLogined())return;
+		return $this->db('log_click')->save(array('tag'=>$tag, 'user_id'=>D('myuser')->getId()));
+	}
+
 	//将用户没有登陆时，记录到session的搜索日志，插到日志表
 	function searchSave(){
 
@@ -164,7 +175,17 @@ class Log extends _Dal {
 		clearTableName($records);
 
 		return $records;
+	}
 
+	/**
+	 * 判断用户是否有点击标记
+	 * @param  string  $tag  点击标记
+	 * @return bool          是否有点击记录
+	 */
+	function getClick($tag){
+
+		if(!$tag)return;
+		return $this->db('log_click')->find(array('user_id'=>D('myuser')->getId(), 'tag'=>$tag));
 	}
 }
 ?>

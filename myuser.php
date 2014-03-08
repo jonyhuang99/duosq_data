@@ -211,11 +211,6 @@ class Myuser extends _Dal {
 		}
 	}
 
-	//严格识别
-	function newgiftWantMore(){
-
-	}
-
 	/**
 	 * 获取去过的商城/判断是否去过某商城($sp赋值)
 	 * 用途：跳转页面出现首次提醒
@@ -260,6 +255,21 @@ class Myuser extends _Dal {
 
 		if(!$this->isLogined())return;
 		return D('cashgift')->getSummary($this->getId(), $status);
+	}
+
+	//标记打开小金库的时间
+	function markOpenCenter($type='set', $time=''){
+
+		if($type == 'set'){
+			if(!$time){
+				$time = time();
+			}
+			//已有时间是超前的，则不用更新
+			if($this->sess('open_center') && $this->sess('open_center')>$time)return;
+			$this->sess('open_center', $time);
+		}else{
+			return $this->sess('open_center');
+		}
 	}
 }
 
