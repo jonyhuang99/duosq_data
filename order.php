@@ -295,7 +295,7 @@ class Order extends _Dal {
 
 			//B段IP速度控制，超速进入审核
 			$limit = 2;
-			$times = $this->redis('speed')->sincr('send_cashgift:ip_b:'.getIpByLevel('b'), DAY, $limit);
+			$times = $this->redis('speed')->sincr('send_cashgift:ip_b:'.getIpByLevel('b'), HOUR*6, $limit);
 			if($times > $limit){
 				$status = self::STATUS_WAIT_CONFIRM;
 				$review_reason['ip_b'] = getIpByLevel('b');
@@ -306,7 +306,7 @@ class Order extends _Dal {
 			if(valid($alipay, 'mobile')){
 				$mobile_pre = substr($alipay, 0, 7);
 				$limit = 3;
-				$times = $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$mobile_pre, DAY, $limit);
+				$times = $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$mobile_pre, HOUR*6, $limit);
 				if($times > $limit){
 					$status = self::STATUS_WAIT_CONFIRM;
 					$review_reason['mobile_pre'] = $mobile_pre;
@@ -315,12 +315,14 @@ class Order extends _Dal {
 
 			//1小时内、同地区、同浏览器，进入审核
 			$agent = getAgent();
-			$area_detail = getAreaByIp('', 'detail');
-			$limit = 2;
-			$times = $this->redis('speed')->sincr('send_cashgift:area:'.$area_detail.':agent:'.md5($agent), HOUR*2, $limit);
-			if($times > $limit){
-				$status = self::STATUS_WAIT_CONFIRM;
-				$review_reason['area_agent'] = array('area_detail'=>$area_detail, 'agent'=>$agent);
+			if(stripos($agent, '21.0.1180.89')===false){
+				$area_detail = getAreaByIp('', 'detail');
+				$limit = 2;
+				$times = $this->redis('speed')->sincr('send_cashgift:area:'.$area_detail.':agent:'.md5($agent), HOUR*2, $limit);
+				if($times > $limit){
+					$status = self::STATUS_WAIT_CONFIRM;
+					$review_reason['area_agent'] = array('area_detail'=>$area_detail, 'agent'=>$agent);
+				}
 			}
 		}
 
