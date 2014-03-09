@@ -74,7 +74,7 @@ class OrderCashgift extends _Db {
 	 * @param char    $o_id       主订单编号
 	 * @param int     $new_field  新字段信息
 	 */
-	function update($o_id, $new_field){
+	function update($o_id, $new_field, $force=false){
 
 		//TODO，保护状态，无效状态不能重新激活
 
@@ -121,7 +121,7 @@ class OrderCashgift extends _Db {
 			}
 
 			//主订单状态变为已通过
-			D('order')->update($o_id, \DAL\Order::STATUS_PASS);
+			D('order')->updateStatus($o_id, \DAL\Order::STATUS_PASS);
 
 			if(!$ret){
 				throw new \Exception("[order_cashgift][o_id:{$o_id}][m_order][update status error]");
@@ -140,7 +140,7 @@ class OrderCashgift extends _Db {
 			}
 
 			//主订单状态变为不通过
-			D('order')->update($o_id, \DAL\Order::STATUS_INVALID);
+			D('order')->updateStatus($o_id, \DAL\Order::STATUS_INVALID);
 			return true;
 		}
 	}

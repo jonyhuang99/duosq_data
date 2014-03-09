@@ -15,7 +15,7 @@ class Notify extends _Dal {
 	const SENDTYPE_EMAIL = 'email';
 	const SENDTYPE_SMS = 'sms';
 
-	//添加订单到账号知会任务
+	//添加订单已到知会任务
 	function addOrderBackJob($o_id){
 
 		return $this->_addJob($o_id, self::NOTIFYTYPE_ORDERBACK);

@@ -63,8 +63,9 @@ class OrderTaobao extends _Db {
 	 * 更新扣款订单数据
 	 * @param char    $o_id       子订单编号
 	 * @param int     $new_field  新字段信息
+	 * @param force   $force      强制更新
 	 */
-	function update($o_id, $new_field){
+	function update($o_id, $new_field, $force=false){
 
 		if(!$o_id || !$new_field){
 			throw new \Exception("[order_taobao][error][o_id:{$o_id}][update][param error]");
@@ -101,10 +102,10 @@ class OrderTaobao extends _Db {
 		}
 
 		//用户ID变化，当主订单状态未打款前，都可以修正
-		if(isset($new_field['user_id']) && D('user')->sys($new_field['user_id']) == false && D('user')->sys($old_detail['user_id'])){
+		if(isset($new_field['user_id']) && ((!D('user')->sys($new_field['user_id']) && D('user')->sys($old_detail['user_id'])) || $force)){
 			//修正主订单用户ID
 			$main_status = D('order')->detail($o_id, 'status');
-			if($main_status != \DAL\Order::STATUS_PASS){
+			if($main_status != \DAL\Order::STATUS_PASS || $force){
 				D('order')->db('order')->updateUserid($o_id, $new_field['user_id']);
 			}
 		}
@@ -113,7 +114,7 @@ class OrderTaobao extends _Db {
 		if(isset($new_field['status'])){
 
 			if($old_detail['status'] != $new_field['status']){
-				$trigger = $this->afterUpdateStatus($o_id, $old_detail['status'], $new_field['status'], $new_field);
+				$trigger = $this->afterUpdateStatus($o_id, $old_detail['status'], $new_field['status'], $new_field, $force);
 				if($trigger) return $ret; //碰到触发规则，不再往下执行子订单状态变化
 			}
 		}
@@ -132,7 +133,7 @@ class OrderTaobao extends _Db {
 	}
 
 	//淘宝订单状态更新后，触发资产变化、打款成功应发通知
-	function afterUpdateStatus($o_id, $from, $to, $new_field){
+	function afterUpdateStatus($o_id, $from, $to, $new_field, $force=false){
 
 		//订单主状态变为通过，判断是否已经打过款，增加资产，触发自动打款操作
 		$m_order = D('order')->detail($o_id);
@@ -142,7 +143,7 @@ class OrderTaobao extends _Db {
 		}
 
 		//淘宝订单状态由 已通过 => 待审，不允许逆向，防止上传淘宝订单重置状态到待审核
-		if($from == self::STATUS_PASS && $to == self::STATUS_WAIT_CONFIRM){
+		if(($from == self::STATUS_PASS && $to == self::STATUS_WAIT_CONFIRM) && !$force){
 			throw new \Exception("[order_taobao][warn][o_id:{$o_id}][can not from STATUS_PASS to STATUS_WAIT_CONFIRM]");
 		}
 
@@ -155,7 +156,7 @@ class OrderTaobao extends _Db {
 			}
 
 			//主订单状态变为已通过
-			$ret = D('order')->update($o_id, \DAL\Order::STATUS_PASS);
+			$ret = D('order')->updateStatus($o_id, \DAL\Order::STATUS_PASS);
 
 			if(!$ret){
 				throw new \Exception("[order_taobao][error][o_id:{$o_id}][m_order][update status]");
@@ -184,7 +185,7 @@ class OrderTaobao extends _Db {
 			}
 
 			//主订单状态变为不通过
-			D('order')->update($o_id, \DAL\Order::STATUS_INVALID);
+			D('order')->updateStatus($o_id, \DAL\Order::STATUS_INVALID);
 			return true;
 		}
 	}

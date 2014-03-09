@@ -119,6 +119,24 @@ class user extends _Dal {
 		return $taobao_no;
 	}
 
+	//删除用户对应的淘宝订单标识
+	function deleteTaobaoNo($user_id, $taobao_no){
+
+		if(!$user_id || !$taobao_no)return;
+		return $this->db('user_taobao')->query("DELETE FROM user_taobao WHERE user_id = '{$user_id}' AND taobao_no = '{$taobao_no}'");
+	}
+
+	//增加用户对应淘宝订单标识
+	function addTaobaoNo($user_id, $taobao_no){
+
+		$exist = $this->db('user_taobao')->find(array('user_id'=>$user_id, 'taobao_no'=>$taobao_no));
+		if(!$exist){
+			$this->db('user_taobao')->create();
+			return $this->db('user_taobao')->save(array('user_id'=>$user_id, 'taobao_no'=>$taobao_no));
+		}
+		return true;
+	}
+
 	//标识用户下过单
 	function markUserHasOrder($user_id){
 		$has_order = $this->detail($user_id, 'has_order');

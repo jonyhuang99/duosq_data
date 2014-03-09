@@ -41,7 +41,7 @@ class OrderInvite extends _Db {
 	 * @param char    $o_id       子订单编号
 	 * @param int     $new_field  新字段信息
 	 */
-	function update($o_id, $new_field){
+	function update($o_id, $new_field, $force=false){
 
 		//TODO，保护状态，无效状态不能重新激活
 

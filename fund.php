@@ -281,7 +281,6 @@ class Fund extends _Dal {
 				$errcode = _e('balance_reduce_order_add_err');
 				return false;
 			}
-
 		}
 		return true;
 	}

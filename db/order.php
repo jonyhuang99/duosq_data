@@ -64,11 +64,12 @@ class Order extends _Db {
 	 * @param char    $o_id     主订单编号
 	 * @param int     $status   主订单初始状态
 	 */
-	function update($o_id, $status=''){
+	function updateStatus($o_id, $status=''){
 
 		$data = array('o_id'=>$o_id, 'status'=>$status);
 
 		$ret = parent::save(arrayClean($data));
+
 		if(!$ret){
 			throw new \Exception("[order:{$o_id}][update][save error]");
 		}
@@ -82,6 +83,7 @@ class Order extends _Db {
 	 */
 	function updateFundId($o_id, $fund_id){
 
+		if(!$o_id || !$fund_id)return;
 		$data = array('o_id'=>$o_id, 'fund_id'=>$fund_id);
 
 		$ret = parent::save(arrayClean($data));

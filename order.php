@@ -160,7 +160,6 @@ class Order extends _Dal {
 			}
 
 			$this->db('order')->add($o_id, $user_id, $status, $sub, $cashtype, $n, $amount, $is_show);
-
 			$this->db($sub_table)->add($o_id, $user_id, $sub_data);
 
 		//订单、资产相关DB操作遇到错误均会抛异常，直接捕获，model db对象注销时自动rollback
@@ -182,23 +181,23 @@ class Order extends _Dal {
 	}
 
 	/**
-	 * 更新主订单信息
+	 * 更新主订单状态
 	 * @param  char   $o_id      主订单编号
 	 * @param  array  $new_field 新的字段信息
 	 * @return bool              更新结果
 	 */
-	function update($o_id, $new_field){
+	function updateStatus($o_id, $new_status){
 
-		if(!$o_id || !$new_field){
+		if(!$o_id || $new_status === null){
 			return;
 		}
 
 		$this->db()->begin();
 		try{
-			$this->db('order')->update($o_id, $new_field);
+			$this->db('order')->updateStatus($o_id, $new_status);
 
 		}catch(\Exception $e){
-			writeLog('exception', 'DAL:order:update', $e->getMessage());
+			writeLog('exception', 'DAL:order:updateStatus', $e->getMessage());
 			$this->db()->rollback();
 			return false;
 		}
@@ -214,7 +213,7 @@ class Order extends _Dal {
 	 * @param  array  $new_field 新的字段信息
 	 * @return bool              更新结果
 	 */
-	function updateSub($sub, $o_id, $new_field){
+	function updateSub($sub, $o_id, $new_field, $force=false){
 
 		if(!$o_id || !$sub || !$new_field){
 			return;
@@ -223,7 +222,7 @@ class Order extends _Dal {
 		$this->db()->begin();
 
 		try{
-			$this->db('order_'.$sub)->update($o_id, $new_field);
+			$this->db('order_'.$sub)->update($o_id, $new_field, $force);
 
 		}catch(\Exception $e){
 			writeLog('exception', 'DAL:order:update_sub', $e->getMessage());
@@ -436,6 +435,90 @@ class Order extends _Dal {
 		$ret = D('order')->add($user_id, self::STATUS_PASS, 'invite', self::CASHTYPE_CASH, self::N_ADD, $sub_data['amount'], $sub_data);
 
 		return $ret;
+	}
+
+	/**
+	 * 更改订单归属用户ID
+	 * @param  [type] $o_id    [description]
+	 * @param  bigint $user_id 用户ID
+	 * @return [type]          [description]
+	 */
+	function changeUser($o_id, $user_id){
+
+		if(!$o_id || !$user_id)return false;
+
+		$main_detail = $this->detail($o_id);
+
+		$sub = $main_detail['sub'];
+		$cashtype = $main_detail['cashtype'];
+
+		if(!in_array($sub, array('taobao', 'mall')))return false;
+		$detail = $this->getSubDetail($sub, $o_id);
+
+		$old_user_id = $detail['user_id'];
+		$new_user_id = $user_id;
+		if($sub == 'taobao')
+			$sp = 'taobao';
+		else
+			$sp = $detail['sp'];
+
+		if($old_user_id == $new_user_id)return false;
+		$is_pay = D('fund')->getOrderBalance($o_id, $cashtype)?1:0;
+
+		$this->db()->begin();
+		try{
+
+			if($is_pay){
+				//扣除旧用户资产流水
+				$ret = D('fund')->reduceBalanceForOrder($o_id);
+				if(!$ret)throw new \Exception("reduce balance");
+			}
+
+			//更新主、子订单用户ID
+			$ret = $this->updateSub($sub, $o_id, array('user_id'=>$new_user_id), true);
+			if(!$ret)throw new \Exception("sub user_id");
+
+			//如果订单已经结算，则再次进入审核
+			if($sub == 'taobao'){
+
+				if($detail['r_status'] == \DB\OrderTaobao::R_STATUS_COMPLETED){
+					$ret = $this->updateStatus($o_id, self::STATUS_WAIT_CONFIRM);
+					if(!$ret)throw new \Exception("main status");
+					$ret = $this->updateSub($sub, $o_id, array('status'=>\DB\OrderTaobao::STATUS_WAIT_CONFIRM), true);
+					if(!$ret)throw new \Exception("sub status");
+				}
+			}else{
+				if($detail['r_status'] == \DB\OrderMall::R_STATUS_COMPLETED){
+					$ret = $this->updateStatus($o_id, self::STATUS_WAIT_CONFIRM);
+					if(!$ret)throw new \Exception("main status");
+					$ret = $this->updateSub($sub, $o_id, array('status'=>\DB\OrderMall::STATUS_WAIT_CONFIRM), true);
+					if(!$ret)throw new \Exception("sub status");
+				}
+			}
+
+			if($sub == 'taobao'){
+				//更新淘宝用户标识
+				$taobao_no = getTaobaoNo($detail['r_orderid']);
+
+				$old_taobao_no = D('user')->getTaobaoNo($old_user_id);
+				if($old_taobao_no && in_array($taobao_no, $old_taobao_no)){
+					D('user')->deleteTaobaoNo($old_user_id, $taobao_no);
+				}
+				$ret = D('user')->addTaobaoNo($new_user_id, $taobao_no);
+				if(!$ret)throw new \Exception("taobao no");
+			}
+
+			//通知用户新订单到了
+			D('notify')->addOrderBackJob($o_id);
+
+		}catch(\Exception $e){
+			writeLog('exception', 'DAL:order:changeUser', $e->getMessage());
+			$this->db()->rollback();
+			return false;
+		}
+
+		$this->db()->commit();
+		return true;
 	}
 
 	/**
