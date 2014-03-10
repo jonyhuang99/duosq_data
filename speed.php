@@ -41,5 +41,63 @@ class Speed extends _Dal {
 
 		return true;
 	}
+
+	/**
+	 * 注册用户名命中黑名单
+	 * @return [type] [description]
+	 */
+	function blacklist($mode = 'set'){
+
+		if($mode == 'set'){
+			return $this->redis('speed')->sincr('send_cashgift:black_list:ip:'.getIpByLevel('c'), DAY, 1);
+		}else{
+			return $this->redis('speed')->sget('send_cashgift:black_list:ip:'.$ip_c, DAY, 1);
+		}
+	}
+
+	/**
+	 * 控制新人获取礼包速度，是否超出
+	 * @param  [type] $limit_type [description]
+	 * @param  [type] $mobile     [description]
+	 * @return [type]             [description]
+	 */
+	function cashgift($limit_type='ip', $mobile=''){
+
+		if($limit_type == 'ip'){
+			$limit = 2;
+			return $this->redis('speed')->sincr('send_cashgift:ip_b:'.getIpByLevel('b'), HOUR*6, $limit);
+		}
+
+		if($limit_type == 'mobile'){
+			if(!$mobile)return false;
+			$mobile_pre = substr($mobile, 0, 7);
+			$limit = 3;
+			return $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$mobile_pre, HOUR*6, $limit);
+		}
+
+		if($limit_type == 'agent'){
+			$agent = getAgent();
+			if(stripos($agent, '21.0.1180.89')!==false){
+				return false;
+			}
+
+			$area_detail = getAreaByIp('', 'detail');
+			$limit = 2;
+			return $this->redis('speed')->sincr('send_cashgift:area:'.$area_detail.':agent:'.md5($agent), HOUR*2, $limit);
+		}
+	}
+
+	/**
+	 * 用户自助跟单速控
+	 * @return [type] [description]
+	 */
+	function chUser($mode = 'set'){
+
+		if($mode == 'set'){
+			return $this->redis('speed')->sincr('ch_user:user_id:'.D('myuser')->getId(), DAY, 4);
+		}else{
+			return $this->redis('speed')->sget('ch_user:user_id:'.D('myuser')->getId(), DAY, 4);
+		}
+	}
 }
 ?>

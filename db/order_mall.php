@@ -71,6 +71,19 @@ class OrderMall extends _Db {
 			throw new \Exception("[order_mall][error][o_id:{$o_id}][update][o_id not exist]");
 		}
 
+		//用户ID变化，当主订单状态未打款前，都可以修正
+		if(isset($new_field['user_id']) && ((!D('user')->sys($new_field['user_id']) && D('user')->sys($old_detail['user_id']))|| $force)){
+			//修正主订单用户ID
+			$main_status = D('order')->detail($o_id, 'status');
+			if($main_status != \DAL\Order::STATUS_PASS || $force){
+				D('order')->db('order')->updateUserid($o_id, $new_field['user_id']);
+			}else{
+				unset($new_field['user_id']);
+			}
+		}else if(isset($new_field['user_id'])){
+			unset($new_field['user_id']);
+		}
+
 		$new_field['o_id'] = $o_id;
 		$ret = parent::save(arrayClean($new_field));
 
@@ -92,15 +105,6 @@ class OrderMall extends _Db {
 				}
 			}else{
 				unset($new_field['fanli']);
-			}
-		}
-
-		//用户ID变化，当主订单状态未打款前，都可以修正
-		if(isset($new_field['user_id']) && ((!D('user')->sys($new_field['user_id']) && D('user')->sys($old_detail['user_id']))|| $force)){
-			//修正主订单用户ID
-			$main_status = D('order')->detail($o_id, 'status');
-			if($main_status != \DAL\Order::STATUS_PASS || $force){
-				D('order')->db('order')->updateUserid($o_id, $new_field['user_id']);
 			}
 		}
 

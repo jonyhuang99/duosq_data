@@ -97,6 +97,20 @@ class Log extends _Dal {
 		return $this->db('log_click')->save(array('tag'=>$tag, 'user_id'=>D('myuser')->getId()));
 	}
 
+	//记录订单用户变更记录
+	function orderChuser($o_id, $old_user_id, $new_user_id, $sp, $amount, $has_pay){
+
+		if(!$o_id || !$old_user_id || !$new_user_id)return;
+		$data = array();
+		$data['o_id'] = $o_id;
+		$data['old_user_id'] = $old_user_id;
+		$data['new_user_id'] = $new_user_id;
+		$data['sp'] = $sp;
+		$data['amount'] = $amount;
+		$data['has_pay'] = $has_pay;
+		return $this->db('log_order_chuser')->save($data);
+	}
+
 	//将用户没有登陆时，记录到session的搜索日志，插到日志表
 	function searchSave(){
 

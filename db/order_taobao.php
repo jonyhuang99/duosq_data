@@ -72,9 +72,23 @@ class OrderTaobao extends _Db {
 		}
 
 		$old_detail = $this->find(array('o_id'=>$o_id));
+		clearTableName($old_detail);
 
 		if(!$old_detail){
 			throw new \Exception("[order_taobao][error][o_id:{$o_id}][update][o_id not exist]");
+		}
+
+		//用户ID变化，当主订单状态未打款前，都可以修正
+		if(isset($new_field['user_id']) && ((!D('user')->sys($new_field['user_id']) && D('user')->sys($old_detail['user_id'])) || $force)){
+			//修正主订单用户ID
+			$main_status = D('order')->detail($o_id, 'status');
+			if($main_status != \DAL\Order::STATUS_PASS || $force){
+				D('order')->db('order')->updateUserid($o_id, $new_field['user_id']);
+			}else{
+				unset($new_field['user_id']);
+			}
+		}else if(isset($new_field['user_id'])){
+			unset($new_field['user_id']);
 		}
 
 		$new_field['o_id'] = $o_id;
@@ -83,8 +97,6 @@ class OrderTaobao extends _Db {
 		if(!$ret){
 			throw new \Exception("[order_taobao][error][o_id:{$o_id}][save]");
 		}
-
-		clearTableName($old_detail);
 
 		//返利变化，及时更改订单返利，订单审核过了就不能再变
 		//TODO实在是审核后在变化，需要走特殊通道调整
@@ -98,15 +110,6 @@ class OrderTaobao extends _Db {
 				}
 			}else{
 				unset($new_field['fanli']);
-			}
-		}
-
-		//用户ID变化，当主订单状态未打款前，都可以修正
-		if(isset($new_field['user_id']) && ((!D('user')->sys($new_field['user_id']) && D('user')->sys($old_detail['user_id'])) || $force)){
-			//修正主订单用户ID
-			$main_status = D('order')->detail($o_id, 'status');
-			if($main_status != \DAL\Order::STATUS_PASS || $force){
-				D('order')->db('order')->updateUserid($o_id, $new_field['user_id']);
 			}
 		}
 

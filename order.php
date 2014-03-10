@@ -156,6 +156,9 @@ class Order extends _Dal {
 					$n = self::N_ZERO;
 					//$amount = 0;
 					$status = self::STATUS_PASS;
+					if($sub=='invite'){
+						$is_show = 0;
+					}
 				}
 			}
 
@@ -293,9 +296,7 @@ class Order extends _Dal {
 			$review_reason = array();
 
 			//B段IP速度控制，超速进入审核
-			$limit = 2;
-			$times = $this->redis('speed')->sincr('send_cashgift:ip_b:'.getIpByLevel('b'), HOUR*6, $limit);
-			if($times > $limit){
+			if(D('speed')->cashgift('ip')){
 				$status = self::STATUS_WAIT_CONFIRM;
 				$review_reason['ip_b'] = getIpByLevel('b');
 			}
@@ -303,25 +304,17 @@ class Order extends _Dal {
 			//做支付宝手机号前7位审核队列
 			$alipay = D('user')->detail($user_id, 'alipay');
 			if(valid($alipay, 'mobile')){
-				$mobile_pre = substr($alipay, 0, 7);
-				$limit = 3;
-				$times = $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$mobile_pre, HOUR*6, $limit);
-				if($times > $limit){
+
+				if(D('speed')->cashgift('mobile', $alipay)){
 					$status = self::STATUS_WAIT_CONFIRM;
 					$review_reason['mobile_pre'] = $mobile_pre;
 				}
 			}
 
 			//1小时内、同地区、同浏览器，进入审核
-			$agent = getAgent();
-			if(stripos($agent, '21.0.1180.89')===false){
-				$area_detail = getAreaByIp('', 'detail');
-				$limit = 2;
-				$times = $this->redis('speed')->sincr('send_cashgift:area:'.$area_detail.':agent:'.md5($agent), HOUR*2, $limit);
-				if($times > $limit){
-					$status = self::STATUS_WAIT_CONFIRM;
-					$review_reason['area_agent'] = array('area_detail'=>$area_detail, 'agent'=>$agent);
-				}
+			if(D('speed')->cashgift('agent')){
+				$status = self::STATUS_WAIT_CONFIRM;
+				$review_reason['area_agent'] = array('area_detail'=>$area_detail, 'agent'=>$agent);
 			}
 		}
 
@@ -349,7 +342,7 @@ class Order extends _Dal {
 	function addTaobao($user_id, $sub_data){
 
 		$this->db('order_taobao');
-		if($sub_data['status'] == \DB\OrderTaobao::STATUS_INVALID){
+		if(@$sub_data['status'] == \DB\OrderTaobao::STATUS_INVALID){
 			$status = self::STATUS_INVALID;
 		}else{
 			$status = self::STATUS_WAIT_CONFIRM;
@@ -438,6 +431,41 @@ class Order extends _Dal {
 	}
 
 	/**
+	 * 封装增加待变更用户ID订单便捷方法
+	 * @param char   $o_id      订单ID
+	 * @param bigint $user_id   用户ID
+	 * @param [type] $r_orderid [description]
+	 * @param [type] $buydate   [description]
+	 */
+	function addChUser($o_id, $user_id, $r_orderid, $r_id, $buydate){
+
+		if(!$o_id || !$user_id || !$r_orderid || !$r_id)return;
+		$this->db('order_chuser')->create();
+		return $this->db('order_chuser')->save(array('o_id'=>$o_id, 'user_id'=>$user_id, 'r_orderid'=>$r_orderid, 'r_id'=>$r_id, 'buydate'=>$buydate));
+	}
+
+	//匹配到指定用户后，删除待变更表信息
+	function delChUser($r_orderid){
+
+		if(!$r_orderid)return;
+		$detail = $this->db('order_chuser')->find(array('r_orderid'=>$r_orderid));
+		clearTableName($detail);
+		$user_id = $detail['user_id'];
+		$r_id = $detail['r_id'];
+		$this->db('order_chuser')->query("DELETE FROM order_chuser WHERE r_orderid = '{$r_orderid}'");
+		$this->db('order_chuser')->query("DELETE FROM order_chuser WHERE r_id = '{$r_id}' AND user_id = '{$user_id}'");
+		return true;
+	}
+
+	//用户明确指定订单不是自己的
+	function notChUser($r_id){
+
+		if(!$r_id)return;
+		$user_id = D('myuser')->getId();
+		return $this->db('order_chuser')->query("UPDATE order_chuser SET not_me=1 WHERE user_id='{$user_id}' AND r_id='{$r_id}'");
+	}
+
+	/**
 	 * 更改订单归属用户ID
 	 * @param  [type] $o_id    [description]
 	 * @param  bigint $user_id 用户ID
@@ -463,12 +491,12 @@ class Order extends _Dal {
 			$sp = $detail['sp'];
 
 		if($old_user_id == $new_user_id)return false;
-		$is_pay = D('fund')->getOrderBalance($o_id, $cashtype)?1:0;
+		$has_pay = D('fund')->getOrderBalance($o_id, $cashtype)?1:0;
 
 		$this->db()->begin();
 		try{
 
-			if($is_pay){
+			if($has_pay){
 				//扣除旧用户资产流水
 				$ret = D('fund')->reduceBalanceForOrder($o_id);
 				if(!$ret)throw new \Exception("reduce balance");
@@ -517,6 +545,10 @@ class Order extends _Dal {
 			return false;
 		}
 
+		//增加订单用户变更日志
+		D('log')->orderChuser($o_id, $old_user_id, $new_user_id, $sp, $main_detail['amount'], $has_pay);
+
+		$this->delChUser($detail['r_orderid']);
 		$this->db()->commit();
 		return true;
 	}
