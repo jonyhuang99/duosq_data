@@ -548,7 +548,8 @@ class Order extends _Dal {
 		//增加订单用户变更日志
 		D('log')->orderChuser($o_id, $old_user_id, $new_user_id, $sp, $main_detail['amount'], $has_pay);
 
-		$this->delChUser($detail['r_orderid']);
+		if(!D('user')->sys($user_id))
+			$this->delChUser($detail['r_orderid']);
 		$this->db()->commit();
 		return true;
 	}
