@@ -121,7 +121,7 @@ class OrderTaobao extends _Db {
 		if(isset($new_field['status'])){
 
 			if($old_detail['status'] != $new_field['status']){
-				$trigger = $this->afterUpdateStatus($o_id, $old_detail['status'], $new_field['status'], $new_field, $force);
+				$trigger = $this->afterUpdateStatus($o_id, $old_detail['status'], $new_field['status'], $old_detail, $force);
 				if($trigger) return $ret; //碰到触发规则，不再往下执行子订单状态变化
 			}
 		}
@@ -130,7 +130,7 @@ class OrderTaobao extends _Db {
 		if(isset($new_field['r_status'])){
 
 			if($old_detail['r_status'] != $new_field['r_status']){
-				$trigger = $this->afterUpdateRStatus($o_id, $old_detail['r_status'], $new_field['r_status'], $new_field);
+				$trigger = $this->afterUpdateRStatus($o_id, $old_detail['r_status'], $new_field['r_status'], $old_detail);
 				if($trigger) return $ret;
 			}
 		}
@@ -140,7 +140,7 @@ class OrderTaobao extends _Db {
 	}
 
 	//淘宝订单状态更新后，触发资产变化、打款成功应发通知
-	function afterUpdateStatus($o_id, $from, $to, $new_field, $force=false){
+	function afterUpdateStatus($o_id, $from, $to, $old_detail, $force=false){
 
 		//订单主状态变为通过，判断是否已经打过款，增加资产，触发自动打款操作
 		$m_order = D('order')->detail($o_id);
@@ -197,7 +197,7 @@ class OrderTaobao extends _Db {
 		}
 	}
 
-	function afterUpdateRStatus($o_id, $from, $to, $new_field){
+	function afterUpdateRStatus($o_id, $from, $to, $old_detail){
 
 		$m_order = D('order')->detail($o_id);
 		if(!$m_order){
@@ -220,7 +220,7 @@ class OrderTaobao extends _Db {
 		if( $to == self::R_STATUS_INVALID ){
 
 			$ret = parent::save(array('o_id'=>$o_id, 'status'=>self::STATUS_INVALID));
-			$this->afterUpdateStatus($o_id, self::STATUS_PASS, self::STATUS_INVALID, $new_field);
+			$this->afterUpdateStatus($o_id, self::STATUS_PASS, self::STATUS_INVALID, $old_detail);
 			return true;
 		}
 	}

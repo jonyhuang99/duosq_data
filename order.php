@@ -218,7 +218,7 @@ class Order extends _Dal {
 	 */
 	function updateSub($sub, $o_id, $new_field, $force=false){
 
-		if(!$o_id || !$sub || !$new_field){
+		if(!$sub || !$o_id || !$new_field){
 			return;
 		}
 
@@ -588,7 +588,12 @@ class Order extends _Dal {
 
 					if($v['status'] == self::STATUS_WAIT_CONFIRM){
 						if($v['sub_detail']['buydatetime']){
-							$v['status_display'] = date('n月份确认', strtotime($v['sub_detail']['buydatetime']) + 50*DAY);
+							if(strtotime($v['sub_detail']['buydatetime'])+50*DAY < time()){
+								$v['status_display'] = date('n月份确认');
+							}else{
+								$v['status_display'] = date('n月份确认', strtotime($v['sub_detail']['buydatetime']) + 50*DAY);
+							}
+
 						}else{
 							$v['status_display'] = $map_st[$v['status']];
 						}
