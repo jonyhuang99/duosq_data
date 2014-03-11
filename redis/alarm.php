@@ -14,7 +14,7 @@ class Alarm extends _Redis {
 	 * @param  string  $entry     叠加的条目(用,隔开多个)
 	 * @return false/array        false:累计中  array:释放报警
 	 */
-	function release($key='', $duration=3600, $entry='default'){
+	function accum($key='', $duration=3600, $entry='default'){
 
 		$cache = $this->hgetall($key);
 
@@ -47,7 +47,12 @@ class Alarm extends _Redis {
 			return $now;
 		}
 		if(!$now)$now = array();
-		$arr = explode(',',$entry);
+		if(!is_array($entry)){
+			$arr = explode(',',$entry);
+		}else{
+			$arr = $entry;
+		}
+
 		foreach($arr as $a){
 			$step = 1;
 			if(strpos($a, ':')){

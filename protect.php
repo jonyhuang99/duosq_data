@@ -155,32 +155,13 @@ class Protect extends _Dal {
 	//统一发送报警
 	function alarm($type, $entry, $emergent=false){
 
-		if($type == 'reg'){
-			if($emergent){
-				$need_release = $this->redis('alarm')->release('register:normal', 1800, join(',',$entry));
-				$level = '普通';
-			}else{
-				$need_release = $this->redis('alarm')->release('register:attack', 1800, join(',',$entry));
-				$level = '深度';
-			}
-
-			if($need_release){
-
-				$content = array();
-				foreach($need_release as $k => $v){
-					$content[] = "{$k}:$v";
-				}
-				$params = array();
-				$params['time'] = date('H:i:s');
-				$params['level'] = $level;
-				$params['content'] = join(',',$content);
-				sendSms(C('comm', 'sms_monitor'), 100, $params, 'monitor');
-
-				return true;
-			}else{
-				return false;
-			}
+		if($emergent){
+			$type .= ':emerg';
+		}else{
+			$type .= ':normal';
 		}
+
+		D('alarm')->protect($type, $entry);
 	}
 }
 ?>
