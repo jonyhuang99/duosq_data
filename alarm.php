@@ -16,8 +16,13 @@ class Alarm extends _Dal {
 	}
 
 	//导入订单出错紧急报警
-	function importOrdersErr($msg){
-		$this->_fire(array(), array('msg'=>$msg), 102);
+	function importOrdersErr($type){
+
+		$entry_params = D()->redis('alarm')->accum('auto_import:error', MINUTE*5, $type);
+
+		if($entry_params){
+			$this->_fire($entry_params, $params, 102);
+		}
 	}
 
 	//保护模块产生的报警
