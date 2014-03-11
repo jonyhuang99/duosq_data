@@ -536,9 +536,6 @@ class Order extends _Dal {
 				if(!$ret)throw new \Exception("taobao no");
 			}
 
-			//通知用户新订单到了
-			D('notify')->addOrderBackJob($o_id);
-
 		}catch(\Exception $e){
 			writeLog('exception', 'DAL:order:changeUser', $e->getMessage());
 			$this->db()->rollback();
