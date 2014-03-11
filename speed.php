@@ -72,7 +72,10 @@ class Speed extends _Dal {
 			if(!$mobile)return false;
 			$mobile_pre = substr($mobile, 0, 7);
 			$limit = 3;
-			return $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$mobile_pre, HOUR*6, $limit);
+			$ret = $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$mobile_pre, HOUR*6, $limit);
+			if($ret){
+				return $mobile_pre;
+			}
 		}
 
 		if($limit_type == 'agent'){
@@ -83,7 +86,10 @@ class Speed extends _Dal {
 
 			$area_detail = getAreaByIp('', 'detail');
 			$limit = 2;
-			return $this->redis('speed')->sincr('send_cashgift:area:'.$area_detail.':agent:'.md5($agent), HOUR*2, $limit);
+			$ret = $this->redis('speed')->sincr('send_cashgift:area:'.$area_detail.':agent:'.md5($agent), HOUR*2, $limit);
+			if($ret){
+				return array('area_detail'=>$area_detail, 'agent'=>$agent);
+			}
 		}
 	}
 

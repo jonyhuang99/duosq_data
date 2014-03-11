@@ -304,17 +304,18 @@ class Order extends _Dal {
 			//做支付宝手机号前7位审核队列
 			$alipay = D('user')->detail($user_id, 'alipay');
 			if(valid($alipay, 'mobile')){
-
-				if(D('speed')->cashgift('mobile', $alipay)){
+				$ret = D('speed')->cashgift('mobile', $alipay);
+				if($ret){
 					$status = self::STATUS_WAIT_CONFIRM;
-					$review_reason['mobile_pre'] = $mobile_pre;
+					$review_reason['mobile_pre'] = $ret;
 				}
 			}
 
 			//1小时内、同地区、同浏览器，进入审核
-			if(D('speed')->cashgift('agent')){
+			$ret = D('speed')->cashgift('agent');
+			if($ret){
 				$status = self::STATUS_WAIT_CONFIRM;
-				$review_reason['area_agent'] = array('area_detail'=>$area_detail, 'agent'=>$agent);
+				$review_reason['area_agent'] = $ret;
 			}
 		}
 
