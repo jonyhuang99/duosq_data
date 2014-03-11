@@ -21,7 +21,8 @@ class Alarm extends _Dal {
 		$entry_params = D()->redis('alarm')->accum('auto_import:error', MINUTE*5, $type);
 
 		if($entry_params){
-			$this->_fire($entry_params, $params, 102);
+
+			$this->_fire($entry_params, array(), 102);
 		}
 	}
 
@@ -46,7 +47,7 @@ class Alarm extends _Dal {
 		$default_p = array();
 		$default_p['__time__'] = date('H:i:s');
 		$default_p['__content__'] = join(',',$content);
-		$params = array_merge($default_p, $params);
+		$params = array_merge($default_p, (array)$params);
 		$ret = sendSms(C('comm', 'sms_monitor'), $sms_tpl, $params, 'alarm');
 	}
 }

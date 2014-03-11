@@ -238,6 +238,7 @@ class Myuser extends _Dal {
 	//更新自己的昵称
 	function updateNickname($nickname){
 
+		if(!$this->isLogined())return;
 		if(strlen($nickname)>20)return false;
 		if(!$nickname){
 			$this->db('user')->update($this->getId(), array('nickname'=>$nickname));
@@ -270,6 +271,13 @@ class Myuser extends _Dal {
 		}else{
 			return $this->sess('open_center');
 		}
+	}
+
+	//更新最后登录时间
+	function updateLasttime(){
+
+		if(!$this->isLogined())return;
+		$this->db('user')->update($this->getId(), array('lasttime'=>date('Y-m-d H:i:s')));
 	}
 }
 
