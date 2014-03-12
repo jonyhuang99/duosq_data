@@ -127,6 +127,10 @@ class OrderCashgift extends _Db {
 				throw new \Exception("[order_cashgift][o_id:{$o_id}][m_order][update status error]");
 			}
 
+			//加入待打款现金用户列表
+			$amount = D('order')->detail($o_id, 'amount');
+			D('pay')->addWaitPaycash($m_order['user_id'], 'cashgift', $amount);
+
 			return true;
 		}
 
