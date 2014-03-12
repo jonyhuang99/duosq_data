@@ -159,14 +159,9 @@ class OrderMall extends _Db {
 				throw new \Exception("[order_mall][error][o_id:{$o_id}][m_order][update status error]");
 			}
 
-			//判断如果达到10元，进入打款流程
-			$amount = D('fund')->getBalance($m_order['user_id'], \DAL\Order::CASHTYPE_CASH);
-			if($amount >= 1000){
-				//加入待打款现金用户列表
-
-				$amount = D('order')->detail($o_id, 'amount');
-				D('pay')->addWaitPaycash($m_order['user_id'], '购物返钱', $amount);
-			}
+			//加入待打款现金用户列表
+			$amount = D('order')->detail($o_id, 'amount');
+			D('pay')->addWaitPaycash($m_order['user_id'], '购物返钱', $amount);
 
 			//将上个月该渠道的等待订单，自动变为无效
 			$timestamp = strtotime($old_detail['buydatetime']);
