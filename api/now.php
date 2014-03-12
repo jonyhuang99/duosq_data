@@ -43,6 +43,7 @@ class Now extends _Api {
 		$failephone=$respArr["failephone"][0];
 		$status=$respArr["smsstatus"][0];
 
+		writeLog('sms', 'send', '['.$mobile.']['.$channel.']['.$message.'][status:'.$status.'][succ:'.$succphone.']');
 		return $succphone;
 	}
 }
