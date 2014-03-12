@@ -164,7 +164,9 @@ class OrderMall extends _Db {
 			$amount = D('fund')->getBalance($m_order['user_id'], \DAL\Order::CASHTYPE_CASH);
 			if($amount >= 1000){
 				//加入待打款现金用户列表
-				D('pay')->addWaitPaycash($m_order['user_id']);
+
+				$amount = D('order')->detail($o_id, 'amount');
+				D('pay')->addWaitPaycash($m_order['user_id'], 'mall', $amount);
 			}
 
 			//将上个月该渠道的等待订单，自动变为无效

@@ -21,7 +21,6 @@ class Alarm extends _Dal {
 		$entry_params = D()->redis('alarm')->accum('auto_import:error', MINUTE*5, $type);
 
 		if($entry_params){
-
 			$this->_fire($entry_params, array(), 102);
 		}
 	}

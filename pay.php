@@ -224,15 +224,20 @@ class Pay extends _Dal {
 	 * 增加待支付现金用户
 	 * @param [type] $user_id  用户ID
 	 */
-	function addWaitPaycash($user_id){//TODO 改成进入自动打款任务队列
+	function addWaitPaycash($user_id, $tag, $value){//TODO 改成进入自动打款任务队列
 
 		if(!$user_id)return false;
-		if($this->db('wait_paycash')->find(array('user_id'=>$user_id))){
+		$exist = $this->db('wait_paycash')->find(array('user_id'=>$user_id));
+		if($exist){
+			clearTableName($exist);
+			$d = unserialize($exist['detail']);
+			$d[$tag] = intval(@$d[$tag]) + $value;
+			$this->db('wait_paycash')->save(array('id'=>$exist['id'], 'detail'=>serialize($d)));
 			return true;
 		}
 
 		$this->db('wait_paycash')->create();
-		return $this->db('wait_paycash')->save(array('user_id'=>$user_id));
+		return $this->db('wait_paycash')->save(array('user_id'=>$user_id, 'detail'=>serialize(array($tag=>$value))));
 	}
 
 	/**

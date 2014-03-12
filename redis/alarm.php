@@ -32,9 +32,10 @@ class Alarm extends _Redis {
 			return $all_entry;
 		}else{
 
+			$this->del($key);
 			//继续累计
 			foreach($all_entry as $single=>$count){
-				$this->hset($key, $single, $count);
+				$this->hset($key, $single, intval($count));
 			}
 		}
 
