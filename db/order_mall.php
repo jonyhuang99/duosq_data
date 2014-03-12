@@ -66,6 +66,7 @@ class OrderMall extends _Db {
 			throw new \Exception("[order_mall][error][o_id:{$o_id}][update][param error]");
 		}
 		$old_detail = $this->find(array('o_id'=>$o_id));
+		clearTableName($old_detail);
 
 		if(!$old_detail){
 			throw new \Exception("[order_mall][error][o_id:{$o_id}][update][o_id not exist]");
@@ -90,8 +91,6 @@ class OrderMall extends _Db {
 		if(!$ret){
 			throw new \Exception("[order_mall][error][o_id:{$o_id}][update]");
 		}
-
-		clearTableName($old_detail);
 
 		//返利变化，及时更改订单返利，订单审核过了就不能再变，防止返利来回跳动
 		//TODO实在是审核后在变化，需要走特殊通道调整
@@ -249,29 +248,8 @@ class OrderMall extends _Db {
 		if($order['r_id']){
 			$exist = D('order')->db('order_mall')->field('o_id', array('r_orderid'=>$order['r_orderid'], 'r_id'=>$order['r_id'], 'sp'=>$order['sp'], 'driver'=>$order['driver']));
 		}else{
-			//此处有可能订单ID相同，但没返回商品ID，需用排除法分析是否存在订单
-			$sim_exist = D('order')->db('order_mall')->find(array('r_orderid'=>$order['r_orderid'], 'sp'=>$order['sp'], 'driver'=>$order['driver']));
 
-			if(!$sim_exist){
-				$exist = false;
-			}else{
-				clearTableName($sim_exist);
-				//存在相同ID订单，但入库时间小于10秒(证明在同批列表)
-				if(abs(strtotime($sim_exist['createtime']) - time()) < 10){
-					$exist = false;
-				//存在相同ID订单，下单时间不同
-				}else if($sim_exist['buydatetime'] != $order['buydatetime']){
-					$exist = false;
-				}else{
-					$tmp = D('order')->db('order_mall')->findAll(array('r_orderid'=>$order['r_orderid'], 'sp'=>$order['sp'], 'r_price'=>$order['r_price'], 'driver'=>$order['driver']));
-					clearTableName($tmp);
-					if(count($tmp) == 1){//当且仅当存在一个相同价格，相同对方订单ID的订单，该订单命中
-						$exist = $tmp[0]['o_id'];
-					}else{ //有可能价格变了(但已存在)，也有可能是对方后续才补的旧订单
-						$exist = true;
-					}
-				}
-			}
+			$exist = D('order')->db('order_mall')->field('o_id', array('r_orderid'=>$order['r_orderid'], 'r_category'=>$order['r_category'], 'sp'=>$order['sp'], 'driver'=>$order['driver']));
 		}
 		return $exist;
 	}

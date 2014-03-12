@@ -107,7 +107,7 @@ class Order extends _Dal {
 
 		if(!$condition)return;
 		if($one){
-			$ret = $this->db('order_'.$sub)->find($condition);
+			$ret = $this->db('order_'.$sub)->find($condition, '', 'o_id ASC');
 		}else{
 			$ret = $this->db('order_'.$sub)->findAll($condition);
 		}
@@ -372,7 +372,7 @@ class Order extends _Dal {
 	function addMall($user_id, $sub_data){
 
 		$this->db('order_mall');
-		if($sub_data['status'] == \DB\OrderMall::STATUS_INVALID){
+		if(@$sub_data['status'] == \DB\OrderMall::STATUS_INVALID){
 			$status = self::STATUS_INVALID;
 		}else{
 			$status = self::STATUS_WAIT_CONFIRM;
