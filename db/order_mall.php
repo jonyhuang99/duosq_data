@@ -166,7 +166,7 @@ class OrderMall extends _Db {
 				//加入待打款现金用户列表
 
 				$amount = D('order')->detail($o_id, 'amount');
-				D('pay')->addWaitPaycash($m_order['user_id'], 'mall', $amount);
+				D('pay')->addWaitPaycash($m_order['user_id'], '购物返钱', $amount);
 			}
 
 			//将上个月该渠道的等待订单，自动变为无效
