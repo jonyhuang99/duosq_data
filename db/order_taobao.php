@@ -36,10 +36,11 @@ class OrderTaobao extends _Db {
 			throw new \Exception("[order_taobao][error][o_id:{$o_id}][add][param error]");
 		}
 
-		$exist = $this->find(array('r_orderid'=>$data['r_orderid'], 'r_id'=>$data['r_id']));
-		if($exist){
-			throw new \Exception("[order_taobao][error][o_id:{$o_id}][add][r_orderid:{$data['r_orderid']} existed]");
-		}
+		//由于存在r_orderid && r_id相同的订单，因此惟一性工作交由order_uplaod
+		// $exist = $this->find(array('r_orderid'=>$data['r_orderid'], 'r_id'=>$data['r_id']));
+		// if($exist){
+		// 	throw new \Exception("[order_taobao][error][o_id:{$o_id}][add][r_orderid:{$data['r_orderid']} existed]");
+		// }
 
 		$this->create();
 		$data['o_id'] = $o_id;
