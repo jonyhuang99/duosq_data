@@ -72,6 +72,9 @@ class OrderMall extends _Db {
 			throw new \Exception("[order_mall][error][o_id:{$o_id}][update][o_id not exist]");
 		}
 
+		//不允许更新额外返利比例历史
+		unset($new_field['fanli_lv_rate']);
+
 		//用户ID变化，当主订单状态未打款前，都可以修正
 		if(isset($new_field['user_id']) && ((!D('user')->sys($new_field['user_id']) && D('user')->sys($old_detail['user_id']))|| $force)){
 			//修正主订单用户ID
@@ -179,7 +182,7 @@ class OrderMall extends _Db {
 		}
 
 		//不允许从其他状态变为通过
-		if($from != self::STATUS_PASS && $to == self::STATUS_PASS){
+		if($from != self::STATUS_WAIT_CONFIRM && $to == self::STATUS_PASS){
 			throw new \Exception("[order_mall][error][o_id:{$o_id}][m_order][can not from({$from}) to({$to})]");
 		}
 

@@ -146,7 +146,8 @@ class Myuser extends _Dal {
 
 	//获取用户当前等级
 	function getLevel(){
-		return $this->sess('userinfo.level');
+		if(!$this->isLogined())return;
+		return D('user')->detail($this->getId(), 'level');
 	}
 
 	//获取用户来源
