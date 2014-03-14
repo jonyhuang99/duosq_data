@@ -7,7 +7,12 @@ class Alarm extends _Dal {
 	//自动导入订单报警
 	function importOrders($type, $entry, $params=array()){
 
-		$entry_params = D()->redis('alarm')->accum('auto_import:'.$type.':order', HOUR*3, $entry);
+		if(date('H') > 9){
+			$expire = HOUR*1.5;
+		}else{
+			$expire = HOUR*9;
+		}
+		$entry_params = D()->redis('alarm')->accum('auto_import:'.$type, $expire, $entry);
 
 		if($entry_params){
 			$params['type'] = $type;
