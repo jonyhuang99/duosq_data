@@ -5,7 +5,7 @@ namespace DAL;
 class Alarm extends _Dal {
 
 	//自动导入订单报警
-	function importOrders($type, $entry, $params=array()){
+	function importOrders($entry, $params=array()){
 
 		if(date('H') > 9){
 			$expire = HOUR*1.5;
@@ -36,6 +36,16 @@ class Alarm extends _Dal {
 		$entry_params = D()->redis('alarm')->accum('protect:'.$type, HOUR, $entry);
 
 		if($entry_params){
+			$max = 0;
+			foreach ($entry_params as $key => $value) {
+				$max = max($max, $value);
+			}
+			if($max < 4){
+				//太小的监控值继续累积
+				D()->redis('alarm')->accum('protect:'.$type, HOUR, $entry_params);
+				return;
+			}
+
 			$params['type'] = $type;
 			$this->_fire($entry_params, $params, 100);
 		}
