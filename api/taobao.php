@@ -56,13 +56,6 @@ class Taobao extends _Api {
 			$info['key'] = $client->appkey;
 			$info['has_fanli'] = 1;
 
-			if (!$info['p_title']){
-				D('log')->action(1000, 1, array('status'=>0, 'data1'=>$p_id));
-				$info = array();
-				$info['errcode'] = '0';
-				$info['key'] = $client->appkey;
-			}
-
 		} else{
 
 			if (@$resp->code) {

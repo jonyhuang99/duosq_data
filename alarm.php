@@ -51,6 +51,26 @@ class Alarm extends _Dal {
 		}
 	}
 
+	//接口调用异常报警
+	function api($entry){
+
+		$entry_params = D()->redis('alarm')->accum('api', HOUR, $entry);
+
+		if($entry_params){
+			$max = 0;
+			foreach ($entry_params as $key => $value) {
+				$max = max($max, $value);
+			}
+			if($max < 4){
+				//太小的监控值继续累积
+				D()->redis('alarm')->accum('api', HOUR, $entry_params);
+				return;
+			}
+
+			$this->_fire($entry_params, array(), 103);
+		}
+	}
+
 	private function _fire($entry_params, $params, $sms_tpl=''){
 
 		$content = array();

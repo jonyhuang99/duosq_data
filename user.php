@@ -217,7 +217,7 @@ class user extends _Dal {
 	}
 
 	//带上等级比例奖励
-	function lvRate($user_id, $rate){
+	function lvRate($user_id){
 
 		if(!$user_id)return 0;
 		$lv_rate = C('comm', 'lv_rate');
