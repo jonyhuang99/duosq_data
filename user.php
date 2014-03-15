@@ -184,12 +184,12 @@ class user extends _Dal {
 		$o_reason = $detail['reason'];
 		$status = $detail['status'];
 
-		if($status < self::STATUS_BLACK_2)return true;
+		if($status < self::STATUS_BLACK_1)return true;
 
 		if($o_reason && $reason != $o_reason){
 			$reason = $o_reason . ',' . $reason;
 		}
-		$ret = $this->db('user')->update($user_id, array('status'=>self::STATUS_BLACK_1,'reason'=>$reason));
+		$ret = $this->db('user')->update($user_id, array('status'=>1,'reason'=>$reason));
 		return $ret;
 	}
 
