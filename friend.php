@@ -130,7 +130,7 @@ class Friend extends _Dal {
 
 			//仅当好友关系超过N人时有效
 			$friends = $this->getQuanFriends($detail['user_id']);
-			if(count($friends) < C('comm', 'friend_quan_valid_number_num'))return false;
+			if(count($friends) < 2)return false;
 
 			$amount = ceil($detail['amount'] * C('comm', 'friend_quan_reward_rate')/100);
 			if($amount){

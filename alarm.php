@@ -12,7 +12,7 @@ class Alarm extends _Dal {
 		}else{
 			$expire = HOUR*9;
 		}
-		$entry_params = D()->redis('alarm')->accum('auto_import:'.$type, $expire, $entry);
+		$entry_params = D()->redis('alarm')->accum('auto_import:order', $expire, $entry);
 
 		if($entry_params){
 			$params['type'] = $type;
