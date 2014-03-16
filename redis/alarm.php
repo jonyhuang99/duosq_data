@@ -32,11 +32,12 @@ class Alarm extends _Redis {
 			return $all_entry;
 		}else{
 
-			$this->del($key);
 			//继续累计
 			foreach($all_entry as $single=>$count){
 				$this->hset($key, $single, intval($count));
 			}
+			//设置最大有效值
+			$this->expire($key, $all_entry['expire_on'] - time() + 60);
 		}
 
 		return false;
