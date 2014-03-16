@@ -18,7 +18,7 @@ class Vcode extends _Dal {
 	protected $verifyType;
 
 	protected $limit_expire = 3600;
-	protected $limit_times = 1;
+	protected $limit_times = 5;
 
 	function __construct(){
 
@@ -40,8 +40,12 @@ class Vcode extends _Dal {
 	//判断是否需要验证码
 	function need(){
 
-		$ip = getIp();
-		if(!$ip)return false;
+		$ip = getIpByLevel('b');
+		if(!$ip){
+			setcookie('needvcode', 1, 0, '/'); //用来js判断
+			return true;
+		}
+
 		$obj = "vcode:ip:{$ip}";
 
 		$times = $this->redis('speed')->sget($obj, $this->limit_expire, $this->limit_times); //每小时限制1次
@@ -59,7 +63,7 @@ class Vcode extends _Dal {
 	//累计验证码因子
 	function record(){
 
-		$ip = getIp();
+		$ip = getIpByLevel('b');
 		if(!$ip)return false;
 		$obj = "vcode:ip:{$ip}";
 

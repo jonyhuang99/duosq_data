@@ -56,7 +56,7 @@ class Alarm extends _Redis {
 
 		foreach($arr as $a){
 			$step = 1;
-			if(strpos($a, ':')){
+			if(preg_match('/:[0-9]+/i', $a)){
 				list($a, $step) = explode(':', $a);
 			}
 			$now[$a] = @$now[$a] + $step;
