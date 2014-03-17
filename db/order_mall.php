@@ -143,7 +143,7 @@ class OrderMall extends _Db {
 		}
 
 		//商城订单状态由 已通过 => 待审，不允许逆向，防止上传商城订单重置状态到待审核
-		if(($from == self::STATUS_PASS && $to == self::STATUS_WAIT_CONFIRM) && $force){
+		if(($from == self::STATUS_PASS && $to == self::STATUS_WAIT_CONFIRM) && !$force){
 			throw new \Exception("[order_mall][warn][o_id:{$o_id}][can not from STATUS_PASS to STATUS_WAIT_CONFIRM]");
 		}
 
