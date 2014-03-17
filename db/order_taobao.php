@@ -99,13 +99,6 @@ class OrderTaobao extends _Db {
 			unset($new_field['user_id']);
 		}
 
-		$new_field['o_id'] = $o_id;
-		$ret = parent::save(arrayClean($new_field));
-
-		if(!$ret){
-			throw new \Exception("[order_taobao][error][o_id:{$o_id}][save]");
-		}
-
 		//返利变化，及时更改订单返利，订单审核过了就不能再变
 		//TODO实在是审核后在变化，需要走特殊通道调整
 		if(isset($new_field['fanli'])){
@@ -119,6 +112,13 @@ class OrderTaobao extends _Db {
 			}else{
 				unset($new_field['fanli']);
 			}
+		}
+
+		$new_field['o_id'] = $o_id;
+		$ret = parent::save(arrayClean($new_field));
+
+		if(!$ret){
+			throw new \Exception("[order_taobao][error][o_id:{$o_id}][save]");
 		}
 
 		//触发主状态变化，主状态在后台审核时会更新

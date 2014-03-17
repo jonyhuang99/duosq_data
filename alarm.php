@@ -15,7 +15,6 @@ class Alarm extends _Dal {
 		$entry_params = D()->redis('alarm')->accum('auto_import:order', $expire, $entry);
 
 		if($entry_params){
-			$params['type'] = $type;
 			$this->_fire($entry_params, $params, 101);
 		}
 	}

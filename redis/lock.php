@@ -9,6 +9,7 @@ class Lock extends _Redis {
 
 	const LOCK_QUAN_REWARD = 'quan_reward';
 	const LOCK_CASHGIFT_ADD = 'cashgift_add';
+	const LOCK_COUPON_ROB = 'coupon_rob';
 
 	/**
 	 * 获得一个业务锁
@@ -28,13 +29,18 @@ class Lock extends _Redis {
 			case self::LOCK_CASHGIFT_ADD:
 				$expire = 10;
 				break;
+			case self::LOCK_COUPON_ROB:
+				$id = $id.':day:'.date('d');
+				$expire = DAY;
+				break;
 		}
 
 		$ret = $this->setnx($trade_type.':id:'.$id, time());
 		if(!$ret){
 			return false; //锁被占用了
 		}else{
-			$this->expire($trade_type.':id:'.$id, $expire);
+			if($expire)
+				$this->expire($trade_type.':id:'.$id, $expire);
 			return true;
 		}
 	}

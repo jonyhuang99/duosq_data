@@ -13,6 +13,7 @@ class Protect extends _Dal {
 		'/^jilvsi[0-9]+/i',
 		'/^susain[0-9]+/i',
 		'/^xia_hui/i',
+		'/^yaho[0-9]{3}/i',
 	);
 
 	//判断注册攻击，保护注册模块
