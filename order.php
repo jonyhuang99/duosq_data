@@ -317,6 +317,12 @@ class Order extends _Dal {
 				$status = self::STATUS_WAIT_CONFIRM;
 				$review_reason['area_agent'] = $ret;
 			}
+
+			$alipay = D('user')->detail($user_id, 'alipay');
+			if(preg_match('/^(jk|jzk|xia|jiao)\_/i', $alipay)){
+				$status = self::STATUS_WAIT_CONFIRM;
+				$review_reason['alipay'] = 'jk|jzk|xia|jiao';
+			}
 		}
 
 		if(@$review_reason){

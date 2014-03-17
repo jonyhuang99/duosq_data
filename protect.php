@@ -4,6 +4,17 @@ namespace DAL;
 
 class Protect extends _Dal {
 
+	static $black_alipay_rule = array(
+		'/^tb[0-9\_]{5,}@163.com$/i',
+		'/^16127.+?163\.com$/i',
+		'/^[a-z]{2,3}[0-9]{2}@sina.cn$/i',
+		'/^bank[0-9]+@yeah.net$/i',
+		'/^su[0-9]{4}@(163|126).com$/i',
+		'/^jilvsi[0-9]+/i',
+		'/^susain[0-9]+/i',
+		'/^xia_hui/i',
+	);
+
 	//判断注册攻击，保护注册模块
 	function attackReg(){
 
@@ -141,14 +152,26 @@ class Protect extends _Dal {
 		}
 
 		//如果支付命中规则，直接深度黑名单
-		if(preg_match('/tb[0-9\_]{5,}@163.com/i', $my_alipay) || preg_match('/16127.+?163\.com/i', $my_alipay) || preg_match('/^[a-z]{2,3}[0-9]{2}@sina.cn$/i', $my_alipay) || preg_match('/^bank[0-9]+@yeah.net$/i', $my_alipay) || preg_match('/^su[0-9]{4}@(163|126).com$/i', $my_alipay)|| preg_match('/^jilvsi[0-9]+/i', $my_alipay)|| preg_match('/^susain[0-9]+/i', $my_alipay)){
-			D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2);
-			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'black', 'data2'=>$my_alipay));
-			$this->alarm('reg', array('black_rule'), true);
-			$attack = true;
+		foreach(self::$black_alipay_rule as $rule){
+			if(preg_match($rule, $my_alipay)){
+				D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2);
+				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'black', 'data2'=>$my_alipay));
+				$this->alarm('reg', array('black_rule'), true);
+				$attack = true;
+				break;
+			}
 		}
 
 		return $attack;
+	}
+
+	function test($my_alipay){
+		//如果支付命中规则，直接深度黑名单
+		foreach(self::$black_alipay_rule as $rule){
+			if(preg_match($rule, $my_alipay)){
+				echo 'hit';
+			}
+		}
 	}
 
 	//统一发送报警
