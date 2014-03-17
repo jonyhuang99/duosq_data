@@ -165,15 +165,6 @@ class Protect extends _Dal {
 		return $attack;
 	}
 
-	function test($my_alipay){
-		//如果支付命中规则，直接深度黑名单
-		foreach(self::$black_alipay_rule as $rule){
-			if(preg_match($rule, $my_alipay)){
-				echo 'hit';
-			}
-		}
-	}
-
 	//统一发送报警
 	function alarm($type, $entry, $emergent=false){
 
