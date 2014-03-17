@@ -161,6 +161,7 @@ class OrderTaobao extends _Db {
 		//淘宝订单状态由待处理 => 已通过，进行账号增加流水
 		if($from == self::STATUS_WAIT_CONFIRM && $to == self::STATUS_PASS){
 
+			//TODO根据优惠券，翻倍返利，或者免单
 			$ret = D('fund')->adjustBalanceForOrder($o_id);
 			if(!$ret){
 				throw new \Exception("[order_taobao][error][o_id:{$o_id}][afterUpdateStatus][adjustBalanceForOrder]");

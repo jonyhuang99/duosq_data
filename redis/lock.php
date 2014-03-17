@@ -52,6 +52,9 @@ class Lock extends _Redis {
 	 */
 	function unlock($trade_type, $id){
 
+		if($trade_type == self::LOCK_COUPON_ROB){
+			$id = $id.':day:'.date('d');
+		}
 		$this->del($trade_type.':id:'.$id);
 	}
 }
