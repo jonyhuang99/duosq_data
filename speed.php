@@ -65,14 +65,14 @@ class Speed extends _Dal {
 
 		if($limit_type == 'ip'){
 			$limit = 2;
-			return $this->redis('speed')->sincr('send_cashgift:ip_b:'.getIpByLevel('b'), HOUR*6, $limit);
+			return $this->redis('speed')->sincr('send_cashgift:ip_b:'.getIpByLevel('b'), HOUR*2, $limit);
 		}
 
 		if($limit_type == 'mobile'){
 			if(!$mobile)return false;
 			$mobile_pre = substr($mobile, 0, 7);
 			$limit = 3;
-			$ret = $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$mobile_pre, HOUR*6, $limit);
+			$ret = $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$mobile_pre, HOUR*12, $limit);
 			if($ret){
 				return $mobile_pre;
 			}
