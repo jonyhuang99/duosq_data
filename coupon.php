@@ -114,12 +114,12 @@ class Coupon extends _Dal {
 	//获取当天领了优惠券的幸运儿
 	function getLuckUsers(){
 
-		$users = $this->db('coupon')->findAll(array('createdate'=>date('Y-m-d')), '', 'id DESC');
+		$luck_users = $this->db('coupon')->findAll(array('createdate'=>date('Y-m-d')), '', 'id DESC');
 		$list = array();
-		if($users){
-			clearTableName($users);
-			foreach($users as $user){
-				$list[$user['type']][] = $user['user_id'];
+		if($luck_users){
+			clearTableName($luck_users);
+			foreach($luck_users as $detail){
+				$list[$detail['type']][] = $detail;
 			}
 		}
 		return $list;
@@ -138,7 +138,7 @@ class Coupon extends _Dal {
 
 		//当前优惠券有余量
 		if(!$this->lock($type)){
-			$err = '当前该券今日已被抢光，请明早'.self::START.'点准时来抢!';
+			$err = '已被抢光，明早'.self::START.'点准时来抢哟，每天'.$this->limit_num[$type].'张!';
 			return false;
 		}
 
