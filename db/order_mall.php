@@ -173,10 +173,12 @@ class OrderMall extends _Db {
 				$begin = date('Y-m-01', $timestamp - DAY*30);
 				$end = date('Y-m-31', $timestamp - DAY*30);
 				$all = D('order')->searchSubOrders('mall', "buydatetime >= '{$begin}' AND buydatetime <= '{$end}' AND status = 0 AND sp = '{$old_detail['sp']}'");
-				foreach ($all as $o) {
-					//主订单状态变为已通过
-					D('order')->updateStatus($o['o_id'], \DAL\Order::STATUS_INVALID);
-					parent::save(array('o_id'=>$o['o_id'], 'status'=>self::STATUS_INVALID, 'r_status'=>self::R_STATUS_INVALID));
+				if($all){
+					foreach ($all as $o) {
+						//主订单状态变为已通过
+						D('order')->updateStatus($o['o_id'], \DAL\Order::STATUS_INVALID);
+						parent::save(array('o_id'=>$o['o_id'], 'status'=>self::STATUS_INVALID, 'r_status'=>self::R_STATUS_INVALID));
+					}
 				}
 			}
 			return true;
