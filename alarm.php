@@ -7,7 +7,7 @@ class Alarm extends _Dal {
 	//自动导入订单报警
 	function importOrders($entry, $params=array()){
 
-		if(date('H') > 9){
+		if(date('H') > 8){
 			$expire = HOUR*1.5;
 		}else{
 			$expire = HOUR*9;
@@ -70,6 +70,7 @@ class Alarm extends _Dal {
 		}
 	}
 
+	//发出监控报警
 	private function _fire($entry_params, $params, $sms_tpl=''){
 
 		$content = array();
