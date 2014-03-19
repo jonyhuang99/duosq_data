@@ -10,7 +10,7 @@ class Pay extends _Dal {
 	 * @param  int   $errcode   错误码(见code_err.php)
 	 * @return bool             支付结果(失败:false $errcode)(成功: array('o_id','amount','alipay'))
 	 */
-	function jfb($user_id, &$errcode=''){
+	function jfb($user_id, &$errcode='', $force=false){
 
 		if(!$user_id || D('user')->sys($user_id)){
 			$errcode = _e('sys_param_err');
@@ -33,9 +33,8 @@ class Pay extends _Dal {
 		}
 
 		//支付宝账号有问题，不打款
-		if($user_detail['alipay_valid'] == \DAL\User::ALIPAY_VALID_ERROR){
+		if($user_detail['alipay_valid'] == \DAL\User::ALIPAY_VALID_ERROR && !$force){
 			$errcode = _e('jfb_account_nofound');
-			D('log')->pay($o_id, 0, $errcode);
 			return false;
 		}
 
