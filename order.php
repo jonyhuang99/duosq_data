@@ -161,7 +161,7 @@ class Order extends _Dal {
 					}
 
 					if($sub=='cashgift'){
-						$this->($sub);
+						$this->db($sub);
 						$sub_data['status'] = \DB\OrderCashgift::STATUS_INVALID;
 					}
 				}
