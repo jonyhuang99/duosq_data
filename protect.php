@@ -144,7 +144,7 @@ class Protect extends _Dal {
 		//如果命中黑名单，直接深度黑名单
 		if($this->db('black')->find(array('alipay'=>low($my_alipay))) || D('speed')->blacklist('get')){
 
-			D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2);
+			D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2, 'black_list');
 			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'black', 'data2'=>$my_alipay));
 			$this->alarm('reg', array('black_list'), true);
 			$attack = true;
@@ -158,7 +158,7 @@ class Protect extends _Dal {
 		//如果支付命中规则，直接深度黑名单
 		foreach(self::$black_alipay_rule as $rule){
 			if(preg_match($rule, $my_alipay)){
-				D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2);
+				D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2, 'black_list');
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'black', 'data2'=>$my_alipay));
 				$this->alarm('reg', array('black_rule'), true);
 				$attack = true;
