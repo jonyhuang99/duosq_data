@@ -159,6 +159,11 @@ class Order extends _Dal {
 					if($sub=='invite'){
 						$is_show = 0;
 					}
+
+					if($sub=='cashgift'){
+						$this->($sub);
+						$sub_data['status'] = \DB\OrderCashgift::STATUS_INVALID;
+					}
 				}
 			}
 
