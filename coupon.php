@@ -12,7 +12,7 @@ class Coupon extends _Dal {
 
 	const START = 10; //开抢时间
 
-	var $limit_num = array(1=>50, 2=>1, 3=>1, 4=>1, 5=>1); //券每天限额
+	var $limit_num = array(1=>60, 2=>1, 3=>1, 4=>1, 5=>1); //券每天限额
 	var $limit_level = array(1=>1, 2=>2, 3=>3, 4=>4, 5=>5); //券的等级要求
 	var $lock_id = false;
 
