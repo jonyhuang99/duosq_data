@@ -17,6 +17,7 @@ class Protect extends _Dal {
 		'/^tongji[0-9]{4}/i',
 		'/^a4[0-9]{4}@126.com$/i',
 		'/^yaho[0-9]{3}@163.com$/i',
+		'/^showthe[0-9]+@/i',
 	);
 
 	//判断注册攻击，保护注册模块

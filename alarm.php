@@ -74,13 +74,14 @@ class Alarm extends _Dal {
 	private function _fire($entry_params, $params, $sms_tpl=''){
 
 		$content = array();
+		ksort($entry_params);
 		foreach($entry_params as $k => $v){
 			$content[] = "{$k}:{$v}";
 		}
 
 		$default_p = array();
 		$default_p['__time__'] = date('H:i:s');
-		$default_p['__content__'] = join(',', ksort($content));
+		$default_p['__content__'] = join(',', $content);
 		$params = array_merge($default_p, (array)$params);
 		$ret = sendSms(C('comm', 'sms_monitor'), $sms_tpl, $params, 'alarm');
 	}
