@@ -18,6 +18,13 @@ class Protect extends _Dal {
 		'/^a4[0-9]{4}@126.com$/i',
 		'/^yaho[0-9]{3}@163.com$/i',
 		'/^showthe[0-9]+@/i',
+		'/^xiushuo[0-9]+@/i',
+		'/^wjb201[0-9]/i',
+		'/^155787/i',
+		'/^yulong[0-9]+/i',
+		'/^XWQXML[0-9a-z]+/',
+		'/^showe[0-9]+/i',
+		'/^mi[0-9]+vip/i',
 	);
 
 	//判断注册攻击，保护注册模块
