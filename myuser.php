@@ -166,12 +166,31 @@ class Myuser extends _Dal {
 	}
 
 	//获取用户昵称
-	function getNickname(){
+	function getNickname($strict=false){
 
-		if($this->sess('userinfo.nickname')){
-			return $this->sess('userinfo.nickname');
+		if(!$strict){
+			if($this->sess('userinfo.nickname')){
+				return $this->sess('userinfo.nickname');
+			}else{
+				return mask($this->getAlipay());
+			}
 		}else{
-			return mask($this->getAlipay());
+			return $this->sess('userinfo.nickname');
+		}
+	}
+
+	//保存用户昵称
+	function saveNickname($nickname){
+
+		if(!$nickname)return;
+		if(D('user')->search(array('nickname'=>$nickname))){
+			return;
+		}
+
+		$ret = $this->db('user')->update(D('myuser')->getId(), array('nickname'=>$nickname));
+		if($ret){
+			$this->sess('userinfo.nickname', $nickname);
+			return true;
 		}
 	}
 

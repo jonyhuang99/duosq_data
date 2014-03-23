@@ -125,7 +125,7 @@ class Speed extends _Dal {
 
 	/**
 	 * 用户自助跟单速控
-	 * @return [type] [description]
+	 * @return [bool] [是否超速]
 	 */
 	function chUser($mode = 'set'){
 
@@ -134,6 +134,15 @@ class Speed extends _Dal {
 		}else{
 			return $this->redis('speed')->sget('ch_user:user_id:'.D('myuser')->getId(), DAY, 4);
 		}
+	}
+
+	/**
+	 * 加好友申请速度
+	 * @return [bool] [是否超速]
+	 */
+	function friendAsk(){
+
+		return $this->redis('speed')->sincr('friend_ask:user_id:'.D('myuser')->getId(), DAY, 5);
 	}
 }
 ?>

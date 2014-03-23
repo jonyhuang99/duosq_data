@@ -46,7 +46,7 @@ class user extends _Dal {
 	//获取用户昵称
 	function getNickname($user_id, $short=false){
 
-		if($this->sys($user_id))return '多省钱官方';
+		if($this->sys($user_id))return '多省钱官网';
 		$nickname = $this->detail($user_id, 'nickname');
 		if($nickname){
 			return $nickname;
@@ -236,6 +236,18 @@ class user extends _Dal {
 		if(!$user_id)return false;
 		if($user_id < 100)return true;
 		return false;
+	}
+
+	//渲染用户购物频率
+	function renderShopFre($user_id){
+		$has_order = $this->detail($user_id, 'has_order');
+		if($has_order == 0){
+			return '☆';
+		}else if($has_order == 1){
+			return '☆☆☆';
+		}else{
+			return '☆☆☆☆☆';
+		}
 	}
 }
 

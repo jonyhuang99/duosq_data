@@ -57,6 +57,53 @@ class Friend extends _Dal {
 	}
 
 	/**
+	 * 判断是否已经发过好友请求
+	 * @param bigint  $sender   主动添加人
+	 * @param bigint  $recevier 被邀请人
+	 */
+	function friendAsked($sender, $recevier){
+
+		if(!$sender || !$recevier)return;
+		return $this->db('friend_quan')->find(array('sender'=>$sender, 'recevier'=>$recevier));
+	}
+
+	//待处理的好友请求
+	function friendAskedList($recevier){
+
+		if(!$recevier)return;
+		$ret = $this->db('friend_quan')->findAll(array('recevier'=>$recevier, 'agree'=>0));
+		clearTableName($ret);
+		return $ret;
+	}
+
+	//处理好友的请求
+	function friendAgree($req_id, $recevier, $agree = 1){
+
+		$detail = $this->db('friend_quan')->find(array('id'=>$req_id));
+		if(!$detail)return;
+
+		clearTableName($detail);
+		if($detail['recevier'] != $recevier){
+			return;
+		}
+
+		return $this->db('friend_quan')->save(array('id'=>$req_id, 'agree'=>$agree));
+	}
+
+	/**
+	 * 判断是否已是好友关系
+	 * @param bigint  $sender   主动添加人
+	 * @param bigint  $recevier 被邀请人
+	 */
+	function isFriend($sender, $recevier){
+
+		$ret = $this->db('friend_quan')->find(array('sender'=>$sender, 'recevier'=>$recevier, 'agree'=>1));
+		if($ret)return true;
+		$ret = $this->db('friend_quan')->find(array('sender'=>$recevier, 'recevier'=>$sender, 'agree'=>1));
+		if($ret)return true;
+	}
+
+	/**
 	 * 增加朋友圈关系
 	 * @param bigint  $sender   主动添加人
 	 * @param bigint  $recevier 被邀请人
@@ -94,19 +141,12 @@ class Friend extends _Dal {
 	function getQuanFriends($user_id, $inc_sys=true){
 
 		if(!$user_id)return false;
-		$my_invite = $this->db('friend_quan')->findAll(array('sender'=>$user_id, 'agree'=>1));
-		clearTableName($my_invite);
-		$my_invited = $this->db('friend_quan')->findAll(array('recevier'=>$user_id, 'agree'=>1));
-		clearTableName($my_invited);
+		$all = $this->db('friend_quan')->findAll("(sender='{$user_id}' OR recevier='{$user_id}') AND agree=1", '', 'id DESC');
+		clearTableName($all);
 		$friends = array();
-		if($my_invite){
-			foreach($my_invite as $friend){
+		if($all){
+			foreach($all as $friend){
 				$friends[$friend['recevier']] = 1;
-			}
-		}
-
-		if($my_invited){
-			foreach($my_invited as $friend){
 				$friends[$friend['sender']] = 1;
 			}
 		}
@@ -114,6 +154,8 @@ class Friend extends _Dal {
 		if($inc_sys){
 			$friends[C('comm', 'sysuser_friend')] = 1;
 		}
+
+		unset($friends[$user_id]);
 
 		return array_keys($friends);
 	}

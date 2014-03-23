@@ -103,14 +103,19 @@ class Order extends _Dal {
 	 * @param  bool    $one       仅搜索唯一订单
 	 * @return array              搜索结果
 	 */
-	function searchSubOrders($sub, $condition, $one=false){
+	function searchSubOrders($sub, $condition, $limit=0, $orderby='o_id ASC'){
 
 		if(!$condition)return;
-		if($one){
-			$ret = $this->db('order_'.$sub)->find($condition, '', 'o_id ASC');
+		if($limit){
+			if($limit == 1){
+				$ret = $this->db('order_'.$sub)->find($condition, '', $orderby);
+			}else{
+				$ret = $this->db('order_'.$sub)->findAll($condition, '', $orderby, $limit);
+			}
 		}else{
-			$ret = $this->db('order_'.$sub)->findAll($condition);
+			$ret = $this->db('order_'.$sub)->findAll($condition, '', $orderby);
 		}
+
 		if($ret){
 			return clearTableName($ret);
 		}
