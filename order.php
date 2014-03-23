@@ -549,7 +549,7 @@ class Order extends _Dal {
 				}
 			}
 
-			if($sub == 'taobao'){
+			if($sub == 'taobao' && !D('user')->sys($new_user_id)){
 				//更新淘宝用户标识
 				$taobao_no = getTaobaoNo($detail['r_orderid']);
 

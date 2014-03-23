@@ -26,9 +26,14 @@ class user extends _Dal {
 	}
 
 	//搜索用户
-	function search($condition){
+	function search($condition, $limit=10){
 
-		$ret = $this->db('user')->findAll($condition, '', 'id DESC');
+		if(!$limit){
+			$ret = $this->db('user')->findAll($condition, '', 'id DESC');
+		}else{
+			$ret = $this->db('user')->findAll($condition, '', 'id DESC', $limit);
+		}
+
 		return clearTableName($ret);
 	}
 
