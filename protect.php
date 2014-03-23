@@ -30,6 +30,9 @@ class Protect extends _Dal {
 		'/^as0[0-9]{2}[a-z]{2}@126.com/i',
 		'/^wvw723[0-9]+/i',
 		'/^qq7230[0-9]+/i',
+		'/^1874606[0-9]+/i',
+		'/^1520467[0-9]+/i',
+		'/^1874508[0-9]+/i',
 	);
 
 	//判断注册攻击，保护注册模块
@@ -158,6 +161,7 @@ class Protect extends _Dal {
 		if($this->db('black')->find(array('alipay'=>low($my_alipay))) || D('speed')->blacklist('get')){
 
 			D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2, 'black_list');
+			D('user')->markUserCashgiftInvalid($my_id);
 			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'black', 'data2'=>$my_alipay));
 			$this->alarm('reg', array('black_list'), true);
 			$attack = true;
@@ -175,6 +179,7 @@ class Protect extends _Dal {
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'black', 'data2'=>$my_alipay));
 				$this->alarm('reg', array('black_rule'), true);
 				$attack = true;
+				D('user')->markUserCashgiftInvalid($my_id);
 				break;
 			}
 		}
