@@ -22,9 +22,12 @@ class Protect extends _Dal {
 		'/^wjb201[0-9]/i',
 		'/^155787/i',
 		'/^yulong[0-9]+/i',
-		'/^XWQXML[0-9a-z]+/',
+		'/^XWQXML[0-9A-Z]+/',
 		'/^showe[0-9]+/i',
 		'/^mi[0-9]+vip/i',
+		'/^yy2011[0-9]+/i',
+		'/^[a-z]abc[0-9a-z]{4,5}@163.com/i',
+		'/^as0[0-9]{2}[a-z]{2}@126.com/i',
 	);
 
 	//判断注册攻击，保护注册模块

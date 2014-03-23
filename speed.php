@@ -61,7 +61,7 @@ class Speed extends _Dal {
 	 * @param  [type] $mobile     [description]
 	 * @return [type]             [description]
 	 */
-	function cashgift($limit_type='ip', $mobile=''){
+	function cashgift($limit_type='ip', $phrase=''){
 
 		if($limit_type == 'ip'){
 			$limit = 3;
@@ -69,12 +69,22 @@ class Speed extends _Dal {
 		}
 
 		if($limit_type == 'mobile'){
-			if(!$mobile)return false;
-			$mobile_pre = substr($mobile, 0, 7);
+			if(!$phrase)return false;
+			$phrase_pre = substr($phrase, 0, 7);
 			$limit = 3;
-			$ret = $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$mobile_pre, HOUR*24, $limit);
+			$ret = $this->redis('speed')->sincr('send_cashgift:mobile_pre:'.$phrase_pre, HOUR*24, $limit);
 			if($ret){
-				return $mobile_pre;
+				return $phrase_pre;
+			}
+		}
+
+		if($limit_type == 'alipay_pre'){
+			if(!$phrase)return false;
+			$phrase_pre = substr($phrase, 0, 4);
+			$limit = 3;
+			$ret = $this->redis('speed')->sincr('send_cashgift:alipay_pre:'.$phrase_pre, HOUR*24, $limit);
+			if($ret){
+				return $phrase_pre;
 			}
 		}
 
@@ -89,6 +99,22 @@ class Speed extends _Dal {
 			$ret = $this->redis('speed')->sincr('send_cashgift:area:'.$area_detail.':agent:'.md5($agent), HOUR*4, $limit);
 			if($ret){
 				return array('area_detail'=>$area_detail, 'agent'=>$agent);
+			}
+
+			$limit = 15;
+			$ret = $this->redis('speed')->sincr('send_cashgift:agent:'.md5($agent), HOUR, $limit);
+			if($ret){
+				return array('agent'=>$agent);
+			}
+		}
+
+		if($limit_type == 'country'){
+			if(!$phrase)return false;
+
+			$area_detail = getAreaByIp('', 'detail');
+			$ret = getProvince($area_detail);
+			if(!$ret){
+				return $area_detail;
 			}
 		}
 	}

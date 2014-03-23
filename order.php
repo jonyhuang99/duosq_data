@@ -314,6 +314,12 @@ class Order extends _Dal {
 					$status = self::STATUS_WAIT_CONFIRM;
 					$review_reason['mobile_pre'] = $ret;
 				}
+			}else{
+				$ret = D('speed')->cashgift('alipay_pre', $alipay);
+				if($ret){
+					$status = self::STATUS_WAIT_CONFIRM;
+					$review_reason['alipay_pre'] = $ret;
+				}
 			}
 
 			//1小时内、同地区、同浏览器，进入审核
@@ -321,6 +327,13 @@ class Order extends _Dal {
 			if($ret){
 				$status = self::STATUS_WAIT_CONFIRM;
 				$review_reason['area_agent'] = $ret;
+			}
+
+			//国外地址全部进入审核
+			$ret = D('speed')->cashgift('country');
+			if($ret){
+				$status = self::STATUS_WAIT_CONFIRM;
+				$review_reason['country'] = $ret;
 			}
 
 			$alipay = D('user')->detail($user_id, 'alipay');
