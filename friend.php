@@ -87,7 +87,7 @@ class Friend extends _Dal {
 			return;
 		}
 
-		return $this->db('friend_quan')->save(array('id'=>$req_id, 'agree'=>$agree));
+		return $this->db('friend_quan')->save(array('id'=>$req_id, 'agree'=>$agree, 'agreetime'=>date('Y-m-d H:i:s')));
 	}
 
 	/**
