@@ -12,7 +12,7 @@ class Coupon extends _Dal {
 
 	const START = 10; //开抢时间
 
-	var $limit_num = array(1=>60, 2=>1, 3=>1, 4=>1, 5=>1); //券每天限额
+	var $limit_num = array(1=>5, 2=>1, 3=>1, 4=>1, 5=>1); //券小时限额
 	var $limit_level = array(1=>1, 2=>2, 3=>3, 4=>4, 5=>5); //券的等级要求
 	var $lock_id = false;
 
@@ -106,7 +106,7 @@ class Coupon extends _Dal {
 		foreach($all_type as $type){
 			$today_limit = intval($this->limit_num[$type]);
 			$count = $this->db('coupon')->findCount(array('createdate'=>date('Y-m-d'), 'type'=>$type));
-			$left[$type] =  $today_limit-$count;
+			$left[$type] =  $today_limit*14-$count;
 		}
 		return $left;
 	}
@@ -132,13 +132,13 @@ class Coupon extends _Dal {
 
 		//时间满足
 		if(date('H')<self::START){
-			$err = '还没开始哟，每天早上'.self::START.'点整开抢！';
+			$err = '还没开始哟，每天早上'.self::START.'点开始，每个整点开抢！';
 			return false;
 		}
 
 		//当前优惠券有余量
 		if(!$this->lock($type)){
-			$err = '已被抢光，明早'.self::START.'点准时来抢哟，每天'.$this->limit_num[$type].'张!';
+			$err = '已被抢光，下轮开抢时间：'.date('H', time()+HOUR).':00点整，每小时开放'.$this->limit_num[$type].'张!';
 			return false;
 		}
 
@@ -159,7 +159,13 @@ class Coupon extends _Dal {
 
 		//用户本周期没抽过该类券
 		if($this->db('coupon')->find(array('user_id'=>$user_id, 'createdate' => '> '.date('Y-m-d', time()-DAY*$limit_cyc), 'type'=>$valid_type))){
-			$err = '您在'.$limit_cyc.'天前已经抢过该券，'.$limit_cyc.'天内不能再抢了！';
+
+			if($limit_cyc == 1){
+				$err = '您今天已经抢过该券，'.$limit_cyc.'天内不能再抢了！';
+			}else{
+				$err = '您在'.($limit_cyc-1).'天前已经抢过该券，'.$limit_cyc.'天内不能再抢了！';
+			}
+
 			return false;
 		}
 
@@ -175,9 +181,10 @@ class Coupon extends _Dal {
 	//抢券加锁
 	private function lock($type){
 
+		$H = date('H');
 		for($i=1; $i < $this->limit_num[$type]+1; $i++){
 
-			$lock_id = "type_{$type}_num_".$i;
+			$lock_id = "{$H}_type_{$type}_num_".$i;
 			$succ = $this->redis('lock')->getlock(\Redis\Lock::LOCK_COUPON_ROB, $lock_id);
 			if($succ){
 				$this->lock_id = $lock_id;
