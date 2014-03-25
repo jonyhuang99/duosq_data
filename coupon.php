@@ -99,15 +99,24 @@ class Coupon extends _Dal {
 	}
 
 	//获取当天该类优惠券数量
-	function getLeft(){
+	function getLeft($t=''){
 
 		$all_type = array_keys($this->limit_num);
 		$left = array();
+
+		if($t){
+			$all_type = array($t);
+		}
 		foreach($all_type as $type){
 			$today_limit = intval($this->limit_num[$type]);
 			$count = $this->db('coupon')->findCount(array('createdate'=>date('Y-m-d'), 'type'=>$type));
 			$left[$type] =  $today_limit*14-$count;
 		}
+
+		if($t){
+			return $left[$t];
+		}
+
 		return $left;
 	}
 
@@ -139,6 +148,12 @@ class Coupon extends _Dal {
 		//当前优惠券有余量
 		if(!$this->lock($type)){
 			$err = '已被抢光，下轮开抢时间：'.date('H', time()+HOUR).':00点整，每小时开放'.$this->limit_num[$type].'张!';
+			return false;
+		}
+
+		//判断当天还有余量，防止首次补贴已经抢完
+		if(!$this->getLeft($type)){
+			$err = '太火爆了，该券今天已被抢光，请明天再来！';
 			return false;
 		}
 
@@ -182,6 +197,7 @@ class Coupon extends _Dal {
 	private function lock($type){
 
 		$H = date('H');
+
 		for($i=1; $i < $this->limit_num[$type]+1; $i++){
 
 			$lock_id = "{$H}_type_{$type}_num_".$i;
@@ -192,7 +208,23 @@ class Coupon extends _Dal {
 			}
 		}
 
+		//首次必须获得
+		if($this->firstTime() && $type == self::TYPE_DOUBLE){
+			$lock_id = "{$H}_type_{$type}_num_first";
+			$succ = $this->redis('lock')->getlock(\Redis\Lock::LOCK_COUPON_ROB, $lock_id);
+			if($succ){
+				$this->lock_id = $lock_id;
+				return true;
+			}
+		}
+
 		return false;
+	}
+
+	//判断该用户是否首次抢券
+	private function firstTime(){
+		$hit = $this->db('coupon')->find(array('user_id'=>D('myuser')->getId()));
+		if(!$hit)return true;
 	}
 
 	//抢券失败解锁
