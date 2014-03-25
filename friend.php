@@ -223,6 +223,14 @@ class Friend extends _Dal {
 		return $list;
 	}
 
+	//获取待抢红包个数
+	function getQuanRewardUnrobNum($user_id){
+
+		$friends = $this->getQuanFriends($user_id, false);
+		$num = $this->db('friend_quan_reward')->findCount(array('user_id'=>$friends, 'recevier'=>0));
+		return intval($num);
+	}
+
 	/**
 	 * 获取省钱圈红包详情
 	 * @param  [type] $quan_reward_id [description]
