@@ -86,6 +86,10 @@ class OrderInvite extends _Db {
 			if(!$ret){
 				throw new \Exception("[order_invite][o_id:{$o_id}][afterUpdateStatus][adjustBalanceForOrder error]");
 			}
+
+			//加入待打款现金用户列表
+			$amount = D('order')->detail($o_id, 'amount');
+			D('pay')->addWaitPaycash($m_order['user_id'], '邀请好友', $amount);
 		}
 	}
 
