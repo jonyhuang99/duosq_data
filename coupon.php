@@ -210,7 +210,7 @@ class Coupon extends _Dal {
 
 		//首次必须获得
 		if($this->firstTime() && $type == self::TYPE_DOUBLE){
-			$lock_id = "{$H}_type_{$type}_num_first";
+			$lock_id = "type_{$type}_user_".D('myuser')->getId()."_first";
 			$succ = $this->redis('lock')->getlock(\Redis\Lock::LOCK_COUPON_ROB, $lock_id);
 			if($succ){
 				$this->lock_id = $lock_id;
