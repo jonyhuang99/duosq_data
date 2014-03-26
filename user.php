@@ -142,6 +142,16 @@ class user extends _Dal {
 		return true;
 	}
 
+	//标识taobao_no通过验证
+	function vaildTaobaoNo($user_id, $taobao_no){
+
+		$exist = $this->db('user_taobao')->field('id', array('user_id'=>$user_id, 'taobao_no'=>$taobao_no));
+		if($exist){
+			return $this->db('user_taobao')->save(array('id'=>$exist, 'valid'=>1));
+		}
+		return true;
+	}
+
 	//标识用户下过单
 	function markUserHasOrder($user_id){
 		$has_order = $this->detail($user_id, 'has_order');

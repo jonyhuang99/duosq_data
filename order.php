@@ -47,6 +47,30 @@ class Order extends _Dal {
 	}
 
 	/**
+	 * 搜索相关主订单
+	 * @param  array   $condition 搜索条件
+	 * @param  bool    $one       仅搜索唯一订单
+	 * @return array              搜索结果
+	 */
+	function search($condition, $limit=0, $orderby='o_id ASC'){
+
+		if(!$condition)return;
+		if($limit){
+			if($limit == 1){
+				$ret = $this->db('order')->find($condition, '', $orderby);
+			}else{
+				$ret = $this->db('order')->findAll($condition, '', $orderby, $limit);
+			}
+		}else{
+			$ret = $this->db('order')->findAll($condition, '', $orderby);
+		}
+
+		if($ret){
+			return clearTableName($ret);
+		}
+	}
+
+	/**
 	 * 获取单条主订单详情
 	 * @param  char $o_id   订单号
 	 * @return [type]       [description]

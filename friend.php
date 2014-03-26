@@ -227,7 +227,11 @@ class Friend extends _Dal {
 	function getQuanRewardUnrobNum($user_id){
 
 		$friends = $this->getQuanFriends($user_id, false);
-		$num = $this->db('friend_quan_reward')->findCount(array('user_id'=>$friends, 'recevier'=>0));
+		if($friends){
+			$num = $this->db('friend_quan_reward')->findCount(array('user_id'=>$friends, 'recevier'=>0));
+		}else{
+			$num = 0;
+		}
 		return intval($num);
 	}
 
