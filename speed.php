@@ -142,7 +142,7 @@ class Speed extends _Dal {
 	 */
 	function friendAsk(){
 
-		return $this->redis('speed')->sincr('friend_ask:user_id:'.D('myuser')->getId(), HOUR*12, 10);
+		return $this->redis('speed')->sincr('friend_ask:user_id:'.D('myuser')->getId(), HOUR*12, C('comm', 'friend_ask_limit'));
 	}
 }
 ?>
