@@ -190,6 +190,8 @@ class Myuser extends _Dal {
 		$ret = $this->db('user')->update(D('myuser')->getId(), array('nickname'=>$nickname));
 		if($ret){
 			$this->sess('userinfo.nickname', $nickname);
+			//加载到cookie方便静态js直接调用
+			setcookie('display_name', $this->getNickname(), time() + YEAR, '/');
 			return true;
 		}
 	}
