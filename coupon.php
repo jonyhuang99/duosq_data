@@ -66,7 +66,7 @@ class Coupon extends _Dal {
 
 		if($type == self::TYPE_DOUBLE){
 			$in_type = self::TYPE_DOUBLE;
-		}else{
+		}else if($type == 'free'){
 			$in_type = array(self::TYPE_FREE_50, self::TYPE_FREE_100, self::TYPE_FREE_200, self::TYPE_FREE_300);
 		}
 
@@ -82,9 +82,15 @@ class Coupon extends _Dal {
 	}
 
 	//判断订单是否使用了优惠券
-	function isMe($o_id){
+	function isUsed($o_id, $field='type'){
 		if(!$o_id)return false;
-		return $this->db('coupon')->field('type', array('o_id'=>$o_id));
+
+		if($field != 'detail'){
+			return $this->db('coupon')->field($field, array('o_id'=>$o_id));
+		}else{
+			$ret = $this->db('coupon')->find(array('o_id'=>$o_id));
+			return clearTableName($ret);
+		}
 	}
 
 	//读取用户的有效优惠券
@@ -186,7 +192,7 @@ class Coupon extends _Dal {
 		if($this->db('coupon')->find(array('user_id'=>$user_id, 'createdate' => '> '.date('Y-m-d', time()-DAY*$limit_cyc), 'type'=>$valid_type))){
 
 			if($limit_cyc == 1){
-				$err = '您今天已经抢过该券，'.$limit_cyc.'天内不能再抢了！';
+				$err = '您今天已经抢过该类券，'.$limit_cyc.'天内不能再抢了！';
 			}else{
 				$err = '您在'.($limit_cyc-1).'天前已经抢过该券，'.$limit_cyc.'天内不能再抢了！';
 			}

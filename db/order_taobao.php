@@ -174,6 +174,34 @@ class OrderTaobao extends _Db {
 				throw new \Exception("[order_taobao][error][o_id:{$o_id}][m_order][update status]");
 			}
 
+			$coupon_detail = D('coupon')->isUsed($o_id, 'detail');
+			if($coupon_detail){
+
+				$coupon_type = $coupon_detail['type'];
+
+				if($coupon_type == \DAL\Coupon::TYPE_DOUBLE){
+					$amount = $old_detail['fanli'];
+				}else if($coupon_type == \DAL\Coupon::TYPE_FREE_50){
+					$amount = min(5000, $old_detail['r_price_deal'] - $old_detail['fanli']);
+				}else if($coupon_type == \DAL\Coupon::TYPE_FREE_100){
+					$amount = min(10000, $old_detail['r_price_deal'] - $old_detail['fanli']);
+				}else if($coupon_type == \DAL\Coupon::TYPE_FREE_200){
+					$amount = min(20000, $old_detail['r_price_deal'] - $old_detail['fanli']);
+				}else if($coupon_type == \DAL\Coupon::TYPE_FREE_300){
+					$amount = min(30000, $old_detail['r_price_deal'] - $old_detail['fanli']);
+				}
+
+				$sub_data = array();
+				$sub_data['amount'] = $amount;
+				$sub_data['coupon_id'] = $coupon_detail['id'];
+				$sub_data['refer_o_id'] = $o_id;
+				$ret = D('order')->addCoupon($old_detail['user_id'], $sub_data);
+
+				if(!$ret){
+					throw new \Exception("[order_taobao][error][o_id:{$o_id}][m_order][use coupon error]");
+				}
+			}
+
 			return true;
 		}
 

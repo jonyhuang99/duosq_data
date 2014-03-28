@@ -189,11 +189,15 @@ class Order extends _Dal {
 						$is_show = 0;
 					}
 
-					if($sub=='cashgift'){
+					if($sub == 'cashgift'){
 						$this->db($sub);
 						$sub_data['status'] = \DB\OrderCashgift::STATUS_INVALID;
 					}
 				}
+			}
+
+			if($sub == 'coupon'){
+				$is_show = 0;
 			}
 
 			$this->db('order')->add($o_id, $user_id, $status, $sub, $cashtype, $n, $amount, $is_show);
@@ -279,6 +283,8 @@ class Order extends _Dal {
 	 * return array            o_id, amount
 	 */
 	function addCashgift($user_id, $gifttype, $amount=0, $refer_o_id=''){
+
+		if(!$user_id)return;
 
 		$new_cashgift_type = array();
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_LUCK;
@@ -395,6 +401,8 @@ class Order extends _Dal {
 	 */
 	function addTaobao($user_id, $sub_data){
 
+		if(!$user_id || !$sub_data)return;
+
 		$this->db('order_taobao');
 		if(@$sub_data['status'] == \DB\OrderTaobao::STATUS_INVALID){
 			$status = self::STATUS_INVALID;
@@ -455,6 +463,7 @@ class Order extends _Dal {
 	 */
 	function addReduce($user_id, $sub_data, $is_show=1){
 
+		if(!$user_id || !$sub_data)return;
 		$ret = D('order')->add($user_id, self::STATUS_PASS, 'reduce', $sub_data['cashtype'], self::N_REDUCE, $sub_data['amount'], $sub_data);
 
 		return $ret;
@@ -467,6 +476,7 @@ class Order extends _Dal {
 	 */
 	function addRefund($user_id, $sub_data){
 
+		if(!$user_id || !$sub_data)return;
 		$ret = D('order')->add($user_id, self::STATUS_PASS, 'refund', $sub_data['cashtype'], self::N_ADD, $sub_data['amount'], $sub_data, 0);
 
 		return $ret;
@@ -479,7 +489,22 @@ class Order extends _Dal {
 	 */
 	function addInvite($user_id, $sub_data){
 
+		if(!$user_id || !$sub_data)return;
 		$ret = D('order')->add($user_id, self::STATUS_PASS, 'invite', self::CASHTYPE_CASH, self::N_ADD, $sub_data['amount'], $sub_data);
+
+		return $ret;
+	}
+
+	/**
+	 * 封装增加优惠券使用订单便捷方法
+	 * @param bigint  $user_id  用户ID
+	 * @param array   $sub_data 奖励订单数据
+	 */
+	function addCoupon($user_id, $sub_data){
+
+		if(!$user_id || !$sub_data)return;
+		$cashtype = $this->detail($sub_data['refer_o_id'], 'cashtype');
+		$ret = D('order')->add($user_id, self::STATUS_PASS, 'coupon', $cashtype, self::N_ADD, $sub_data['amount'], $sub_data);
 
 		return $ret;
 	}
