@@ -141,7 +141,7 @@ class Friend extends _Dal {
 	function getQuanFriends($user_id, $inc_sys=true){
 
 		if(!$user_id)return false;
-		$all = $this->db('friend_quan')->findAll("(sender='{$user_id}' OR recevier='{$user_id}') AND agree=1", '', 'id DESC');
+		$all = $this->db('friend_quan')->findAll("(sender='{$user_id}' AND agree=1) OR (recevier='{$user_id}' AND agree=1) ", '', 'id DESC');
 		clearTableName($all);
 		$friends = array();
 		if($all){
@@ -198,6 +198,9 @@ class Friend extends _Dal {
 	function getQuanRewardList($user_id){
 
 		$friends = $this->getQuanFriends($user_id);
+		if($friends){
+			$friends[] = D('myuser')->getId();
+		}
 		$list = $this->db('friend_quan_reward')->findAll(array('user_id'=>$friends), '', 'createtime DESC', 20);
 		clearTableName($list);
 
