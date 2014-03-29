@@ -201,7 +201,7 @@ class Friend extends _Dal {
 		if($friends){
 			$friends[] = D('myuser')->getId();
 		}
-		$list = $this->db('friend_quan_reward')->findAll(array('user_id'=>$friends), '', 'createtime DESC', 20);
+		$list = $this->db('friend_quan_reward')->findAll(array('user_id'=>$friends), '', 'createtime DESC', 50);
 		clearTableName($list);
 
 		//渲染官方红包记录
