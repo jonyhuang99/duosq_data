@@ -124,7 +124,11 @@ class Coupon extends _Dal {
 		foreach($all_type as $type){
 			$today_limit = intval($this->limit_num[$type]);
 			$count = $this->db('coupon')->findCount(array('createdate'=>date('Y-m-d'), 'type'=>$type));
-			$left[$type] =  $today_limit*14-$count;
+			if($type == self::TYPE_DOUBLE){
+				$left[$type] =  $today_limit*14-$count;
+			}else{
+				$left[$type] =  $today_limit-$count;
+			}
 
 			//补充第一次抽奖人看到的数量
 			if($type == self::TYPE_DOUBLE && $left[$type] < 1 && $this->firstTime()){
