@@ -75,8 +75,11 @@ class Coupon extends _Dal {
 
 		if($coupon_id){
 			clearTableName($detail);
+			//判断订单归属
 			if(D('order')->detail($o_id, 'user_id')!= $user_id)return;
 
+			//判断该订单是否已使用了优惠券
+			if($this->isUsed($o_id))return;
 			return $this->db('coupon')->save(array('id'=>$coupon_id, 'o_id'=>$o_id, 'is_used'=>1));
 		}
 	}
