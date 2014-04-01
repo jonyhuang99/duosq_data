@@ -31,7 +31,6 @@ class Now extends _Api {
 		}
 
 		$respxml=$this->client->sendSMS($mobile, g2u($message, true), $time, $apitype);
-
 		$_SESSION["xml"]=$this->client->sendXML;
 		$_SESSION["respxml"]=$respxml;
 		$code=$this->client->getCode();
