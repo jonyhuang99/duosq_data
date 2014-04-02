@@ -190,10 +190,15 @@ class Order extends _Dal {
 					}
 
 					if($sub == 'cashgift'){
-						$this->db($sub);
+						$this->db('order_cashgift');
 						$sub_data['status'] = \DB\OrderCashgift::STATUS_INVALID;
 					}
 				}
+			}
+
+			$this->db('order_reduce');
+			if($sub == 'reduce' && $sub_data['type'] == \DB\OrderReduce::TYPE_ORDER){
+				$is_show = 0;
 			}
 
 			if($sub == 'coupon'){
