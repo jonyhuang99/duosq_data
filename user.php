@@ -251,10 +251,15 @@ class user extends _Dal {
 	//渲染用户购物频率
 	function renderShopFre($user_id){
 		$has_order = $this->detail($user_id, 'has_order');
+
 		if($has_order == 0){
 			return '☆';
-		}else if($has_order == 1){
+		}else if($has_order > 0 && $has_order <= 5){
+			return '☆☆';
+		}else if($has_order > 5 && $has_order <= 10){
 			return '☆☆☆';
+		}else if($has_order > 10 && $has_order <= 30){
+			return '☆☆☆☆';
 		}else{
 			return '☆☆☆☆☆';
 		}

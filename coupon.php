@@ -50,7 +50,6 @@ class Coupon extends _Dal {
 			$ret = $this->db('coupon')->save(array('type'=>$type, 'user_id'=>$user_id, 'expiredate'=>date('Y-m-d', time()+DAY*30)));
 		}
 
-
 		if(!$ret){
 			$err = '系统生成优惠券失败，请重试!';
 			return false;
@@ -125,7 +124,7 @@ class Coupon extends _Dal {
 			$today_limit = intval($this->limit_num[$type]);
 			$count = $this->db('coupon')->findCount(array('createdate'=>date('Y-m-d'), 'type'=>$type));
 			if($type == self::TYPE_DOUBLE){
-				$left[$type] =  $today_limit*14-$count;
+				$left[$type] =  $today_limit*15-$count;
 			}else{
 				$left[$type] =  $today_limit-$count;
 			}
