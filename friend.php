@@ -201,8 +201,12 @@ class Friend extends _Dal {
 		if($friends){
 			$friends[] = D('myuser')->getId();
 		}
-		$list = $this->db('friend_quan_reward')->findAll(array('user_id'=>$friends), '', 'createtime DESC', 50);
-		clearTableName($list);
+		$list1 = $this->db('friend_quan_reward')->findAll("(user_id IN(".join(',',$friends).") AND recevier>0) OR user_id=3", '', 'createtime DESC', 50);
+		clearTableName($list1);
+
+		$list2 = $this->db('friend_quan_reward')->findAll("user_id IN(".join(',',$friends).") AND recevier=0 AND user_id!=3", '', 'createtime DESC');
+		clearTableName($list2);
+		$list = array_merge((array)$list2, (array)$list1);
 
 		//渲染官方红包记录
 		$has_robtime = D('myuser')->hasRobtime();
