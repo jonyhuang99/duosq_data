@@ -10,7 +10,7 @@ class Coupon extends _Dal {
 	const TYPE_FREE_200 = 4;
 	const TYPE_FREE_300 = 5;
 
-	const START = 10; //开抢时间
+	const START = 9; //开抢时间
 
 	var $limit_num = array(1=>5, 2=>1, 3=>1, 4=>1, 5=>1); //券小时限额
 	var $limit_level = array(1=>1, 2=>2, 3=>3, 4=>4, 5=>5); //券的等级要求
