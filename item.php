@@ -5,7 +5,8 @@ namespace DAL;
 class Item extends _Dal {
 
 	//读取商品详情
-	function detail($sp, $param) {
+	//is_tmall用于标识是否天猫商品，便于跟单进行天猫补贴
+	function detail($sp, $param, $is_tmall=0) {
 
 		if (!$sp || !$param) return false;
 		$log_obj = $this->db('cache_api_item');
@@ -27,7 +28,8 @@ class Item extends _Dal {
 
 		if (!isset($detail['errcode'])) {
 			if (@$detail['has_fanli']) {
-				$log_obj->add(1, $sp, 'succ', $param, json_encode($detail), $detail['key']);
+				$detail['is_tmall'] = $is_tmall;
+				$log_obj->add(1, $sp, 'succ', $param, $detail, $detail['key']);
 			} else {
 				//暂不缓存无返利结果，以免alimama错误，导致当天大面积无返利
 				//$log_obj->add(1, $sp, 'no_rebate', $param, '', $detail['key']);
@@ -35,6 +37,19 @@ class Item extends _Dal {
 			return $detail;
 		} else {
 			$log_obj->add(0, $sp, $this->api($sp)->err_code, '', '', $detail['key']);
+		}
+	}
+
+	//从缓存中判断商品是否天猫商品
+	function isTmall($param){
+
+		$log_obj = $this->db('cache_api_item');
+		$cache = $log_obj->find(array('sp' => 'taobao', 'p_id' => $param), '', 'id DESC');
+		clearTableName($cache);
+		if($cache){
+			return $cache['is_tmall'];
+		}else{
+			return false;
 		}
 	}
 }

@@ -9,7 +9,10 @@ class CacheApiItem extends _Db {
 	function add($status=1, $sp, $api_errcode='', $p_id='', $content='', $key=''){
 
 		$this->create();
-		$this->save(array('status'=>$status, 'sp'=>$sp, 'api_errcode'=>$api_errcode, 'p_id'=>$p_id, 'content'=>$content, 'ip'=>getIp(), 'key'=>$key));
+		$is_tmall = intval($content['is_tmall']);
+		unset($content['is_tmall']);
+
+		$this->save(array('status'=>$status, 'sp'=>$sp, 'api_errcode'=>$api_errcode, 'p_id'=>$p_id, 'content'=>json_encode($content), 'is_tmall'=>$is_tmall, 'ip'=>getIp(), 'key'=>$key));
 	}
 }
 ?>
