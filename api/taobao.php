@@ -28,7 +28,6 @@ class Taobao extends _Api {
 		} else {
 			$rd = rand(1, 10);
 			$keys = C('keys', 'taobao_api_appkey_main');
-
 			if ($rd < 8) {
 				$client->appkey = $keys[0]['key'];
 				$client->secretKey = $keys[0]['secret'];
@@ -82,6 +81,27 @@ class Taobao extends _Api {
 		}
 
 		return $info;
+	}
+
+	//判断商品是否支持返利
+	function isRebateAuth($num_iid){
+
+		I('api/taobao/top/TopClient');
+		I('api/taobao/top/request/TaobaokeRebateAuthorizeGetRequest.php');
+		//实例化TopClient类
+		$client = new \TopClient;
+		$client->format = 'json';
+		$key = C('keys', 'taobao_api_appkey_backup');
+		$client->appkey = $key['key'];
+		$client->secretKey = $key['secret'];
+
+		$req = new \TaobaokeRebateAuthorizeGetRequest;
+		$req->setNumIid($num_iid);
+		$resp = $client->execute($req);
+		if($resp && isset($resp->rebate)){
+			return $resp->rebate;
+		}
+		return true;
 	}
 
 	//TODO用户搜索时，使用daemon模式获取淘点金跳转链接，默认渲染到taobao跳转页面，提高兼容性
