@@ -121,6 +121,11 @@ class OrderTaobao extends _Db {
 			throw new \Exception("[order_taobao][error][o_id:{$o_id}][save]");
 		}
 
+		//监控佣金比例发生变化
+		if($new_field['r_yongjin_rate'] > 0 && $old_detail['r_yongjin_rate'] != $new_field['r_yongjin_rate']){
+			D('log')->action(1400, 1, array('data1'=>$o_id, 'data2'=>$old_detail['user_id'], 'data4'=>$old_detail['r_yongjin_rate'], 'data5'=>$new_field['r_yongjin_rate']));
+		}
+
 		//触发主状态变化，主状态在后台审核时会更新
 		if(isset($new_field['status'])){
 
