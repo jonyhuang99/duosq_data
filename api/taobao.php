@@ -28,10 +28,10 @@ class Taobao extends _Api {
 		} else {
 			$rd = rand(1, 10);
 			$keys = C('keys', 'taobao_api_appkey_main');
-			if ($rd < 8) {
+			if($rd < 6){
 				$client->appkey = $keys[0]['key'];
 				$client->secretKey = $keys[0]['secret'];
-			} else {
+			}else{
 				$client->appkey = $keys[1]['key'];
 				$client->secretKey = $keys[1]['secret'];
 			}
@@ -139,10 +139,13 @@ class Taobao extends _Api {
 			$goods['p_seller']=$a['data']['items'][0]['ds_nick'];
 			$goods['p_pic_url']=$a['data']['items'][0]['ds_img']['src'];
 			$goods['key']='tbk_server_get';
-			if($a['data']['items'][0]['ds_istmall'])
-				$goods['has_fanli']=1;
-			else
+			if($a['data']['items'][0]['ds_istmall']){
+				$goods['has_fanli'] = 1;
+				$goods['is_tmall'] = 1;
+			}
+			else{
 				$goods['has_fanli']=0;
+			}
 			//$goods['item_click_url']=$a['data']['items'][0]['ds_item_click'];
 			//$goods['shop_click_url']=$a['data']['items'][0]['ds_shop_click'];
 		}

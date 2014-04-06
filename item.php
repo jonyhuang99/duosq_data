@@ -14,6 +14,7 @@ class Item extends _Dal {
 		clearTableName($cache);
 
 		if ($cache){
+
 			if ($cache['content'])
 				return json_decode($cache['content'], true);
 			return false;//商品无返利
@@ -28,6 +29,7 @@ class Item extends _Dal {
 
 		if (!isset($detail['errcode'])) {
 
+			if($detail['is_tmall'])$is_tmall=1;
 			//修正有返利，但不允许返利的淘宝商品
 			if($sp=='taobao' && !$is_tmall && $detail['has_fanli']){
 				if(!$this->api('taobao')->isRebateAuth($param)){
@@ -50,10 +52,10 @@ class Item extends _Dal {
 	}
 
 	//从缓存中判断商品是否天猫商品
-	function isTmall($param){
+	function isTmall($wangwang){
 
 		$log_obj = $this->db('cache_api_item');
-		$cache = $log_obj->find(array('sp' => 'taobao', 'p_id' => $param), '', 'id DESC');
+		$cache = $log_obj->find(array('sp' => 'taobao', 'seller' => $wangwang), '', 'id DESC');
 		clearTableName($cache);
 		if($cache){
 			return $cache['is_tmall'];
