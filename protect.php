@@ -29,6 +29,7 @@ class Protect extends _Dal {
 		'/^[a-z]abc[0-9a-z]{4,5}@163.com/i',
 		'/^as0[0-9]{2}[a-z]{2}@126.com/i',
 		'/yopmail.net$/i',
+		'/yopmail.com$/i',
 		'/^wvw723[0-9]+/i',
 		'/^qq7230[0-9]+/i',
 		'/^1874606[0-9]+/i',
