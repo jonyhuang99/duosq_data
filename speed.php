@@ -144,5 +144,14 @@ class Speed extends _Dal {
 
 		return $this->redis('speed')->sincr('friend_ask:user_id:'.D('myuser')->getId().':date:'.date('Y-m-d'), HOUR*24, C('comm', 'friend_ask_limit'));
 	}
+
+	/**
+	 * 红包产生通知，每人每周仅发一次
+	 * @return [bool] [是否超速]
+	 */
+	function notifiedCashgiftReward($user_id){
+
+		return $this->redis('speed')->sincr('cashgift_reward_notify:user_id:'.$user_id.':week:'.date('W'), DAY*7, 1);
+	}
 }
 ?>
