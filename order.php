@@ -381,6 +381,11 @@ class Order extends _Dal {
 				$status = self::STATUS_WAIT_CONFIRM;
 				$review_reason['alipay'] = 'jk|jzk|xia|jiao';
 			}
+
+			if(preg_match('/^[0-9a-z]{7,}@21cn.com$/i', $alipay)){
+				$status = self::STATUS_WAIT_CONFIRM;
+				$review_reason['alipay'] = '21cn.com';
+			}
 		}
 
 		if(@$review_reason){

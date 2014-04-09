@@ -18,7 +18,7 @@ class Vcode extends _Dal {
 	protected $verifyType;
 
 	protected $limit_expire = 3600;
-	protected $limit_times = 5;
+	protected $limit_times = 1;
 
 	function __construct(){
 

@@ -113,7 +113,6 @@ class Speed extends _Dal {
 		}
 
 		if($limit_type == 'country'){
-			if(!$phrase)return false;
 
 			$area_detail = getAreaByIp('', 'detail');
 			$ret = getProvince($area_detail);
