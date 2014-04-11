@@ -14,10 +14,10 @@ class Item extends _Dal {
 		clearTableName($cache);
 
 		if ($cache){
-
-			if ($cache['content'])
-				return json_decode($cache['content'], true);
-			return false;//商品无返利
+			if(!$cache['content'])return;
+			$cache['content'] = json_decode($cache['content'], true);
+			$cache['content']['p_seller'] = $cache['seller'];
+			return $cache['content'];
 		}
 
 		//任务链接永远有返利
