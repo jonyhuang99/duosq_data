@@ -161,5 +161,14 @@ class Speed extends _Dal {
 
 		return $this->redis('speed')->sincr('payment_complete_notify:user_id:'.$user_id.':day:'.date('d'), DAY, 1);
 	}
+
+	/**
+	 * 订单跟单成功通知，每天通知一次
+	 * @return [bool] [是否超速]
+	 */
+	function notifiedOrderBack($user_id){
+
+		return $this->redis('speed')->sincr('order_back_notify:user_id:'.$user_id.':day:'.date('d'), DAY, 1);
+	}
 }
 ?>
