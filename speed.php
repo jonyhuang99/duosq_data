@@ -152,5 +152,14 @@ class Speed extends _Dal {
 
 		return $this->redis('speed')->sincr('cashgift_reward_notify:user_id:'.$user_id.':week:'.date('W'), DAY*7, 1);
 	}
+
+	/**
+	 * 到账通知，每人每天通知一次
+	 * @return [bool] [是否超速]
+	 */
+	function notifiedPaymentComplete($user_id){
+
+		return $this->redis('speed')->sincr('payment_complete_notify:user_id:'.$user_id.':day:'.date('d'), DAY, 1);
+	}
 }
 ?>
