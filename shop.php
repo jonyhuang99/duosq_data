@@ -4,11 +4,16 @@ namespace DAL;
 
 class Shop extends _Dal {
 
-	function detail($sp) {
+	function detail($sp, $field=false) {
 
 		if(!$sp)return;
 		$shop = $this->db('shop')->find(array('sp'=>$sp));
-		return clearTableName($shop);
+		clearTableName($shop);
+		if($field){
+			return $shop[$field];
+		}else{
+			return $shop;
+		}
 	}
 
 	function getName($sp){

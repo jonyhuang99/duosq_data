@@ -347,5 +347,19 @@ class Friend extends _Dal {
 		$ret = $this->db('friend_invite')->field('parent_id', array('user_id'=>$user_id));
 		return $ret;
 	}
+
+	//获取指定时间内的订单排行榜
+	function getOrderRank($between = 3600){
+
+		$key = 'order_rank:between:'.$between;
+		$cache = D('cache')->get($key);
+		if($cache)return $cache;
+
+		$last_6_hour = date('Y-m-d H:i:s', time() - $between);
+		$shopping_rank = D('order')->db('order_taobao')->query("SELECT count(*) nu, user_id FROM order_taobao WHERE createtime > '{$last_6_hour}' AND user_id > 100 AND r_status IN(".\DB\OrderTaobao::R_STATUS_PAYED.",".\DB\OrderTaobao::R_STATUS_COMPLETED.") GROUP BY user_id ORDER BY nu DESC limit 5");
+		clearTableName($shopping_rank);
+		D('cache')->set($key, $shopping_rank, HOUR);
+		return $shopping_rank;
+	}
 }
 ?>

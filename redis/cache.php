@@ -3,9 +3,8 @@
 
 namespace REDIS;
 
-class Script extends _Redis {
+class Cache extends _Redis {
 
-	protected $namespace = 'script';
-
+	protected $namespace = 'cache';
 }
 ?>

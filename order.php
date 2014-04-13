@@ -640,6 +640,20 @@ class Order extends _Dal {
 		return true;
 	}
 
+	//获取最新有效订单
+	function lastOrders($sp='taobao', $limit=20){
+
+		$key = 'last_orders:sp:'.$sp.':limit:'.$limit;
+		$cache = D('cache')->get($key);
+		if($cache)return $cache;
+
+		D('order')->db('order_taobao');
+		$recent_orders = D('order')->searchSubOrders($sp, array('status'=>'<> '.\DB\OrderTaobao::STATUS_INVALID, 'user_id'=>'> 100'), $limit, 'o_id DESC');
+
+		D('cache')->set($key, $recent_orders, MINUTE);
+		return $recent_orders;
+	}
+
 	/**
 	 * 根据不同订单，渲染订单状态字段，附加到status_display字段
 	 * @param  [type] $lists [description]
