@@ -11,13 +11,21 @@ class user extends _Dal {
 
 	const STATUS_BLACK_1 = 11; //黑名单-收入打折
 	const STATUS_BLACK_2 = 12; //黑名单-收入为0
+	static $user_detail = array();
 
-	//获取用户信息
+	//获取用户信息，本次session仅取一次
 	function detail($user_id, $field = false){
 
 		if(!$user_id)return;
-		$ret = $this->db('user')->find(array('id'=>$user_id));
-		clearTableName($ret);
+
+		if(isset(self::$user_detail[$user_id])){
+			$ret = self::$user_detail[$user_id];
+		}else{
+			$ret = $this->db('user')->find(array('id'=>$user_id));
+			clearTableName($ret);
+			self::$user_detail[$user_id] = $ret;
+		}
+
 		if($field){
 			return $ret[$field];
 		}else{
@@ -47,12 +55,19 @@ class user extends _Dal {
 	function getNickname($user_id, $short=false){
 
 		if($this->sys($user_id))return '多省钱官网';
+
+		$key = 'nickname:user_id:'.$user_id;
+		$cache = D('cache')->get($key);
+		if($cache)return D('cache')->ret($cache);
+
 		$nickname = $this->detail($user_id, 'nickname');
-		if($nickname){
-			return $nickname;
-		}else{
-			return mask($this->detail($user_id, 'alipay'), 'alipay', 4, $short);
+		if(!$nickname){
+			$nickname = mask($this->detail($user_id, 'alipay'), 'alipay', 4, $short);
 		}
+
+		D('cache')->set($key, $nickname, HOUR);
+
+		return $nickname;
 	}
 
 	//返回用户状态

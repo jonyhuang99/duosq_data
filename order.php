@@ -645,7 +645,7 @@ class Order extends _Dal {
 
 		$key = 'last_orders:sp:'.$sp.':limit:'.$limit;
 		$cache = D('cache')->get($key);
-		if($cache)return $cache;
+		if($cache)return D('cache')->ret($cache);
 
 		D('order')->db('order_taobao');
 		$recent_orders = D('order')->searchSubOrders($sp, array('status'=>'<> '.\DB\OrderTaobao::STATUS_INVALID, 'user_id'=>'> 100'), $limit, 'o_id DESC');

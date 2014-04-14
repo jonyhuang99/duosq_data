@@ -92,6 +92,10 @@ class Fund extends _Dal {
 	 */
 	function getInviteRewardBalance($user_id, $child_id=''){
 
+		$key = 'invite_reward_balance:user_id:'.$user_id.':child_id:'.$child_id;
+		$cache = D('cache')->get($key);
+		if($cache || $cache===0)return D('cache')->ret($cache);
+
 		if($child_id){
 			$reward_orders = D('order')->getSubList('invite', array('user_id'=>$user_id, 'child_id'=>$child_id), '', '');
 		}else{
@@ -113,6 +117,9 @@ class Fund extends _Dal {
 		}
 
 		$balance_sum = $reward_balance[self::CASHTYPE_JFB] + $reward_balance[self::CASHTYPE_CASH];
+
+		D('cache')->set($key, intval($amount), MINUTE*15);
+
 		return $balance_sum;
 	}
 
@@ -124,10 +131,18 @@ class Fund extends _Dal {
 	function getQuanRewardBalance($user_id){
 
 		if(!$user_id)return 0;
+
+		$key = 'quan_reward_rob_sum:user_id:'.$user_id;
+		$cache = D('cache')->get($key);
+		if($cache || $cache===0)return D('cache')->ret($cache);
+
 		$amount = $this->db('friend_quan_reward')->findSum('amount', array('recevier'=>$user_id));
 		if(D('myuser')->hasRobtime() != '0000-00-00 00:00:00'){
 			$amount += 1;
 		}
+
+		D('cache')->set($key, intval($amount), MINUTE*15);
+
 		return $amount;
 	}
 
@@ -139,7 +154,15 @@ class Fund extends _Dal {
 	function getQuanRewardSendBalance($user_id){
 
 		if(!$user_id)return 0;
+
+		$key = 'quan_reward_send_sum:user_id:'.$user_id;
+		$cache = D('cache')->get($key);
+		if($cache || $cache===0)return D('cache')->ret($cache);
+
 		$amount = $this->db('friend_quan_reward')->findSum('amount', array('user_id'=>$user_id));
+
+		D('cache')->set($key, intval($amount), MINUTE*15);
+
 		return $amount;
 	}
 

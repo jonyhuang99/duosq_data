@@ -64,15 +64,31 @@ class Friend extends _Dal {
 	function friendAsked($sender, $recevier){
 
 		if(!$sender || !$recevier)return;
-		return $this->db('friend_quan')->find(array('sender'=>$sender, 'recevier'=>$recevier));
+
+		$key = 'friend_asked:sender:'.$sender.':recevier:'.$recevier;
+		$cache = D('cache')->get($key);
+		if($cache)return D('cache')->ret($cache, false);
+
+		$ret = $this->db('friend_quan')->find(array('sender'=>$sender, 'recevier'=>$recevier));
+
+		D('cache')->set($key, $ret, MINUTE, true);
+
+		return $ret;
 	}
 
 	//待处理的好友请求
 	function friendAskedList($recevier){
 
 		if(!$recevier)return;
+		$key = 'friend_asked_list:recevier:'.$recevier;
+		$cache = D('cache')->get($key);
+		if($cache)return D('cache')->ret($cache, false);
+
 		$ret = $this->db('friend_quan')->findAll(array('recevier'=>$recevier, 'agree'=>0));
 		clearTableName($ret);
+
+		D('cache')->set($key, $ret, MINUTE, true);
+
 		return $ret;
 	}
 
@@ -141,6 +157,14 @@ class Friend extends _Dal {
 	function getQuanFriends($user_id, $inc_sys=true){
 
 		if(!$user_id)return false;
+		$in = '0';
+		if($inc_sys)$in = '1';
+		$key = 'quan_friends:user_id:'.$user_id.':inc_sys:'.$in;
+		$cache = D('cache')->get($key);
+		if($cache){
+			return D('cache')->ret($cache, array());
+		}
+
 		$all = $this->db('friend_quan')->findAll("(sender='{$user_id}' AND agree=1) OR (recevier='{$user_id}' AND agree=1) ", '', 'id DESC');
 		clearTableName($all);
 		$friends = array();
@@ -156,8 +180,10 @@ class Friend extends _Dal {
 		}
 
 		unset($friends[$user_id]);
+		$ret = array_keys($friends);
+		D('cache')->set($key, $ret, MINUTE*15, true);
 
-		return array_keys($friends);
+		return $ret;
 	}
 
 	/**
@@ -197,6 +223,10 @@ class Friend extends _Dal {
 	 */
 	function getQuanRewardList($user_id){
 
+		$key = 'quan_reward_list:user_id:'.$user_id;
+		$cache = D('cache')->get($key);
+		if($cache)return D('cache')->ret($cache);
+
 		$friends = $this->getQuanFriends($user_id);
 		if($friends){
 			$friends[] = D('myuser')->getId();
@@ -226,6 +256,8 @@ class Friend extends _Dal {
 				}
 			}
 		}
+
+		D('cache')->set($key, $list, SECOND * 15);
 
 		return $list;
 	}
@@ -353,7 +385,7 @@ class Friend extends _Dal {
 
 		$key = 'order_rank:between:'.$between;
 		$cache = D('cache')->get($key);
-		if($cache)return $cache;
+		if($cache)return D('cache')->ret($cache);
 
 		$last_6_hour = date('Y-m-d H:i:s', time() - $between);
 		$shopping_rank = D('order')->db('order_taobao')->query("SELECT count(*) nu, user_id FROM order_taobao WHERE createtime > '{$last_6_hour}' AND user_id > 100 AND r_status IN(".\DB\OrderTaobao::R_STATUS_PAYED.",".\DB\OrderTaobao::R_STATUS_COMPLETED.") GROUP BY user_id ORDER BY nu DESC limit 5");
