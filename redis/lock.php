@@ -24,7 +24,7 @@ class Lock extends _Redis {
 
 		switch ($trade_type) {
 			case self::LOCK_QUAN_REWARD:
-				$expire = 5;
+				$expire = 30;
 				break;
 			case self::LOCK_CASHGIFT_ADD:
 				$expire = 10;

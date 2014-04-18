@@ -19,10 +19,18 @@ class Shop extends _Dal {
 	function getName($sp){
 
 		if(!$sp)return;
+
+		$key = 'shop_name:sp:'.$sp;
+		$cache = D('cache')->get($key);
+		if($cache)return D('cache')->ret($cache);
+
 		$shop = $this->detail($sp);
 		if(mb_strlen($shop['name'], 'utf8')<3){
 			$shop['name'] = $shop['name'].'商城';
 		}
+
+		D('cache')->set($key, $shop['name'], HOUR);
+
 		return $shop['name'];
 	}
 }

@@ -97,9 +97,9 @@ class Fund extends _Dal {
 		if($cache || $cache===0)return D('cache')->ret($cache);
 
 		if($child_id){
-			$reward_orders = D('order')->getSubList('invite', array('user_id'=>$user_id, 'child_id'=>$child_id), '', '');
+			$reward_orders = D('order')->getSubList('invite', array('user_id'=>$user_id, 'child_id'=>$child_id), '', 0);
 		}else{
-			$reward_orders = D('order')->getSubList('invite', array('user_id'=>$user_id), '', '');
+			$reward_orders = D('order')->getSubList('invite', array('user_id'=>$user_id), '', 0);
 		}
 
 		$reward_balance = array(self::CASHTYPE_JFB=>0, self::CASHTYPE_CASH=>0);
@@ -118,7 +118,7 @@ class Fund extends _Dal {
 
 		$balance_sum = $reward_balance[self::CASHTYPE_JFB] + $reward_balance[self::CASHTYPE_CASH];
 
-		D('cache')->set($key, intval($amount), MINUTE*15);
+		D('cache')->set($key, intval($balance_sum), MINUTE*15);
 
 		return $balance_sum;
 	}
@@ -179,8 +179,8 @@ class Fund extends _Dal {
 		//TODO 做资产锁，防止同时增减资产
 		if(!$o_id)return;
 		if($cashtype && ($cashtype != self::CASHTYPE_JFB && $cashtype != self::CASHTYPE_CASH))return;
-
-		$fund_logs = $this->db('fund')->findAll(arrayClean(array('o_id'=>$o_id, 'cashtype'=>$cashtype)));
+		$user_id = D('order')->detail($o_id, 'user_id');
+		$fund_logs = $this->db('fund')->findAll(arrayClean(array('o_id'=>$o_id, 'user_id'=>$user_id, 'cashtype'=>$cashtype)));
 
 		$ret = array(self::CASHTYPE_JFB=>0, self::CASHTYPE_CASH=>0);
 		if($fund_logs){

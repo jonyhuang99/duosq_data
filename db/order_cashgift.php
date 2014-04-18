@@ -114,6 +114,7 @@ class OrderCashgift extends _Db {
 
 		//红包状态由待处理激活 => 已激活，进行资产增加
 		if($from == self::STATUS_WAIT_ACTIVE && $to == self::STATUS_PASS){
+
 			//调整资产
 			$ret = D('fund')->adjustBalanceForOrder($o_id);
 			if(!$ret){

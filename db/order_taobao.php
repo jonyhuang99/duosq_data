@@ -82,13 +82,13 @@ class OrderTaobao extends _Db {
 		//不允许更新额外返利比例历史
 		unset($new_field['fanli_lv_rate']);
 
-		//用户ID变化，当主订单状态未打款前，都可以修正
+		//用户ID从系统号变化，当主订单状态未打款前，都可以修正
 		//TODO 与chuser统一
 		if(isset($new_field['user_id']) && $new_field['user_id']!=$old_detail['user_id'] && ((!D('user')->sys($new_field['user_id']) && D('user')->sys($old_detail['user_id'])) || $force)){
 			//修正主订单用户ID
 			$main_status = D('order')->detail($o_id, 'status');
 			if($main_status != \DAL\Order::STATUS_PASS || $force){
-				D('order')->db('order')->updateUserid($o_id, $new_field['user_id']);
+				$ret = D('order')->db('order')->updateUserid($o_id, $new_field['user_id']);
 				//删除旧的order_no关系
 				D('user')->deleteTaobaoNo($old_detail['user_id'], getTaobaoNo($old_detail['r_orderid']));
 				if(!D('user')->sys($new_field['user_id'])){
@@ -116,6 +116,7 @@ class OrderTaobao extends _Db {
 				unset($new_field['fanli']);
 			}
 		}
+
 
 		$new_field['o_id'] = $o_id;
 		$ret = parent::save(arrayClean($new_field));

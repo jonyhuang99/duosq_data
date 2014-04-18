@@ -64,7 +64,7 @@ class Speed extends _Dal {
 	function cashgift($limit_type='ip', $phrase=''){
 
 		if($limit_type == 'ip'){
-			$limit = 3;
+			$limit = 4;
 			return $this->redis('speed')->sincr('send_cashgift:ip_b:'.getIpByLevel('b'), HOUR*6, $limit);
 		}
 
@@ -99,7 +99,7 @@ class Speed extends _Dal {
 			}
 
 			$area_detail = getAreaByIp('', 'detail');
-			$limit = 3;
+			$limit = 4;
 			$ret = $this->redis('speed')->sincr('send_cashgift:area:'.$area_detail.':agent:'.md5($agent), HOUR*4, $limit);
 			if($ret){
 				return array('area_detail'=>$area_detail, 'agent'=>$agent);

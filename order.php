@@ -218,7 +218,11 @@ class Order extends _Dal {
 		//初始化主订单为确认状态，则触发更新子订单为确认状态，激活首次后续动作
 		if($status == self::STATUS_PASS){
 			$class = $this->_table2class('order_'.$sub);
-			$this->updateSub($sub, $o_id, array('status'=>$class::STATUS_PASS));
+			$ret = $this->updateSub($sub, $o_id, array('status'=>$class::STATUS_PASS));
+			if(!$ret){
+				$this->db()->rollback();
+				return false;
+			}
 		}
 
 		$this->db()->commit();
@@ -613,7 +617,7 @@ class Order extends _Dal {
 				}
 			}
 
-			if($sub == 'taobao' && !D('user')->sys($new_user_id)){
+			if($sub == 'taobao'){
 				//更新淘宝用户标识
 				$taobao_no = getTaobaoNo($detail['r_orderid']);
 
@@ -621,8 +625,10 @@ class Order extends _Dal {
 				if($old_taobao_no && in_array($taobao_no, $old_taobao_no)){
 					D('user')->deleteTaobaoNo($old_user_id, $taobao_no);
 				}
-				$ret = D('user')->addTaobaoNo($new_user_id, $taobao_no);
-				if(!$ret)throw new \Exception("taobao no");
+				if(!D('user')->sys($new_user_id)){
+					$ret = D('user')->addTaobaoNo($new_user_id, $taobao_no);
+					if(!$ret)throw new \Exception("taobao no");
+				}
 			}
 
 		}catch(\Exception $e){
@@ -674,7 +680,7 @@ class Order extends _Dal {
 				if($v['sub'] == 'taobao' && $v['status']==0){
 
 					if($v['n'] == 0 && $v['amount'] > 0){
-						$v['status_display'] = '账号异常';
+						$v['status_display'] = '账号超限';
 					}else{
 						$v['status_display'] = $map_taobao_st[$v['sub_detail']['status']];
 					}
