@@ -165,7 +165,8 @@ class OrderMall extends _Db {
 
 			//加入待打款现金用户列表
 			$amount = D('order')->detail($o_id, 'amount');
-			D('pay')->addWaitPaycash($m_order['user_id'], '购物返钱', $amount);
+			if($m_order['n']>0)
+				D('pay')->addWaitPaycash($m_order['user_id'], '购物返钱', $amount);
 
 			$coupon_detail = D('coupon')->isUsed($o_id, 'detail');
 			if($coupon_detail){

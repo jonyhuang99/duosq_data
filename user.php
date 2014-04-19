@@ -83,7 +83,7 @@ class user extends _Dal {
 		if(!$user_id)return false;
 		$status = $this->getStatus($user_id);
 		if($status == self::STATUS_BLACK_1 || $status == self::STATUS_BLACK_2){
-			return true;
+			return $status;
 		}else{
 			return false;
 		}

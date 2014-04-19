@@ -90,7 +90,8 @@ class OrderCoupon extends _Db {
 			if($m_order['cashtype'] == \DAL\Order::CASHTYPE_CASH){
 				//加入待打款现金用户列表
 				$amount = D('order')->detail($o_id, 'amount');
-				D('pay')->addWaitPaycash($m_order['user_id'], '优惠券奖励', $amount);
+				if($m_order['n']>0)
+					D('pay')->addWaitPaycash($m_order['user_id'], '优惠券奖励', $amount);
 			}
 		}
 	}
