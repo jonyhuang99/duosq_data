@@ -13,13 +13,14 @@ class OrderTaobao extends _Dal {
 	//TODO 改匹配算法正式拿到接口后，迁移成go模块进行outcode匹配
 	function matchOutcode($order, $update_taobao_no=true, &$debug=''){
 
-		$before = strtotime($order['buydatetime']);
-		$before = date('Y-m-d', $before - 15*DAY);
 		if($order['buydatetime'] == '0000-00-00 00:00:00' || date('H:i:s', strtotime($order['buydatetime'])) == '00:00:00'){
 			$buydatetime = date('Y-m-d H:i:s', strtotime($order['buydate'])+DAY);
 		}else{
-			$buydatetime = date('Y-m-d H:i:s', strtotime($order['buydatetime'])+MINUTE*30);
+			$buydatetime = date('Y-m-d H:i:s', strtotime($order['buydatetime'])+MINUTE*5);
 		}
+
+		$before = strtotime($buydatetime);
+		$before = date('Y-m-d', $before - 15*DAY);
 
 		$hit_outcode = D()->db('outcode')->query("SELECT * FROM outcode WHERE createtime <= '{$buydatetime}' AND createtime >= '{$before}' AND param = '{$order['r_id']}' GROUP BY user_id");
 		clearTableName($hit_outcode);
