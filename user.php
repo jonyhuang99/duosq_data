@@ -14,11 +14,11 @@ class user extends _Dal {
 	static $user_detail = array();
 
 	//获取用户信息，本次session仅取一次
-	function detail($user_id, $field = false){
+	function detail($user_id, $field = false, $user_cache=true){
 
 		if(!$user_id)return;
 
-		if(isset(self::$user_detail[$user_id])){
+		if(isset(self::$user_detail[$user_id]) && $user_cache){
 			$ret = self::$user_detail[$user_id];
 		}else{
 			$ret = $this->db('user')->find(array('id'=>$user_id));

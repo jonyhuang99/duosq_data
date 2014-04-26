@@ -19,7 +19,7 @@ class _Redis extends \Object {
 	 */
 
 	//一般无需重载，当重载了exec_timeout，一旦连接单例已经存在，则当前exec_timeout不会有效
-	protected $exec_timeout = 5;
+	protected $exec_timeout = 10;
 	protected $dsn_type = 'cache'; //数据源类型(cache:不做dump数据操作，database:做AOF实时备份)
 	protected $redis;
 

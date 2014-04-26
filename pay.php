@@ -25,7 +25,7 @@ class Pay extends _Dal {
 			return false;
 		}
 
-		$user_detail = D('user')->detail($user_id);
+		$user_detail = D('user')->detail($user_id, false, false);
 		if(!$user_detail){
 			$errcode = _e('user_not_exist');
 			D('log')->pay($o_id, 0, $errcode);
