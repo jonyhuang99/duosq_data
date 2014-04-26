@@ -38,9 +38,6 @@ class Pay extends _Dal {
 			return false;
 		}
 
-		//速控，1天打款不能超过2次
-		if(D('speed')->payJfb($user_id))continue;
-
 		$alipay = $user_detail['alipay'];
 
 		//生成扣款订单
