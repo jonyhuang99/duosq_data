@@ -170,5 +170,14 @@ class Speed extends _Dal {
 
 		return $this->redis('speed')->sincr('order_back_notify:user_id:'.$user_id.':day:'.date('d'), DAY, 1);
 	}
+
+	/**
+	 * 集分宝支付，每天不超过2次
+	 * @return [bool] [是否超速]
+	 */
+	function payJfb($user_id){
+
+		return $this->redis('speed')->sincr('pay_jfb:user_id:'.$user_id.':day:'.date('d'), DAY, 2);
+	}
 }
 ?>
