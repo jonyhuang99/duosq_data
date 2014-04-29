@@ -80,7 +80,7 @@ class Alarm extends _Dal {
 		}
 
 		$default_p = array();
-		$default_p['__time__'] = date('H:i:s');
+		$default_p['__time__'] = date('H:i');
 		$default_p['__content__'] = join(',', $content);
 		$params = array_merge($default_p, (array)$params);
 		$ret = sendSms(C('comm', 'sms_monitor'), $sms_tpl, $params, 'alarm');

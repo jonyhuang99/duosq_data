@@ -71,7 +71,7 @@ class Friend extends _Dal {
 
 		$ret = $this->db('friend_quan')->find(array('sender'=>$sender, 'recevier'=>$recevier));
 
-		D('cache')->set($key, $ret, MINUTE, true);
+		D('cache')->set($key, $ret, SECOND*15, true);
 
 		return $ret;
 	}

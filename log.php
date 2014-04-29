@@ -56,7 +56,10 @@ class Log extends _Dal {
 		if(!$sp)return;
 		if(!$type)return;
 
-		if(is_array($content))$en_content = json_encode($content);
+		if(is_array($content))
+			$en_content = json_encode($content);
+		else
+			$en_content = $content;
 
 		//做商城合法性判断
 		if(!D('shop')->detail($sp))return;
