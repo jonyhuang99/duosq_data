@@ -22,6 +22,12 @@ class Alarm extends _Dal {
 	//导入订单出错紧急报警
 	function importOrdersErr($type){
 
+		if(date('Y-m-01') == date('Y-m-d')){
+			//每月1号，yiqifa数据为空，导致误报，此时延迟6小时报警
+			$expire = HOUR * 6;
+		}else{
+			$expire = MINUTE*5;
+		}
 		$entry_params = D()->redis('alarm')->accum('auto_import:error', MINUTE*5, $type);
 
 		if($entry_params){
