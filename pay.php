@@ -69,6 +69,10 @@ class Pay extends _Dal {
 
 		//重复打款也算成功
 		if($ret || $errcode == _e('jfb_trade_repeat')){
+
+			//标记打过款了
+			D('speed')->payJfb($user_id);
+
 			$this->_afterPaymentSucc($o_id, $user_id, \DAL\Fund::CASHTYPE_JFB, $alipay, $balance, $api_name, $api_ret);
 			$ret = array('amount'=>$balance, 'o_id'=>$o_id, 'alipay'=>$alipay, 'api_name'=>$api_name);
 			return $ret;
