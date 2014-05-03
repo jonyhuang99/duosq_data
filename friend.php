@@ -106,6 +106,30 @@ class Friend extends _Dal {
 		return $this->db('friend_quan')->save(array('id'=>$req_id, 'agree'=>$agree, 'agreetime'=>date('Y-m-d H:i:s')));
 	}
 
+	//主动解除好友关系
+	function friendDisAgree($from_uid, $friend_uid){
+
+		if(!$from_uid || !$friend_uid)return;
+
+		$req_id = $this->db('friend_quan')->field('id', array('sender'=>$from_uid, 'recevier'=>$friend_uid));
+		if($req_id){
+			$this->db('friend_quan')->save(array('id'=>$req_id, 'agree'=>3, 'agreetime'=>date('Y-m-d H:i:s')));
+		}
+
+		$req_id = $this->db('friend_quan')->field('id', array('sender'=>$friend_uid, 'recevier'=>$from_uid));
+		if($req_id){
+			$this->db('friend_quan')->save(array('id'=>$req_id, 'agree'=>3, 'agreetime'=>date('Y-m-d H:i:s')));
+		}
+
+		//清除缓存
+		$key = 'quan_friends:user_id:'.$from_uid.':inc_sys:0';
+		D('cache')->clear($key);
+		$key = 'quan_friends:user_id:'.$from_uid.':inc_sys:1';
+		D('cache')->clear($key);
+
+		return true;
+	}
+
 	/**
 	 * 判断是否已是好友关系
 	 * @param bigint  $sender   主动添加人

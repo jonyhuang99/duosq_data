@@ -56,7 +56,9 @@ class user extends _Dal {
 
 		if($this->sys($user_id))return '多省钱官网';
 
-		$key = 'nickname:user_id:'.$user_id;
+		$i = 0;
+		if($short)$i = 1;
+		$key = 'nickname:user_id:'.$user_id.':'.$i;
 		$cache = D('cache')->get($key);
 		if($cache)return D('cache')->ret($cache);
 

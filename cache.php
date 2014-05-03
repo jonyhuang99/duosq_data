@@ -31,5 +31,10 @@ class Cache extends _Dal {
 		}
 		return $cache;
 	}
+
+	//清除缓存
+	function clear($key){
+		return $this->redis('cache')->delete($key);
+	}
 }
 ?>
