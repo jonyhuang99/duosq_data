@@ -196,11 +196,11 @@ class OrderMall extends _Db {
 				}
 			}
 
-			//将上个月该渠道的等待订单，自动变为无效
+			//将上上个月该渠道的等待订单，自动变为无效
 			$timestamp = strtotime($old_detail['buydatetime']);
 			if($old_detail['buydatetime'] && $timestamp > 0 && $timestamp < time()-DAY*20){
-				$begin = date('Y-m-01', $timestamp - DAY*30);
-				$end = date('Y-m-31', $timestamp - DAY*30);
+				$begin = date('Y-m-01', $timestamp - DAY*90);
+				$end = date('Y-m-31', $timestamp - DAY*90);
 				$all = D('order')->searchSubOrders('mall', "buydatetime >= '{$begin}' AND buydatetime <= '{$end}' AND status = 0 AND sp = '{$old_detail['sp']}'");
 				if($all){
 					foreach ($all as $o) {
