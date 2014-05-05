@@ -201,7 +201,7 @@ class OrderMall extends _Db {
 			if($old_detail['buydatetime'] && $timestamp > 0 && $timestamp < time()-DAY*20){
 				$begin = date('Y-m-01', $timestamp - DAY*60);
 				$end = date('Y-m-31', $timestamp - DAY*60);
-				$all = D('order')->searchSubOrders('mall', "buydatetime >= '{$begin}' AND buydatetime <= '{$end}' AND status = 0 AND sp = '{$old_detail['sp']}'");
+				$all = D('order')->searchSubOrders('mall', "buydatetime >= '{$begin}' AND buydatetime <= '{$end}' AND status = 0 AND sp = '{$old_detail['sp']}' AND user_id>100");
 				if($all){
 					foreach ($all as $o) {
 						//主订单状态变为已通过
