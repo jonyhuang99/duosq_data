@@ -36,25 +36,33 @@ class Coupon extends _Dal {
 
 		$error = '';
 
-		$ret = $this->hasChance($user_id, $type, $error);
-		if(!$ret){
-			$this->unlock();
-			$err = $error;
-			return false;
-		}
+		if($this->lock($user_id)){
+			$ret = $this->hasChance($user_id, $type, $error);
+			if(!$ret){
+				$this->unlockNum();
+				$err = $error;
+				return false;
+			}
 
-		if(!$this->lock_id){
-			//没能抢到锁，但作为特例允许，抢到的数额不计入今日数额，这将导致可能新人今日可以抢2张
-			$ret = $this->db('coupon')->save(array('type'=>$type, 'user_id'=>$user_id, 'createdate'=>date('Y-m-d', time()-DAY), 'expiredate'=>date('Y-m-d', time()+DAY*30)));
-		}else{
-			$ret = $this->db('coupon')->save(array('type'=>$type, 'user_id'=>$user_id, 'expiredate'=>date('Y-m-d', time()+DAY*30)));
-		}
+			if(!$this->lock_id){
+				//没能抢到锁，但作为特例允许，抢到的数额不计入今日数额，这将导致可能新人今日可以抢2张
+				$ret = $this->db('coupon')->save(array('type'=>$type, 'user_id'=>$user_id, 'createdate'=>date('Y-m-d', time()-DAY), 'expiredate'=>date('Y-m-d', time()+DAY*30)));
+			}else{
+				$ret = $this->db('coupon')->save(array('type'=>$type, 'user_id'=>$user_id, 'expiredate'=>date('Y-m-d', time()+DAY*30)));
+			}
 
-		if(!$ret){
-			$err = '系统生成优惠券失败，请重试!';
-			return false;
+			$this->unlock($user_id);
+			if(!$ret){
+				$err = '系统生成优惠券失败，请重试!';
+				return false;
+			}else{
+				return true;
+			}
 		}else{
-			return true;
+
+			$err = '您的请求已在处理中，请稍等!';
+			$this->unlock($user_id);
+			return false;
 		}
 	}
 
@@ -150,7 +158,7 @@ class Coupon extends _Dal {
 		if($luck_users){
 			clearTableName($luck_users);
 			foreach($luck_users as $detail){
-				$list[$detail['type']][] = $detail;
+				$list[$detail['type']][$detail['user_id']] = $detail;
 			}
 		}
 		return $list;
@@ -168,7 +176,7 @@ class Coupon extends _Dal {
 		}
 
 		//当前优惠券有余量
-		if(!$this->lock($type)){
+		if(!$this->lockNum($type)){
 			$err = '已被抢光，下轮开抢时间：'.date('H', time()+HOUR).':00点整，每小时开放'.$this->limit_num[$type].'张!';
 			return false;
 		}
@@ -215,15 +223,23 @@ class Coupon extends _Dal {
 		return true;
 	}
 
-	//抢券加锁
-	private function lock($type){
+	//判断该用户是否首次抢券
+	private function firstTime(){
+
+		if(!D('myuser')->isLogined())return false;
+		$hit = $this->db('coupon')->find(array('user_id'=>D('myuser')->getId()));
+		if(!$hit)return true;
+	}
+
+	//抢券锁库存
+	private function lockNum($type){
 
 		$H = date('H');
 
 		for($i=1; $i < $this->limit_num[$type]+1; $i++){
 
 			$lock_id = "{$H}_type_{$type}_num_".$i;
-			$succ = $this->redis('lock')->getlock(\Redis\Lock::LOCK_COUPON_ROB, $lock_id);
+			$succ = $this->redis('lock')->getlock(\Redis\Lock::LOCK_COUPON_ROB_NUM, $lock_id);
 			if($succ){
 				$this->lock_id = $lock_id;
 				return true;
@@ -238,19 +254,30 @@ class Coupon extends _Dal {
 		return false;
 	}
 
-	//判断该用户是否首次抢券
-	private function firstTime(){
-
-		if(!D('myuser')->isLogined())return false;
-		$hit = $this->db('coupon')->find(array('user_id'=>D('myuser')->getId()));
-		if(!$hit)return true;
-	}
-
-	//抢券失败解锁
-	private function unlock(){
+	//抢券失败解锁库存
+	private function unlockNum(){
 
 		if($this->lock_id)
-			$this->redis('lock')->unlock(\Redis\Lock::LOCK_COUPON_ROB, $this->lock_id);
+			$this->redis('lock')->unlock(\Redis\Lock::LOCK_COUPON_ROB_NUM, $this->lock_id);
+	}
+
+	//抢券锁业务
+	private function lock($user_id){
+
+		$succ = $this->redis('lock')->getlock(\Redis\Lock::LOCK_COUPON_ROB, $user_id);
+		if($succ){
+			$this->lock_id = $lock_id;
+			return true;
+		}
+
+		return false;
+	}
+
+	//抢券业务解锁
+	private function unlock($user_id){
+
+		if($this->lock_id)
+			$this->redis('lock')->unlock(\Redis\Lock::LOCK_COUPON_ROB, $user_id);
 	}
 }
 ?>
