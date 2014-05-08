@@ -264,20 +264,14 @@ class Coupon extends _Dal {
 	//抢券锁业务
 	private function lock($user_id){
 
-		$succ = $this->redis('lock')->getlock(\Redis\Lock::LOCK_COUPON_ROB, $user_id);
-		if($succ){
-			$this->lock_id = $lock_id;
-			return true;
-		}
-
-		return false;
+		$ret = $this->redis('lock')->getlock(\Redis\Lock::LOCK_COUPON_ROB, $user_id);
+		return $ret;
 	}
 
 	//抢券业务解锁
 	private function unlock($user_id){
 
-		if($this->lock_id)
-			$this->redis('lock')->unlock(\Redis\Lock::LOCK_COUPON_ROB, $user_id);
+		$this->redis('lock')->unlock(\Redis\Lock::LOCK_COUPON_ROB, $user_id);
 	}
 }
 ?>
