@@ -41,6 +41,7 @@ class Coupon extends _Dal {
 			if(!$ret){
 				$this->unlockNum();
 				$err = $error;
+				$this->unlock($user_id);
 				return false;
 			}
 
@@ -50,7 +51,6 @@ class Coupon extends _Dal {
 			}else{
 				$ret = $this->db('coupon')->save(array('type'=>$type, 'user_id'=>$user_id, 'expiredate'=>date('Y-m-d', time()+DAY*30)));
 			}
-
 			$this->unlock($user_id);
 			if(!$ret){
 				$err = '系统生成优惠券失败，请重试!';
@@ -60,7 +60,7 @@ class Coupon extends _Dal {
 			}
 		}else{
 
-			$err = '您的请求已在处理中，请稍等!';
+			$err = '您的请求已在处理中，请稍等10秒钟!';
 			$this->unlock($user_id);
 			return false;
 		}
@@ -153,7 +153,7 @@ class Coupon extends _Dal {
 	//获取当天领了优惠券的幸运儿
 	function getLuckUsers(){
 
-		$luck_users = $this->db('coupon')->findAll(array('createdate'=>date('Y-m-d')), '', 'id DESC');
+		$luck_users = $this->db('coupon')->findAll(array('createdate'=>date('Y-m-d'), 'type'=>self::TYPE_DOUBLE), '', 'id DESC', 10);
 		$list = array();
 		if($luck_users){
 			clearTableName($luck_users);
@@ -161,6 +161,15 @@ class Coupon extends _Dal {
 				$list[$detail['type']][$detail['user_id']] = $detail;
 			}
 		}
+
+		$luck_users = $this->db('coupon')->findAll(array('createdate'=>'>'.date('Y-m-d', time()-DAY*7), 'type'=>'<> '.self::TYPE_DOUBLE), '', 'id DESC', 10);
+		if($luck_users){
+			clearTableName($luck_users);
+			foreach($luck_users as $detail){
+				$list[$detail['type']][$detail['user_id']] = $detail;
+			}
+		}
+
 		return $list;
 	}
 
