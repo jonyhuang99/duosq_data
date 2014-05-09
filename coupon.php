@@ -162,11 +162,11 @@ class Coupon extends _Dal {
 			}
 		}
 
-		$luck_users = $this->db('coupon')->findAll(array('createdate'=>'>'.date('Y-m-d', time()-DAY*7), 'type'=>'<> '.self::TYPE_DOUBLE), '', 'id DESC', 10);
-		if($luck_users){
-			clearTableName($luck_users);
-			foreach($luck_users as $detail){
-				$list[$detail['type']][$detail['user_id']] = $detail;
+		$luck_users2 = $this->db('coupon')->findAll(array('createdate'=>'>'.date('Y-m-d', time()-DAY*10), 'type'=>'<> '.self::TYPE_DOUBLE), '', 'id DESC', 10);
+		if($luck_users2){
+			clearTableName($luck_users2);
+			foreach($luck_users2 as $detail){
+				$list[$detail['type']][] = $detail;
 			}
 		}
 
