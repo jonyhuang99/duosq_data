@@ -20,7 +20,7 @@ class OrderTaobao extends _Dal {
 		}
 
 		$before = strtotime($buydatetime);
-		$before = date('Y-m-d', $before - 15*DAY);
+		$before = date('Y-m-d', $before - DAY*15);
 
 		$hit_outcode = D()->db('outcode')->query("SELECT * FROM outcode WHERE createtime <= '{$buydatetime}' AND createtime >= '{$before}' AND param = '{$order['r_id']}' GROUP BY user_id");
 		clearTableName($hit_outcode);
@@ -55,6 +55,15 @@ class OrderTaobao extends _Dal {
 				$hit_outcode = $hit_outcode[0];
 				//必须是半小时内浏览的用户，且14天内无其他用户浏览，才认为这个人是单的主人，防止1小时前其他用户访问过，但没下单，真实用户仅访问了店铺(但没访问过该商品)，下单了
 				if(strtotime($buydatetime) - strtotime($hit_outcode['createtime']) > 3600){
+					$hit_outcode = false;
+				}
+
+				//10分钟内，有其他用户浏览过店铺(虽然没有直接访问过该商品)，有可能误判
+				$before = strtotime($buydatetime);
+				$before = date('Y-m-d', $before - MINUTE * 10);
+				$recent_shop_ret = D('log')->db('log_search')->query("SELECT * FROM log_search WHERE createtime <= '{$buydatetime}' AND createtime >= '{$before}' AND seller = '{$order['r_wangwang']}' AND user_id <> 0 GROUP BY user_id");
+				clearTableName($hit_outcode);
+				if(count($recent_shop_ret)>1){
 					$hit_outcode = false;
 				}
 			}
