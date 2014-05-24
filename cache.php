@@ -6,7 +6,7 @@ class Cache extends _Dal {
 
 	//获取缓存
 	function get($key){
-		if(CACHE_DATA)
+		if(CACHE_DATA || DEBUG)
 			return $this->redis('cache')->getJson($key);
 		else
 			return null;
