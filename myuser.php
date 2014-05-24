@@ -43,7 +43,6 @@ class Myuser extends _Dal {
 					}else{
 						D('friend')->addQuan($parent_id, $user_id);
 					}
-
 				}
 				$this->db()->commit();
 			}else{
@@ -119,7 +118,11 @@ class Myuser extends _Dal {
 		D('log')->searchSave();
 
 		//加载到cookie方便静态js直接调用
-		setcookie('display_name', $this->getNickname(), time() + YEAR, '/');
+		setcookie('display_name', $this->getNickname(), time() + YEAR, '/', CAKE_SESSION_DOMAIN);
+
+		//清理旧cookie，防止与全局cookie重叠，此处到2015年可以去除
+		setcookie('display_name', '', time() - YEAR, '/', 'www.'.CAKE_SESSION_DOMAIN);
+		setcookie(CAKE_SESSION_COOKIE, '', time() - YEAR, '/', 'www.'.CAKE_SESSION_DOMAIN);
 
 		return true;
 	}

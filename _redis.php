@@ -166,7 +166,7 @@ class _Redis extends \Object {
 	 * @return mixed
 	 */
 	function getJson($key) {
-		return json_decode($this->get($key), true);
+		return unserialize($this->get($key));
 	}
 
 	/**
@@ -181,10 +181,10 @@ class _Redis extends \Object {
 	 */
 	function setJson($key, $val, $exp = null) {
 		if (is_null($exp)) {
-			$ret = $this->set($key, json_encode($val));
+			$ret = $this->set($key, serialize($val));
 		}
 		else {
-			$ret = $this->setex($key, $exp, json_encode($val));
+			$ret = $this->setex($key, $exp, serialize($val));
 		}
 		return $ret;
 	}

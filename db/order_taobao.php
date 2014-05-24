@@ -24,7 +24,7 @@ class OrderTaobao extends _Db {
 	const R_STATUS_COMPLETED = 10; //对方:订单结算
 
 	/**
-	 * 新增用户扣款订单
+	 * 新增用户订单
 	 * @param char    $o_id     主订单编号
 	 * @param bigint  $user_id  用户ID
 	 * @param array   $data     订单初始数据

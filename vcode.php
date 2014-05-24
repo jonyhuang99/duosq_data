@@ -42,7 +42,7 @@ class Vcode extends _Dal {
 
 		$ip = getIpByLevel('b');
 		if(!$ip){
-			setcookie('needvcode', 1, 0, '/'); //用来js判断
+			setcookie('needvcode', 1, 0, '/', CAKE_SESSION_DOMAIN); //用来js判断
 			return true;
 		}
 
@@ -51,11 +51,11 @@ class Vcode extends _Dal {
 		$times = $this->redis('speed')->sget($obj, $this->limit_expire, $this->limit_times); //每小时限制1次
 
 		if ($this->limit_times <= intval($times)) {
-			setcookie('needvcode', 1, 0, '/'); //用来js判断
+			setcookie('needvcode', 1, 0, '/', CAKE_SESSION_DOMAIN); //用来js判断
 			return true;
 		}
 		else {
-			setcookie('needvcode', 0, time()-10000000, '/'); //用来js判断
+			setcookie('needvcode', 0, time()-10000000, '/', CAKE_SESSION_DOMAIN); //用来js判断
 			return false;
 		}
 	}

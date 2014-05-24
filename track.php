@@ -37,7 +37,11 @@ class Track extends _Dal {
 			$check = substr(preg_replace('/[^\d]/', '', md5($time . $ip)) . '000', 0, 3);
 			$__utmo = $this->gtcEncode($time) .'.'. $this->gtcEncode(ip2long($ip)) .'.'. $check;
 			$t = session_get_cookie_params();
-			setcookie('__utmo', $__utmo, $time+63072000, $t['path'], $t['domain']);
+
+			//清理旧cookie，防止与全局cookie重叠，此处到2015年可以去除
+			setcookie('__utmo', '', $time-YEAR, $t['path'], 'www.'.CAKE_SESSION_DOMAIN);
+
+			setcookie('__utmo', $__utmo, $time+YEAR, $t['path'], CAKE_SESSION_DOMAIN);
 		}
 	}
 

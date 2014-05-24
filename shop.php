@@ -4,11 +4,29 @@ namespace DAL;
 
 class Shop extends _Dal {
 
+	static $detail = array();
+
 	function detail($sp, $field=false) {
 
 		if(!$sp)return;
-		$shop = $this->db('shop')->find(array('sp'=>$sp));
-		clearTableName($shop);
+
+		if(isset(self::$detail[$sp])){
+			$shop = self::$detail[$sp];
+		}else{
+			$key = 'shop:detail:sp:'.$sp;
+			$cache = D('cache')->get($key);
+			if($cache){
+				$shop = D('cache')->ret($cache);
+			}else{
+				$shop = $this->db('shop')->find(array('sp'=>$sp));
+				clearTableName($shop);
+
+				D('cache')->set($key, $shop, MINUTE*10);
+			}
+
+			self::$detail[$sp] = $shop;
+		}
+
 		if($field){
 			return $shop[$field];
 		}else{
@@ -16,21 +34,15 @@ class Shop extends _Dal {
 		}
 	}
 
-	function getName($sp){
+	function getName($sp, $long=false){
 
 		if(!$sp)return;
-
-		$key = 'shop_name:sp:'.$sp;
-		$cache = D('cache')->get($key);
-		if($cache)return D('cache')->ret($cache);
-
 		$shop = $this->detail($sp);
-		if(mb_strlen($shop['name'], 'utf8')<3){
-			$shop['name'] = $shop['name'].'商城';
+		if($long){
+			if(mb_strlen($sp) < 3){
+				return $shop['name'].'商城';
+			}
 		}
-
-		D('cache')->set($key, $shop['name'], HOUR);
-
 		return $shop['name'];
 	}
 }

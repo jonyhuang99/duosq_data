@@ -6,8 +6,10 @@ class Cache extends _Dal {
 
 	//获取缓存
 	function get($key){
-
-		return $this->redis('cache')->getJson($key);
+		if(CACHE_DATA)
+			return $this->redis('cache')->getJson($key);
+		else
+			return null;
 	}
 
 	//设置缓存，支持存储空值

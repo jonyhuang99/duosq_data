@@ -55,7 +55,7 @@ class Item extends _Dal {
 	function isTmall($wangwang){
 
 		$log_obj = $this->db('cache_api_item');
-		$cache = $log_obj->find(array('sp' => 'taobao', 'seller' => $wangwang), '', 'id DESC');
+		$cache = $log_obj->find(array('sp' => 'taobao', 'seller' => $wangwang, 'is_tmall'=>1));
 		clearTableName($cache);
 		if($cache){
 			return $cache['is_tmall'];
