@@ -77,6 +77,9 @@ class Taobao extends _Api {
 						$info['key'] = $client->appkey;
 					}
 				}
+
+				//server_tbk报警
+				D('alarm')->api(array('tbk.getItemDetailByServer'));
 			}
 		}
 
@@ -114,8 +117,7 @@ class Taobao extends _Api {
 		$pgid=md5($iid);
 		$url='http://g.click.taobao.com/load?rf='.$rf.'&pid='.$pid.'&pgid='.$pgid.'&cbh=261&cbw=1436&re=1440x900&cah=870&caw=1440&ccd=32&ctz=8&chl=2&cja=1&cpl=0&cmm=0&cf=10.0&cb=jsonp_callback_0049675575148'.mt_rand(10000,99999);
 		$a = file_get_contents($url);
-		preg_match('/jsonp_callback_\d+\(\{"code":"(\d+)"\}\)/',$a,$b);
-
+		preg_match('/jsonp_callback_\d+\(\{"code":"([0-9a-z]+)"\}\)/',$a,$b);
 		if($b[1]!=''){
 			$url='http://g.click.taobao.com/display?cb=jsonp_callback_03655084007659234&pid='.$pid.'&wt=0&ti=7&tl=628x100&rd=1&ct=itemid%3D'.$iid.'&st=2&rf='.$rf.'&et='.$b[1].'&pgid='.$pgid.'&v=2.0';
 			$a = file_get_contents($url);
