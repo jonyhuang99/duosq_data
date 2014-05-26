@@ -17,7 +17,7 @@ class OrderInvite extends _Db {
 	 * 新增用户邀请奖励订单
 	 * @param char    $o_id     主订单编号
 	 * @param bigint  $user_id  用户ID
-	 * @param array   $data     订单初始数据，扣款类型type(1:系统提现 2:购物订单无效 3:红包订单无效)
+	 * @param array   $data     订单初始数据，refer_o_id对应下游用户进账订单号
 	 * return char              主订单编号
 	 */
 	function add($o_id, $user_id, $data=array()){

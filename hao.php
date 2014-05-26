@@ -126,5 +126,40 @@ class Hao extends _Dal {
 				return 'empty';
 		}
 	}
+
+	//用户每日签到奖励
+	function doSign($user_id){
+
+		//判断是否有领奖权限
+		if(!D('myuser')->canGetCashgift()){
+			return -1;
+		}
+		$ret = $this->redis('lock')->getlock(\Redis\Lock::LOCK_SIGN, $user_id);
+		if(!$ret)return 0;
+
+		$user_id = D('myuser')->getId();
+
+		$last_day = D('order')->searchSubOrders('sign', array('createdate'=>date('Y-m-d', time()-DAY), 'user_id'=>$user_id), 1);
+		if($last_day){
+			$days += $last_day['days'];
+		}else{
+			$days = 0;
+		}
+		$ret = D('order')->addSign($user_id, array('amount'=>C('comm', 'sign_jfb'), 'days'=>$days));
+
+		if($ret)
+			return C('comm', 'sign_jfb');
+		else{
+			$this->redis('lock')->unlock(\Redis\Lock::LOCK_SIGN, $user_id);
+			return -2;
+		}
+
+	}
+
+	//判断用户今日是否已经签到
+	function hasSign($user_id){
+
+		return $this->redis('lock')->check(\Redis\Lock::LOCK_SIGN, $user_id);
+	}
 }
 ?>

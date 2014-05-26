@@ -89,17 +89,6 @@ class Log extends _Dal {
 		return $this->db('log_search')->save(arrayClean($data));
 	}
 
-	/**
-	 * 记录用户点击记录
-	 * @param  string  $tag  点击标记
-	 * @return bool          [description]
-	 */
-	function click($tag){
-
-		if(!$tag || !D('myuser')->isLogined())return;
-		return $this->db('log_click')->save(array('tag'=>$tag, 'user_id'=>D('myuser')->getId()));
-	}
-
 	//记录订单用户变更记录
 	function orderChuser($o_id, $old_user_id, $new_user_id, $sp, $amount, $has_pay){
 
@@ -195,13 +184,24 @@ class Log extends _Dal {
 	}
 
 	/**
+	 * 记录用户点击记录
+	 * @param  string  $tag  点击标记
+	 * @return bool          [description]
+	 */
+	function click($tag){
+
+		if(!$tag || !D('myuser')->isLogined())return;
+		return $this->db('log_click')->save(array('tag'=>$tag, 'user_id'=>D('myuser')->getId()));
+	}
+
+	/**
 	 * 判断用户是否有点击标记
 	 * @param  string  $tag  点击标记
 	 * @return bool          是否有点击记录
 	 */
 	function getClick($tag){
 
-		if(!$tag)return;
+		if(!$tag || !D('myuser')->isLogined())return;
 		return $this->db('log_click')->find(array('user_id'=>D('myuser')->getId(), 'tag'=>$tag));
 	}
 }

@@ -524,6 +524,19 @@ class Order extends _Dal {
 	}
 
 	/**
+	 * 封装增加每日签到奖励订单便捷方法
+	 * @param bigint  $user_id  用户ID
+	 * @param array   $sub_data 奖励订单数据
+	 */
+	function addSign($user_id, $sub_data){
+
+		if(!$user_id || !$sub_data)return;
+		$ret = D('order')->add($user_id, self::STATUS_PASS, 'sign', self::CASHTYPE_JFB, self::N_ADD, $sub_data['amount'], $sub_data);
+
+		return $ret;
+	}
+
+	/**
 	 * 封装增加待变更用户ID订单便捷方法
 	 * @param char   $o_id      订单ID
 	 * @param bigint $user_id   用户ID
@@ -754,6 +767,9 @@ class Order extends _Dal {
 				case 'invite':
 					$nickname = D('user')->getNickname($v['sub_detail']['child_id']);
 					$v['sub_display'] = '好友['.$nickname.']购物分成奖励';
+					break;
+				case 'sign':
+					$v['sub_display'] = '每日签到奖励集分宝';
 					break;
 				default:
 					break;

@@ -206,16 +206,19 @@ class Myuser extends _Dal {
 
 	//判断用户是否抢过官方红包
 	function hasRobtime(){
+		if(!$this->isLogined())return;
 		return D('user')->detail($this->getId(), 'has_robtime');
 	}
 
 	//判断用户是否允许赠送新人红包
 	function canGetCashgift(){
+		if(!$this->isLogined())return;
 		return D('user')->detail($this->getId(), 'can_get_cashgift');
 	}
 
 	//判断用户是否黑名单
 	function isBlack(){
+		if(!$this->isLogined())return;
 		return D('user')->isBlack($this->getId());
 	}
 
@@ -242,6 +245,8 @@ class Myuser extends _Dal {
 	 * @param  [string] $sp 商城标识，如果不为空则提取具体商城跳转次数
 	 */
 	function getSp($sp=''){
+
+		if(!$this->isLogined())return;
 		if(!$sp){
 			return $this->sess('userinfo.sp');
 		}else{
