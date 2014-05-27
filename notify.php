@@ -11,6 +11,7 @@ class Notify extends _Dal {
 	const NOTIFYTYPE_QUAN_REWARD_CREATED = 4;
 	const NOTIFYTYPE_INVITE_STAT = 5;
 	const NOTIFYTYPE_WAKEUP = 6;
+	const NOTIFYTYPE_SIGN = 7;
 
 	//通知发送方式
 	const SENDTYPE_EMAIL = 'email';
