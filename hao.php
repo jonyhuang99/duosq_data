@@ -120,6 +120,7 @@ class Hao extends _Dal {
 		$design = $this->db('hao')->find(array('user_id'=>$user_id));
 		clearTableName($design);
 		if($design){
+			$this->db('hao')->save(array('user_id'=>$design['user_id'], 'times'=>$design['times']+1));
 			if($design['design'])
 				return unserialize($design['design']);
 			else
