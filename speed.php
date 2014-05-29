@@ -178,9 +178,9 @@ class Speed extends _Dal {
 	function payJfb($user_id, $check=false){
 
 		if($check){
-			return $this->redis('speed')->sget('pay_jfb:user_id:'.$user_id.':day:'.date('d'), DAY, 3);
+			return $this->redis('speed')->sget('pay_jfb:user_id:'.$user_id.':day:'.date('d'), DAY, 2);
 		}else{
-			return $this->redis('speed')->sincr('pay_jfb:user_id:'.$user_id.':day:'.date('d'), DAY, 3);
+			return $this->redis('speed')->sincr('pay_jfb:user_id:'.$user_id.':day:'.date('d'), DAY, 2);
 		}
 	}
 }
