@@ -99,6 +99,7 @@ class OrderTaobao extends _Dal {
 			}
 
 		}else{
+
 			$user_id = $hit_outcode['user_id'];
 			$fanli_rate = $hit_outcode['fanli_rate'];
 			if(!$hit_outcode['fanli_rate']) $fanli_rate = C('comm', 'fanli_taobao_rate');
@@ -139,6 +140,23 @@ class OrderTaobao extends _Dal {
 		//计算给用户的返利
 		$order['fanli_rate'] = $fanli_rate;
 
+		//加上用户等级修正
+		$order['fanli_lv_rate'] = D('user')->lvRate($user_id);
+
+		//订单如果已存在，fanli_rate、fanli_lv_rate、r_yongjin_rate、r_yongjin使用历史快照
+		if($order_existed){
+			$existed = array_shift($order_existed);
+			if($existed['fanli_rate']){
+				$order['fanli_rate'] = $existed['fanli_rate'];
+				$order['fanli_lv_rate'] = $existed['fanli_lv_rate'];
+				$order['r_yongjin_rate'] = $existed['r_yongjin_rate'];
+				$order['r_yongjin'] = $existed['r_yongjin'];
+			}
+		}
+
+		$debug['fanli_rate'] = $order['fanli_rate'];
+		$debug['fanli_lv_rate'] = $order['fanli_lv_rate'];
+
 		//黑名单用户修改相应返利比例
 		$user_status = D('user')->getStatus($user_id);
 
@@ -150,8 +168,7 @@ class OrderTaobao extends _Dal {
 			}
 		}
 
-		//加上用户等级修正
-		$order['fanli_lv_rate'] = D('user')->lvRate($user_id);
+
 		$order['fanli'] = ceil($order['r_yongjin'] * ($order['fanli_rate']+$order['fanli_rate']*$order['fanli_lv_rate']/100) /100);
 
 		return $order;
