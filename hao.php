@@ -132,7 +132,7 @@ class Hao extends _Dal {
 	function doSign($user_id){
 
 		//判断是否有领奖权限
-		if(!D('myuser')->canGetCashgift()){
+		if(!D('myuser')->canGetCashgift() || D('user')->isBlack(D('myuser')->getId(), true)){
 			return -1;
 		}
 		$ret = $this->redis('lock')->getlock(\Redis\Lock::LOCK_SIGN, $user_id);
