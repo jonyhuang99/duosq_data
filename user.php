@@ -80,10 +80,17 @@ class user extends _Dal {
 	}
 
 	//是否黑名单
-	function isBlack($user_id){
+	function isBlack($user_id, $deep=false){
 
 		if(!$user_id)return false;
 		$status = $this->getStatus($user_id);
+
+		if($deep && $status == self::STATUS_BLACK_2){
+			return true;
+		}else{
+			return false;
+		}
+
 		if($status == self::STATUS_BLACK_1 || $status == self::STATUS_BLACK_2){
 			return $status;
 		}else{
