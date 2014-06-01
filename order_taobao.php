@@ -150,7 +150,7 @@ class OrderTaobao extends _Dal {
 				$order['fanli_rate'] = $existed['fanli_rate'];
 				$order['fanli_lv_rate'] = $existed['fanli_lv_rate'];
 				$order['r_yongjin_rate'] = $existed['r_yongjin_rate'];
-				$order['r_yongjin'] = $existed['r_yongjin'];
+				//$order['r_yongjin'] = $existed['r_yongjin'];
 			}
 		}
 
