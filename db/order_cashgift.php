@@ -46,19 +46,19 @@ class OrderCashgift extends _Db {
 
 		switch ($data['gifttype']) {
 			case self::GIFTTYPE_COND_10:
-				$data['reach'] = $max_reach + $current + 1500; //增加15元台阶
+				$data['reach'] = $max_reach + $current + 2000; //增加20元台阶
 				break;
 
 			case self::GIFTTYPE_COND_20:
-				$data['reach'] = $max_reach + $current + 3000; //增加30元台阶
+				$data['reach'] = $max_reach + $current + 4000; //增加40元台阶
 				break;
 
 			case self::GIFTTYPE_COND_50:
-				$data['reach'] = $max_reach + $current + 7500; //增加75元台阶
+				$data['reach'] = $max_reach + $current + 10000; //增加100元台阶
 				break;
 
 			case self::GIFTTYPE_COND_100:
-				$data['reach'] = $max_reach + $current + 15000; //增加150元台阶
+				$data['reach'] = $max_reach + $current + 20000; //增加200元台阶
 				break;
 		}
 
