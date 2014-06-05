@@ -175,12 +175,12 @@ class Speed extends _Dal {
 	 * 集分宝支付，每天不超过3次
 	 * @return [bool] [是否超速]
 	 */
-	function payJfb($user_id, $check=false){
+	function payJfb($user_id, $mode='set'){
 
-		if($check){
-			return $this->redis('speed')->sget('pay_jfb:user_id:'.$user_id.':day:'.date('d'), DAY, 2);
-		}else{
+		if($check == 'set'){
 			return $this->redis('speed')->sincr('pay_jfb:user_id:'.$user_id.':day:'.date('d'), DAY, 2);
+		}else{
+			return $this->redis('speed')->sget('pay_jfb:user_id:'.$user_id.':day:'.date('d'), DAY, 2);
 		}
 	}
 }

@@ -48,9 +48,9 @@ class Vcode extends _Dal {
 
 		$obj = "vcode:ip:{$ip}";
 
-		$times = $this->redis('speed')->sget($obj, $this->limit_expire, $this->limit_times); //每小时限制1次
+		$over = $this->redis('speed')->sget($obj, $this->limit_expire, $this->limit_times); //每小时限制1次
 
-		if ($this->limit_times <= intval($times)) {
+		if ($over) {
 			setcookie('needvcode', 1, 0, '/', CAKE_SESSION_DOMAIN); //用来js判断
 			return true;
 		}

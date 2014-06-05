@@ -4,33 +4,36 @@ namespace API;
 
 class Fanli extends _Api {
 
-	/**
-	 * 调用返利网passport接口
-	 * @param string $api    具体接口路径
-	 * @param $array $params 传入接口参数
-	 * @param string $secret 签名秘钥
-	 */
-	function ApiFanliPassport($api, $params, $secret = '9f93eab2452f8dba5c7b9dd49dd85888') {
+	//获取商品历史价格
+	function goodsPrice($url){
+		$api = 'http://www.budou.com/priceflash/flash?callback=jQuery183005654067010618746_1401779816056';
+		I('curl');
+		$curl = new \CURL();
+		$post = array();
+		$post['url'] = $url;
+		$post['day'] = 91;
+		//$post['newprice'] = 1780; //最新价格
+		//$post['price'] = 1780; //收藏价格
+		$post['datetime'] = date('Y-m-d H:i:s', time()-DAY*2);
+		$ret = $curl->post($api, $post);
 
-		$tmp = array();
-
-		$params['t'] = time();
-		$params['ip'] = '127.0.0.1';
-		ksort($params);
-
-		foreach ($params as $key => $val) {
-			$tmp[] = $key . $val;
+		if(stripos($ret, 'success')!==false){
+			$ret = preg_replace('/jQuery.+\(/', '', $ret);
+			$ret = trim($ret, ')');
+			$ret = json_decode($ret, true);
+			if($ret['data']['url']){
+				$ret = parse_url($ret['data']['url']);
+				$query = $ret['query'];
+				$data = str_replace('data=', '', $query);
+				$info = parse_url(urldecode($data));
+				$query = $info['query'];
+				parse_str($query, $r);
+				return $r;
+			}
 		}
-		$tmp = implode('', $tmp);
 
-		$params['sn'] = md5($tmp . $secret);
-		foreach ($params as $key => $value) {
-			$p[] = rawurlencode($key) . '=' . rawurlencode($value);
-		}
-		$p = implode("&", $p);
-		return 'http://passport.51fanli.com' . $api . '?' . $p;
+		return $ret;
 	}
-
 }
 
 ?>

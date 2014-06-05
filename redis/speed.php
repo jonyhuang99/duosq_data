@@ -68,18 +68,19 @@ class Speed extends _Redis {
 	}
 
 	/**
-	 * 单独获取次数
+	 * 单独获取是否超限
 	 * @param  [type] $obj    [description]
 	 * @param  [type] $expire [description]
 	 * @param  [type] $limit  [description]
 	 * @return [type]         [description]
 	 */
-	function sget($obj, $expire, $limit){
+	function sget($obj, $expire, $limit=1){
 
 		if(!$obj || !$expire || !$limit)return;
 		$key = "expire:{$expire}:limit:{$limit}:obj:{$obj}";
 		$times = $this->get($key);
-		return $times;
+		if($times > $limit)
+			return true;
 	}
 }
 ?>
