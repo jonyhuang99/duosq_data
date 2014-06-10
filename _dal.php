@@ -17,17 +17,19 @@ class _Dal extends \Object {
 	function db($m = '', $must_exist = false) {
 
 		if (!$m) $m = 'empty'; //表操作类不存在，生成默认对象
+
 		$m_key = '_db_' . $m;
 		if (isset(self::$_loaded[$m_key])) return self::$_loaded[$m_key];
-		$obj_name = \inflector::camelize($m);
+		$table = array_pop(explode('.', $m)); //使用.来区分目录
+		$obj_name = \inflector::camelize($table);
 		require_once '_db.php';
 
-		if ($m && @include "data/db/{$m}.php") {
+		if ($m && @include "data/db/".r('.','/',$m).".php") {
 			$obj_name = "\\DB\\{$obj_name}";
 			self::$_loaded[$m_key] = new $obj_name;
 		} else {
 			if ($must_exist) return false;
-			self::$_loaded[$m_key] = new \Model(false, $m);
+			self::$_loaded[$m_key] = new \Model(false, $table);
 			self::$_loaded[$m_key]->name = $obj_name;
 			self::$_loaded[$m_key]->className = $obj_name;
 		}

@@ -225,6 +225,7 @@ class user extends _Dal {
 
 		if($status < self::STATUS_BLACK_1)return true;
 
+		if($o_reason == '恶意用户')return true;//原因为恶意用户不解封
 		if($o_reason && $reason != $o_reason){
 			$reason = $o_reason . ',' . $reason;
 		}

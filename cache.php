@@ -12,15 +12,17 @@ class Cache extends _Dal {
 			return null;
 	}
 
-	//设置缓存，支持存储空值
+	//设置缓存，支持存储空值，支持0
 	function set($key, $data, $expire=3600, $support_empty=false){
 
 		if($support_empty){
 			if(!$key)return;
 			if(!$data && $data !== 0)$data = '__empty__';
+			if($data === 0)$data = '__zero__';
 			return $this->redis('cache')->setJson($key, $data, $expire);
 		}else{
 			if((!$key || !$data) && $data !== 0)return;
+			if($data === 0)$data = '__zero__';
 			return $this->redis('cache')->setJson($key, $data, $expire);
 		}
 	}
@@ -30,6 +32,9 @@ class Cache extends _Dal {
 
 		if($cache == '__empty__'){
 			return $default;
+		}
+		if($cache == '__zero__'){
+			return 0;
 		}
 		return $cache;
 	}

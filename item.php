@@ -54,6 +54,7 @@ class Item extends _Dal {
 	//从缓存中判断商品是否天猫商品
 	function isTmall($wangwang){
 
+		if(!$wangwang)return;
 		$log_obj = $this->db('cache_api_item');
 		$cache = $log_obj->find(array('sp' => 'taobao', 'seller' => $wangwang, 'is_tmall'=>1));
 		clearTableName($cache);
@@ -61,6 +62,29 @@ class Item extends _Dal {
 			return $cache['is_tmall'];
 		}else{
 			return false;
+		}
+	}
+
+	//判断指定商品是不是天猫
+	function isTmallById($item_id){
+
+		if(!$item_id)return;
+
+		$key = 'is_tmall:id:'.$item_id;
+		$cache = D('cache')->get($key);
+		if($cache)return D('cache')->ret($cache);
+		$header = httpHeader("http://item.taobao.com/item.htm?id={$item_id}");
+
+		if(!stripos($header, '1.1 200') && !stripos($header, '1.1 301') && !stripos($header, '1.1 302')){
+			return false;
+		}
+
+		if(stripos($header, '1.1 301') || stripos($header, '1.1 302')){
+			D('cache')->set($key, 1, WEEK);
+			return 1;
+		}else{
+			D('cache')->set($key, 0, WEEK);
+			return 0;
 		}
 	}
 }
