@@ -18,7 +18,8 @@ class Duoduo extends _Api {
 		$p['act'] = 'pay';
 		$p['alipay'] = $alipay;
 		$p['num'] = $num;
-		$p['txid'] = intval(str_replace('-', '', $o_id));
+		$p['txid'] = intval(substr(str_replace('-', '', $o_id), 4)); //20140105-1036-0002
+		$p['txid'] = intval($p['txid']/10000) . substr($p['txid'], -2);
 		$p['url'] = 'dd.duosq.com';
 		$p['realname'] = $o_id;
 		$p['mobile'] = $o_id;
