@@ -56,7 +56,7 @@ class Keys extends _Redis {
 						if(strpos($line, '&')){
 							$line = explode('&', $line);
 						}
-						$rules[] = $line;
+						$rules[] = trim($line);
 					}
 				}
 				$cache_cat[$cat][$subcat] = $rules;
@@ -76,7 +76,7 @@ class Keys extends _Redis {
 								if(strpos($line, '&')){
 									$line = explode('&', $line);
 								}
-								$rules[] = $line;
+								$rules[] = trim($line);
 							}
 						}
 						$rules_all[$cat][$subcat] = $rules;

@@ -171,6 +171,7 @@ class Promotion extends _Dal {
 		$all_rules = $this->getCatRules();
 
 		$match_subcat = array();
+
 		foreach($all_rules as $cat => $val){
 			foreach($val as $subcat => $rules){
 				foreach($rules as $rule){
@@ -185,6 +186,7 @@ class Promotion extends _Dal {
 							$match_subcat[$subcat] = 1;
 						}
 					}else{
+						$rule = trim($rule);
 						if(preg_match("/{$rule}/i", $name)){
 							$match_subcat[$subcat] = 1;
 						}
