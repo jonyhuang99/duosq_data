@@ -76,6 +76,12 @@ class Alarm extends _Dal {
 		}
 	}
 
+	//多多key接近过期
+	function duoduo($expire){
+
+		$this->_fire(array('duoduo_key'=>'还剩'.$expire.'小时过期'), array(), 101);
+	}
+
 	//发出监控报警
 	private function _fire($entry_params, $params, $sms_tpl=''){
 

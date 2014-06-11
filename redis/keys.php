@@ -9,7 +9,7 @@ class Keys extends _Redis {
 	protected $dsn_type = 'database';
 
 	/**
-	 * 多多集分宝打款key，12小时过期，value为空表示获取数据
+	 * 多多集分宝打款key，7天过期，value为空表示获取数据
 	 * @param  string  $new_value 新的key值
 	 * @param  integer $expire    过期时间
 	 * @return [type]             array()
