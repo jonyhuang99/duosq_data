@@ -33,7 +33,7 @@ class Fanli extends _Api {
 				$query = $info['query'];
 				parse_str($query, $result);
 
-				D('cache')->set($key, $result, WEEK);
+				D('cache')->set($key, $result, DAY);
 				return $result;
 			}
 		}else{
@@ -71,7 +71,7 @@ class Fanli extends _Api {
 			$detail['price_now'] = $dom->innertext;
 
 			if($detail['name'] && $detail['pic_url'] && $detail['price_now'] > 0){
-				D('cache')->set($key, $detail, WEEK);
+				D('cache')->set($key, $detail, DAY);
 
 				//TODO 标识商品状态正常
 				return $detail;
