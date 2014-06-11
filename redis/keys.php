@@ -54,9 +54,11 @@ class Keys extends _Redis {
 					$lines = explode("\n", $rules_o);
 					foreach ($lines as $line) {
 						if(strpos($line, '&')){
-							$line = explode('&', $line);
+							$line = explode('&', trim($line));
+							$rules[] = $line;
+						}else{
+							$rules[] = trim($line);
 						}
-						$rules[] = trim($line);
 					}
 				}
 				$cache_cat[$cat][$subcat] = $rules;
@@ -74,9 +76,11 @@ class Keys extends _Redis {
 							$lines = explode("\n", $rules_o);
 							foreach ($lines as $line) {
 								if(strpos($line, '&')){
-									$line = explode('&', $line);
+									$line = explode('&', trim($line));
+									$rules[] = $line;
+								}else{
+									$rules[] = trim($line);
 								}
-								$rules[] = trim($line);
 							}
 						}
 						$rules_all[$cat][$subcat] = $rules;
