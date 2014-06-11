@@ -82,6 +82,36 @@ class Alarm extends _Dal {
 		$this->_fire(array('duoduo_key'=>'还剩'.$expire.'小时过期'), array(), 101);
 	}
 
+	//特卖：自动导入返利网订单报警
+	function promoImportFanliOrder($entry){
+
+		$entry_params = D()->redis('alarm')->accum('promo:auto_import:fanli_orders', HOUR*6, $entry);
+
+		if($entry_params){
+			$this->_fireEmail('特卖：返利网订单导入', $entry_params);
+		}
+	}
+
+	//特卖：自动导入没得比数据报警
+	function promoImportMeidebiData($entry){
+
+		$entry_params = D()->redis('alarm')->accum('promo:auto_import:meidebi_data', HOUR*6, $entry);
+
+		if($entry_params){
+			$this->_fireEmail('特卖：没得比数据导入', $entry_params);
+		}
+	}
+
+	//特卖：降价数据新增报警
+	function promoDetectDiscountData($entry){
+
+		$entry_params = D()->redis('alarm')->accum('promo:detect:discount', HOUR*6, $entry);
+
+		if($entry_params){
+			$this->_fireEmail('特卖：降价数据新增', $entry_params);
+		}
+	}
+
 	//发出监控报警
 	private function _fire($entry_params, $params, $sms_tpl=''){
 
@@ -96,6 +126,21 @@ class Alarm extends _Dal {
 		$default_p['__content__'] = join(',', $content);
 		$params = array_merge($default_p, (array)$params);
 		$ret = sendSms(C('comm', 'sms_monitor'), $sms_tpl, $params, 'alarm');
+	}
+
+	private function _fireEmail($title, $entry_params=array()){
+
+		$param = array();
+		$param['title'] = $title;
+
+		foreach($entry_params as $k => $v){
+			$content[] = "{$k}:{$v}";
+		}
+		$param['content'] = join(',', $content);
+		$param['emails'] = array(C('comm', 'email_monitor'));
+		$param['time'] = date('H:i');
+
+		sendMail($param, 'alarm');
 	}
 }
 ?>
