@@ -59,7 +59,7 @@ class Speed extends _Redis {
 			$this->expire($key, $expire);
 		}
 
-		if ($times > $limit) { //超过限制，进行延迟
+		if ($times >= $limit) { //超过限制，进行延迟
 			$this->expire($key, $expire*1.5);
 			return $times;
 		}
@@ -79,7 +79,7 @@ class Speed extends _Redis {
 		if(!$obj || !$expire || !$limit)return;
 		$key = "expire:{$expire}:limit:{$limit}:obj:{$obj}";
 		$times = $this->get($key);
-		if($times > $limit)
+		if($times >= $limit)
 			return true;
 	}
 }
