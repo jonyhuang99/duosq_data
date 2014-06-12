@@ -14,7 +14,7 @@ class Keys extends _Redis {
 	 * @param  integer $expire    过期时间
 	 * @return [type]             array()
 	 */
-	function duoduo($new_value='',$expire=WEEK){
+	function duoduo($new_value='',$expire=43200){
 
 		if($new_value){
 			return $this->set('duoduo:jfb', $new_value, $expire);
