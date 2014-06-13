@@ -11,6 +11,7 @@ class Promotion extends _Redis {
 	//商品周销量计数器
 	function saleCounter($sp, $goods_id){
 
+		if(!$sp || !$goods_id)return;
 		$key = 'sale_counter:week:'.date('W');
 		$ret = $this->hincrby($key, $sp . '|' . $goods_id, 1);
 		if($ret){

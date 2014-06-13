@@ -295,7 +295,7 @@ class Promotion extends _Dal {
 		if($goods_id){
 			$this->db('promotion.queue_visit')->visited($data['sp'], $goods_id);
 			//标识商品被导入次数，用来发现新热点
-			$this->redis('promotion')->saleCounter($goods_id);
+			$this->redis('promotion')->saleCounter($sp, $goods_id);
 		}
 
 		return $goods_id;

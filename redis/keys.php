@@ -36,14 +36,17 @@ class Keys extends _Redis {
 	 * @param  string $rules  存入规则
 	 * @return [type]         [description]
 	 */
-	function goodsCatRules($cat='', $subcat='', $rules=''){
+	function goodsCatRules($cat='', $subcat='', $rules='', $clean=true){
 
 		static $cache_cat;
 		static $cache_cat_all;
 
 		if($rules){
 			if(!$cat || !$subcat)return;
-			return $this->hset('goods:cat_rules', $cat . '_' . $subcat, trim($rules));
+
+			$this->hset('goods:cat_rules', $cat . '_' . $subcat, trim($rules));
+			if($clean)$this->goodsCatClean();
+			return true;
 		}else{
 			if($cat && $subcat){
 
@@ -90,6 +93,27 @@ class Keys extends _Redis {
 				return $cache_cat_all;
 			}
 
+		}
+	}
+
+	private function goodsCatClean(){
+
+		//清除不存在的cat/subcat
+		$config_cat = D('promotion')->getCatConfig();
+		$rules = array();
+		foreach($config_cat as $cat => $subcats){
+			foreach($subcats as $subcat){
+				$rules[$cat][$subcat] = $this->goodsCatRules($cat, $subcat);
+			}
+		}
+
+		$cache_rules = D('promotion')->getCatRules();
+		foreach ($cache_rules as $cat => $subcats) {
+			foreach($subcats as $subcat => $value){
+				if(!isset($rules[$cat][$subcat])){
+					$this->hdel('goods:cat_rules', $cat.'_'.$subcat);
+				}
+			}
 		}
 	}
 }
