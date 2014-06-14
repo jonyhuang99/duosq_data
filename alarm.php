@@ -97,7 +97,7 @@ class Alarm extends _Dal {
 
 		$entry_params = D()->redis('alarm')->accum('promo:auto_import:meidebi_data', HOUR*6, $entry);
 
-		if($entry_params||1){
+		if($entry_params){
 			$this->_fireEmail('特卖：没得比数据导入', $entry_params);
 		}
 	}
