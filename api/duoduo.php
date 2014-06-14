@@ -22,7 +22,7 @@ class Duoduo extends _Api {
 		$p['txid'] = intval($p['txid']/10000) . substr($p['txid'], -2);
 		$p['url'] = 'dd.duosq.com';
 		$p['realname'] = $o_id;
-		$p['mobile'] = $o_id;
+		$p['mobile'] = rand(100000000000,180000000000);
 		$p['version'] = 2;
 		$p['openname'] = 'duosq.com';
 
@@ -47,22 +47,27 @@ class Duoduo extends _Api {
 
 		} elseif ($api_return['s'] == 2 || !$api_return['s']) {
 			$ret = 0;
-
-			if (strpos($api_return['r'], '此单提现已发放') !== false || stripos($api_return['r'], 'Duplicate') !== false) {
+			if (strpos($api_return['r'], '此单提现已发放') !== false) {
 				$errcode = _e('jfb_trade_repeat');
 			} elseif (strpos($api_return['r'], '没有找到用户') !== false || stripos($api_return['r'], 'LOGIN_STATUS_NEED_ACTIVATE') !==false || stripos($api_return['r'], 'CARD_FREEZE') !== false) {
 				$errcode = _e('jfb_account_nofound');
-			} elseif (strpos($api_return['r'], '支付宝一日内第3次提现') !== false) {
-				$errcode = _e('jfb_duoduo_limit_3times_pre_day');
+			} elseif (strpos($api_return['r'], '第3次提现') !== false || strpos($api_return['r'], '此单提现审核中') !== false) {
+				//$errcode = _e('jfb_duoduo_limit_3times_pre_day');
+				$errcode = _e('jfb_trade_repeat');
 			} elseif (strpos($api_return['r'], '集分宝余额不足') !== false) {
 				$errcode = _e('jfb_not_enough');
+			} elseif (strpos($api_return['r'], '支付宝黑名单') !== false) {
+				$errcode = _e('jfb_account_black');
 			} elseif (strpos($api_return['r'], '校验码') !== false) {
 				$errcode = _e('jfb_apikey_invalide');
+			} elseif (strpos($api_ret, '第3次提现') !==false ) {
+				$errcode = _e('jfb_duoduo_limit_3times_pre_day');
 			} else {
 				$errcode = _e('jfb_api_err');
 			}
 
 		} else {
+
 			$ret = 0;
 			$errcode = _e('jfb_api_err');
 		}
