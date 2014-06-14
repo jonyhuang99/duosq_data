@@ -37,7 +37,7 @@ class Alarm extends _Redis {
 				$this->hset($key, $single, intval($count));
 			}
 			//设置最大有效值
-			$this->expire($key, $all_entry['expire_on'] - time() + HOUR);
+			$this->expire($key, $all_entry['expire_on'] - time() + DAY);
 		}
 
 		return false;

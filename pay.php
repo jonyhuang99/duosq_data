@@ -161,7 +161,12 @@ class Pay extends _Dal {
 				return true;
 			}else{
 				$this->_afterPaymentFail($o_id, $o_detail['user_id'], \DAL\Fund::CASHTYPE_JFB, $alipay, $o_detail['amount'], $api_name, $errcode, $api_ret);
-				$err = $api_ret;
+
+				if($errcode && $errcode != _e('jfb_api_err')){
+					$err = _e($errcode, false) . '||' . $api_ret;
+				}else{
+					$err = $api_ret;
+				}
 			}
 		}
 

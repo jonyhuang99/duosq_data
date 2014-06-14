@@ -16,6 +16,7 @@ class Promotion extends _Dal {
 					return $tpl_no;
 				}
 			}else{
+				$url = urldecode(urldecode($url));
 				if($rule['sp'] == $sp){
 					foreach($rule['m'] as $match_rule){
 						if(preg_match("/{$match_rule}/i", $url, $m)){
