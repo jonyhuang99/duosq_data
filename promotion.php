@@ -94,7 +94,7 @@ class Promotion extends _Dal {
 	}
 
 	//读取商品分类配置
-	function getCatConfig(){
+	function getCatConfig($all = false){
 
 		static $config;
 		if($config)return $config;
@@ -112,9 +112,21 @@ class Promotion extends _Dal {
 				$last_cat = $line;
 			}
 
-			if($count == 2){
-				$ret[$last_cat][] = trim(preg_replace('/\(.+?\)/i', '', $line));
+			if($all){
+				if($count == 1){
+					$ret[$last_cat][$line] = '';
+					$last_mid_cat = $line;
+				}
+				if($count == 2){
+					$ret[$last_cat][$last_mid_cat][] = trim(preg_replace('/\(.+?\)/i', '', $line));
+				}
+
+			}else{
+				if($count == 2){
+					$ret[$last_cat][] = trim(preg_replace('/\(.+?\)/i', '', $line));
+				}
 			}
+
 		}
 
 		$config = $ret;
@@ -345,10 +357,11 @@ class Promotion extends _Dal {
 			$detail = $this->goodsDetail($sp, $goods_id);
 			$this->db('promotion.queue_promo')->create();
 			$this->db('promotion.queue_promo')->save(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'type'=>\DB\QueuePromo::TYPE_DISCOUNT));
+			return true;
 		}
 	}
 
-	//标记该商品是活动商品
+	//标记该商品是活动商品(新增返回true)
 	function markPromoHuodong($sp, $goods_id, $price_avg, $price_now, $hd_content, $hd_begin='', $hd_expire=''){
 
 		if(!$sp || !$goods_id || !$price_avg || !$price_now)return;
@@ -365,6 +378,7 @@ class Promotion extends _Dal {
 			$detail = $this->goodsDetail($sp, $goods_id);
 			$this->db('promotion.queue_promo')->create();
 			$this->db('promotion.queue_promo')->save(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'hd_content'=>$hd_content, 'hd_begin'=>$hd_begin, 'hd_expire'=>$hd_begin, 'type'=>\DB\QueuePromo::TYPE_HUODONG));
+			return true;
 		}
 	}
 
