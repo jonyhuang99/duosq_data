@@ -264,7 +264,7 @@ class Promotion extends _Dal {
 
 			foreach($subcats as $subcat){
 				$this->db('promotion.queue_promo2cat')->create();
-				$this->db('promotion.queue_promo2cat')->save(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2Cat($subcat),'subcat'=>$subcat,'weight'=>0,'createtime'=>$promo['createtime']));
+				$this->db('promotion.queue_promo2cat')->save(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2Cat($subcat),'subcat'=>$subcat,'weight'=>$promo['type'],'createtime'=>$promo['createtime']));
 			}
 
 			$this->db('promotion.queue_promo')->save(array('id'=>$promo['id'], 'cat_assign'=>1));
