@@ -264,7 +264,7 @@ class Promotion extends _Dal {
 
 			foreach($subcats as $subcat){
 				$this->db('promotion.queue_promo2cat')->create();
-				$this->db('promotion.queue_promo2cat')->save(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2Cat($subcat),'subcat'=>$subcat,'weight'=>$promo['type'],'createtime'=>$promo['createtime']));
+				$this->db('promotion.queue_promo2cat')->save(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2Cat($subcat),'subcat'=>$subcat,'type'=>$promo['type'],'createtime'=>$promo['createtime']));
 			}
 
 			$this->db('promotion.queue_promo')->save(array('id'=>$promo['id'], 'cat_assign'=>1));
@@ -419,9 +419,9 @@ class Promotion extends _Dal {
 		if(!$result)$result = array();
 
 		//带上3个活动数据
-		$condition['weight'] = \DB\QueuePromo::TYPE_HUODONG;
+		$condition['type'] = \DB\QueuePromo::TYPE_HUODONG;
 		foreach ($result as $promo) {
-			if($promo['weight'] == \DB\QueuePromo::TYPE_HUODONG){
+			if($promo['type'] == \DB\QueuePromo::TYPE_HUODONG){
 				$huodong_repeat[$promo['goods_id']] = 1;
 			}
 		}
