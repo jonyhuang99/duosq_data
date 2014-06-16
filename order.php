@@ -25,7 +25,7 @@ class Order extends _Dal {
 	 * @param  integer $maxPages  最大页数
 	 * return  array              订单数据
 	 */
-	function getList($condition, $pn, $show = 10, $maxPages = 10) {
+	function getList($pn, $condition, $show = 10, $maxPages = 10) {
 
 		$condition = arrayClean($condition);
 

@@ -24,6 +24,7 @@ class Fanli extends _Api {
 		$ret = $curl->post($api, $post);
 
 		if(stripos($ret, 'success')!==false){
+			l("[succ][api][goodsPrice][{$url}]");
 			$ret = $this->trimJQuery($ret);
 			if($ret['data']['url']){
 				$ret = parse_url($ret['data']['url']);
@@ -57,6 +58,7 @@ class Fanli extends _Api {
 
 		$detail = array();
 		if(stripos($ret, 'success')!==false){
+			l("[succ][api][goodsDetail][{$url}]");
 			$ret = $this->trimJQuery($ret);
 			I('html_dom');
 			$html = new \simple_html_dom();

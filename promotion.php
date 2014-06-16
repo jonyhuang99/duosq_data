@@ -396,9 +396,99 @@ class Promotion extends _Dal {
 		if(!$sp || !$goods_id || !$new_data)return;
 		$promo_detail = $this->promoDetail($sp, $goods_id);
 		if(!$promo_detail)return;
-
 		$new_data['id'] = $promo_detail['id'];
-		return $this->db('promotion.goods')->save($new_data);
+		return $this->db('promotion.queue_promo')->save($new_data);
+	}
+
+	function getList($pn, $cat_condition=array(), $show = 3, $maxPages = 10) {
+
+		$condition = arrayClean($cat_condition);
+		$condition['sp'] = '<> taobao';
+		static $huodong_repeat=array();
+
+		//page = 0 返回总页数
+		$pn->show = $show;
+		$pn->sortBy = 'createtime';
+		$pn->direction = 'desc';
+		$pn->maxPages = $maxPages;
+
+		list($order, $limit, $page) = $pn->init($condition, array('modelClass' => $this->db('promotion.queue_promo2cat')));
+
+		$result = $this->db('promotion.queue_promo2cat')->findAll($condition, '', 'GROUP BY sp, goods_id ORDER BY ' . $order, $limit+5, $page);
+		clearTableName($result);
+		if(!$result)$result = array();
+
+		//带上3个活动数据
+		$condition['weight'] = \DB\QueuePromo::TYPE_HUODONG;
+		foreach ($result as $promo) {
+			if($promo['weight'] == \DB\QueuePromo::TYPE_HUODONG){
+				$huodong_repeat[$promo['goods_id']] = 1;
+			}
+		}
+
+		if($huodong_repeat){
+			$jump_goods_ids = join(',', array_keys($huodong_repeat));
+			$condition['goods_id'] = "not in ({$jump_goods_ids})";
+		}
+
+		$result_hodong = $this->db('promotion.queue_promo2cat')->findAll($condition, '', 'GROUP BY sp,goods_id ORDER BY createtime DESC', 3);
+		clearTableName($result_hodong);
+
+		if($result_hodong){
+			foreach($result_hodong as $huodong){
+				$huodong_repeat[$huodong['goods_id']] = 1;
+				array_unshift($result, $huodong);
+			}
+		}
+		$result = $this->_renderPromoDetail($result);
+
+		return array_slice($result, 0, $show+3);
+	}
+
+	private function _renderPromoDetail($result){
+
+		$new_ret = array();
+		foreach ($result as $ret) {
+
+			$promo_detail = $this->promoDetail($ret['sp'], $ret['goods_id']);
+			if(!$promo_detail || $promo_detail['status'] != \DB\QueuePromo::STATUS_NORMAL)continue;
+
+			$goods_detail = $this->goodsDetail($ret['sp'], $ret['goods_id']);
+			if(!$goods_detail)continue;
+
+			$valid = true;
+			if($promo_detail == \DB\QueuePromo::TYPE_DISCOUNT){
+				if($goods_detail['price_now'] > $promo_detail['price_now']){
+					$valid = false;
+				}
+			}
+
+			if($promo_detail == \DB\QueuePromo::TYPE_HUODONG){
+				if(strtotime($promo_detail['hd_expire']) > 0 && strtotime($promo_detail['hd_expire']) < time()){
+					$valid = false;
+				}
+			}
+			$tmp = $promo_detail;
+			if($tmp['hd_content']){
+				$tmp['hd_content'] = r(array("\r", "\n",'	','&nbsp;'), '', $tmp['hd_content']);
+				$tmp['hd_content'] = strip_tags(nl2br($tmp['hd_content']));
+				$tmp['hd_content'] = preg_replace('/[\\x20]+/', ' ', $tmp['hd_content']);
+				$tmp['hd_content'] = '&nbsp; &nbsp; &nbsp;' . $tmp['hd_content'];
+				$tmp['hd_content'] = r(array('meidebi','没得比'), array('dousq','多省钱'), $tmp['hd_content']);
+			}else{
+				$tmp['hd_content'] = '90天内售价：¥'.$promo_detail['price_avg'].'<br />刚刚降至：<font class=orange>¥'.$promo_detail['price_now'].'</font>，现在出手直接省掉了<font class=green>'.rate_diff($promo_detail['price_now'], $promo_detail['price_avg']).'%</font>哟~';
+			}
+
+			$tmp['name'] = $goods_detail['name'];
+			$tmp['pic_url'] = $goods_detail['pic_url'];
+			$tmp['url_tpl'] = $goods_detail['url_tpl'];
+			$tmp['url_id'] = $goods_detail['url_id'];
+			$tmp['valid'] = $valid;
+
+			$new_ret[] = $tmp;
+		}
+
+		return $new_ret;
 	}
 }
 ?>
