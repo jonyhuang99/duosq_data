@@ -16,5 +16,28 @@ class QueuePromo extends _Db {
 	const TYPE_DISCOUNT = 1;
 	const TYPE_HOT = 2;
 	const TYPE_HUODONG = 3;
+
+	//置空save，只允许从add/update进入
+	function save(){}
+
+	//新增促销信息分类数据
+	function add($data){
+		if(!$data['sp'] || !$data['goods_id'])return;
+
+		$this->create();
+		return parent::save($data);
+	}
+
+	//更新促销信息分类数据
+	function update($sp, $goods_id, $data){
+
+		if(!$sp || !$goods_id || !$data)return;
+
+		$id = $this->field('id', array('sp'=>$sp, 'goods_id'=>$goods_id));
+		if(!$id)return;
+
+		$data['id'] = $id;
+		return parent::save($data);
+	}
 }
 ?>

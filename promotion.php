@@ -97,7 +97,12 @@ class Promotion extends _Dal {
 	function getCatConfig($all = false){
 
 		static $config;
-		if($config)return $config;
+		if($all)
+			$all=1;
+		else
+			$all=0;
+
+		if(isset($config[$all]))return $config[$all];
 
 		$file = file(MYCONFIGS . 'goods_cat');
 		if(!$file)return false;
@@ -129,7 +134,7 @@ class Promotion extends _Dal {
 
 		}
 
-		$config = $ret;
+		$config[$all] = $ret;
 		return $ret;
 	}
 
@@ -267,7 +272,7 @@ class Promotion extends _Dal {
 				$this->db('promotion.queue_promo2cat')->save(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2Cat($subcat),'subcat'=>$subcat,'type'=>$promo['type'],'createtime'=>$promo['createtime']));
 			}
 
-			$this->db('promotion.queue_promo')->save(array('id'=>$promo['id'], 'cat_assign'=>1));
+			$this->db('promotion.queue_promo')->update($sp, $goods_id, array('cat_assign'=>1));
 		}
 
 		return $ret;
@@ -355,8 +360,7 @@ class Promotion extends _Dal {
 			}
 
 			$detail = $this->goodsDetail($sp, $goods_id);
-			$this->db('promotion.queue_promo')->create();
-			$this->db('promotion.queue_promo')->save(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'type'=>\DB\QueuePromo::TYPE_DISCOUNT));
+			$this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'type'=>\DB\QueuePromo::TYPE_DISCOUNT));
 			return true;
 		}
 	}
@@ -376,8 +380,7 @@ class Promotion extends _Dal {
 			}
 
 			$detail = $this->goodsDetail($sp, $goods_id);
-			$this->db('promotion.queue_promo')->create();
-			$this->db('promotion.queue_promo')->save(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'hd_content'=>$hd_content, 'hd_begin'=>$hd_begin, 'hd_expire'=>$hd_begin, 'type'=>\DB\QueuePromo::TYPE_HUODONG));
+			$this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'hd_content'=>$hd_content, 'hd_begin'=>$hd_begin, 'hd_expire'=>$hd_begin, 'type'=>\DB\QueuePromo::TYPE_HUODONG));
 			return true;
 		}
 	}
@@ -394,12 +397,17 @@ class Promotion extends _Dal {
 	function updatePromo($sp, $goods_id, $new_data){
 
 		if(!$sp || !$goods_id || !$new_data)return;
-		$promo_detail = $this->promoDetail($sp, $goods_id);
-		if(!$promo_detail)return;
-		$new_data['id'] = $promo_detail['id'];
-		return $this->db('promotion.queue_promo')->save($new_data);
+		return $this->db('promotion.queue_promo')->update($sp, $goods_id, $new_data);
 	}
 
+	/**
+	 * 获取特卖商品列表
+	 * @param  [type]  $pn            [description]
+	 * @param  array   $cat_condition 分类搜索条件(cat/subcat)
+	 * @param  integer $show          [description]
+	 * @param  integer $maxPages      [description]
+	 * @return [type]                 [description]
+	 */
 	function getList($pn, $cat_condition=array(), $show = 3, $maxPages = 10) {
 
 		$condition = arrayClean($cat_condition);
@@ -408,9 +416,13 @@ class Promotion extends _Dal {
 
 		//page = 0 返回总页数
 		$pn->show = $show;
-		$pn->sortBy = 'createtime';
+		$pn->sortBy = 'weight';
 		$pn->direction = 'desc';
 		$pn->maxPages = $maxPages;
+
+		//最多加载20页
+		if(isset($_GET['page']) && $_GET['page'] > C('comm', 'promo_cat_max_page'))
+			return false;
 
 		list($order, $limit, $page) = $pn->init($condition, array('modelClass' => $this->db('promotion.queue_promo2cat')));
 
@@ -418,33 +430,40 @@ class Promotion extends _Dal {
 		clearTableName($result);
 		if(!$result)$result = array();
 
-		//带上3个活动数据
-		$condition['type'] = \DB\QueuePromo::TYPE_HUODONG;
-		foreach ($result as $promo) {
-			if($promo['type'] == \DB\QueuePromo::TYPE_HUODONG){
-				$huodong_repeat[$promo['goods_id']] = 1;
+		$this->db('promotion.queue_promo');
+
+		if(!isset($_GET['page'])){
+
+			//带上3个活动数据
+			$condition['type'] = \DB\QueuePromo::TYPE_HUODONG;
+			foreach ($result as $promo) {
+				if($promo['type'] == \DB\QueuePromo::TYPE_HUODONG){
+					$huodong_repeat[$promo['goods_id']] = 1;
+				}
+			}
+
+			if($huodong_repeat){
+				$jump_goods_ids = join(',', array_keys($huodong_repeat));
+				$condition['goods_id'] = "not in ({$jump_goods_ids})";
+			}
+
+			$result_hodong = $this->db('promotion.queue_promo2cat')->findAll($condition, '', 'GROUP BY sp,goods_id ORDER BY createtime DESC', 3);
+			clearTableName($result_hodong);
+
+			if($result_hodong){
+				foreach($result_hodong as $huodong){
+					$huodong_repeat[$huodong['goods_id']] = 1;
+					array_unshift($result, $huodong);
+				}
 			}
 		}
 
-		if($huodong_repeat){
-			$jump_goods_ids = join(',', array_keys($huodong_repeat));
-			$condition['goods_id'] = "not in ({$jump_goods_ids})";
-		}
-
-		$result_hodong = $this->db('promotion.queue_promo2cat')->findAll($condition, '', 'GROUP BY sp,goods_id ORDER BY createtime DESC', 3);
-		clearTableName($result_hodong);
-
-		if($result_hodong){
-			foreach($result_hodong as $huodong){
-				$huodong_repeat[$huodong['goods_id']] = 1;
-				array_unshift($result, $huodong);
-			}
-		}
 		$result = $this->_renderPromoDetail($result);
 
 		return array_slice($result, 0, $show+3);
 	}
 
+	//渲染特卖信息
 	private function _renderPromoDetail($result){
 
 		$new_ret = array();
@@ -476,7 +495,12 @@ class Promotion extends _Dal {
 				$tmp['hd_content'] = '&nbsp; &nbsp; &nbsp;' . $tmp['hd_content'];
 				$tmp['hd_content'] = r(array('meidebi','没得比'), array('dousq','多省钱'), $tmp['hd_content']);
 			}else{
-				$tmp['hd_content'] = '90天内售价：¥'.$promo_detail['price_avg'].'<br />刚刚降至：<font class=orange>¥'.$promo_detail['price_now'].'</font>，现在出手直接省掉了<font class=green>'.rate_diff($promo_detail['price_now'], $promo_detail['price_avg']).'%</font>哟~';
+				$saled = $this->redis('promotion')->getSaleCount($ret['sp'], $ret['goods_id']);
+				if($saled > 10){
+					$saled = $saled * 100;
+					$saled = "上周原价热销：<font class=blue>{$saled}</font>件<br />";
+				}
+				$tmp['hd_content'] = '90天均价：¥'.price_yuan($promo_detail['price_avg']).'<br />'.$saled.'刚刚降至：<font class=orange>¥'.price_yuan($promo_detail['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($promo_detail['price_now'], $promo_detail['price_avg']).'%</font>哟~';
 			}
 
 			$tmp['name'] = $goods_detail['name'];

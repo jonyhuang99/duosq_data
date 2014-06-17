@@ -9,23 +9,32 @@ class Promotion extends _Redis {
 	var $dsn_type = 'database';
 
 	//商品周销量计数器
-	function saleCounter($sp, $goods_id){
+	function saleCounter($sp, $goods_id, $date = ''){
 
 		if(!$sp || !$goods_id)return;
-		$key = 'sale_counter:week:'.date('W');
-		$ret = $this->hincrby($key, $sp . '|' . $goods_id, 1);
+		$key = "sale_counter:{$sp}:{$goods_id}";
+		if(!$date)$date = date('Y-m-d H:i:s');
+		$ret = $this->zadd($key, time(), date('ymdHis', strtotime($date)).rand(100,999));
 		if($ret){
-			$this->expire($key, WEEK * 2);
+			$this->expire($key, WEEK);
 			return $ret;
 		}
 	}
 
 	//返回商品周销量
-	function getSaleCount($sp, $goods_id, $week = ''){
+	function getSaleCount($sp, $goods_id, $date = ''){
 
-		if(!$week)$week = date('W');
-		$key = 'sale_counter:week:'.$week;
-		return $this->hget($key, $sp . '|' . $goods_id);
+		if(!$sp || !$goods_id)return;
+
+		$key = "sale_counter:{$sp}:{$goods_id}";
+
+		if(!$date)$date = date('Y-m-d');
+		$start = strtotime($date) - WEEK;
+		$end = strtotime($date) + DAY;
+
+		if(rand(0,10) > 7)//清理
+			$this->zremrangebyscore($key, 0, time() - WEEK*2);
+		return intval($this->zcount($key, $start, $end));
 	}
 
 	//统计商品是否被重复购买，购买人数超过5个才入库，用于减轻商品数
