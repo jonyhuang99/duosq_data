@@ -96,13 +96,14 @@ class Promotion extends _Dal {
 	//读取商品分类配置
 	function getCatConfig($all = false){
 
-		static $config;
 		if($all)
 			$all=1;
 		else
 			$all=0;
 
-		if(isset($config[$all]))return $config[$all];
+		//判断xcache防止文件发生改动
+		$config = $this->xcache()->get('cat_config_'.$all);
+		if($config)return $config;
 
 		$file = file(MYCONFIGS . 'goods_cat');
 		if(!$file)return false;
@@ -131,10 +132,10 @@ class Promotion extends _Dal {
 					$ret[$last_cat][] = trim(preg_replace('/\(.+?\)/i', '', $line));
 				}
 			}
-
 		}
 
-		$config[$all] = $ret;
+		//缓存1分钟
+		$this->xcache()->set('cat_config_'.$all, $ret, 60);
 		return $ret;
 	}
 
@@ -152,7 +153,23 @@ class Promotion extends _Dal {
 		return '';
 	}
 
-	//获取商品分类匹配规则
+	//从商品的子分类找出中分类
+	function subcat2Midcat($subcat){
+
+		$cat_config = $this->getCatConfig(true);
+		foreach($cat_config as $c_cat => $values){
+			foreach ($values as $midcat => $c_subcats) {
+				foreach($c_subcats as $c_subcat){
+					if($c_subcat == $subcat){
+						return $midcat;
+					}
+				}
+			}
+		}
+		return '';
+	}
+
+	//获取商品分类匹配规则(全填读取指定子分类规则，任一不填返回所有分类匹配规则)
 	function getCatRules($cat='', $subcat=''){
 
 		return $this->redis('keys')->goodsCatRules($cat, $subcat);
@@ -163,6 +180,21 @@ class Promotion extends _Dal {
 
 		if(!$cat || !$subcat || !$rules)return;
 		$this->redis('keys')->goodsCatRules($cat, $subcat, $rules);
+		return true;
+	}
+
+	//获取商品中分类排除规则
+	function getMidcatExRule($cat, $midcat){
+
+		if(!$cat || !$midcat)return;
+		return $this->redis('keys')->goodsMidcatExRule($cat, $midcat);
+	}
+
+	//保存商品中分类排除规则
+	function setMidcatExRule($cat, $midcat, $rule){
+
+		if(!$cat || !$midcat)return;
+		$this->redis('keys')->goodsMidcatExRule($cat, $midcat, $rule);
 		return true;
 	}
 
@@ -192,6 +224,14 @@ class Promotion extends _Dal {
 
 		foreach($all_rules as $cat => $val){
 			foreach($val as $subcat => $rules){
+
+				$midcat = $this->subcat2Midcat($subcat);
+				$midcat_ex_rule = $this->getMidcatExRule($cat, $midcat);
+
+				if(preg_match("/{$midcat_ex_rule}/i", $name)){
+					continue;
+				}
+
 				foreach($rules as $rule){
 					if(is_array($rule)){
 						$match = true;
@@ -213,15 +253,20 @@ class Promotion extends _Dal {
 			}
 		}
 
+		//清除旧分类，如果手动进行过设置，后续应想办法进行锁定或者区分
 		if($match_subcat){
+			/*
 			$old_subcat = $detail['subcat'];
 			if($old_subcat){
 				foreach($old_subcat as $subcat){
 					$match_subcat[$subcat] = 1;
 				}
 			}
+			*/
 			$match_subcat = array_keys($match_subcat);
 			return $this->updateGoodsCat($sp, $goods_id, $match_subcat);
+		}else{
+			$this->clearGoodsCat();
 		}
 	}
 
@@ -276,6 +321,14 @@ class Promotion extends _Dal {
 		}
 
 		return $ret;
+	}
+
+	//清空商品分类
+	function clearGoodsCat($sp, $goods_id){
+
+		$ret = $this->db('promotion.goods')->update($sp, $goods_id, array('cat'=>'', 'subcat'=>''));
+		$this->db('promotion.queue_promo2cat')->delete($sp, $goods_id);
+		$this->db('promotion.queue_promo')->update($sp, $goods_id, array('cat_assign'=>0));
 	}
 
 	/**

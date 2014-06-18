@@ -1,5 +1,5 @@
 <?php
-//脚本专用redis连接，无限执行时间
+//缓存用redis
 
 namespace REDIS;
 

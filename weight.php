@@ -32,7 +32,7 @@ class Weight extends _Dal {
 		$exp_detail = '';
 		$weight = $this->$e($promo_detail, $exp_detail);
 
-		$exp_detail = "[{$e}]".$exp_detail;
+		$exp = $exp_detail = "[{$e}]".$exp_detail;
 		return $this->db('promotion.queue_promo2cat')->update($sp, $goods_id, array('weight'=>$weight,'weight_exp'=>$e,'weight_detail'=>$exp_detail));
 	}
 
@@ -83,13 +83,13 @@ class Weight extends _Dal {
 		//销量权重
 		$week_saled = $this->redis('promotion')->getSaleCount($sp, $goods_id);
 		if($sp!='taobao' && $sp!='tmall' && $sp!='jd'){
-			if($week_saled <= 100){
+			if($week_saled <= 50){
 				$weight[] = 2;
 				$tmp_detail['week_saled'] = "{$week_saled}=>2";
-			}else if($week_saled > 100 && $week_saled <= 500){
+			}else if($week_saled > 50 && $week_saled <= 200){
 				$weight[] = 4;
 				$tmp_detail['week_saled'] = "{$week_saled}=>4";
-			}else if($week_saled > 2000){
+			}else if($week_saled > 1000){
 				$weight[] = 6;
 				$tmp_detail['week_saled'] = "{$week_saled}=>6";
 			}

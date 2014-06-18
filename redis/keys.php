@@ -44,13 +44,13 @@ class Keys extends _Redis {
 		if($rules){
 			if(!$cat || !$subcat)return;
 
-			$this->hset('goods:cat_rules', $cat . '_' . $subcat, trim($rules));
+			$this->hset('goods:cat_rules', $cat . '_' . $subcat, trim(r(' ', '', $rules), '|'));
 			if($clean)$this->goodsCatClean();
 			return true;
 		}else{
 			if($cat && $subcat){
 
-				if(isset($cache_cat[$cat][$subcat]))return $cache_cat[$cat][$subcat];
+				//if(isset($cache_cat[$cat][$subcat]))return $cache_cat[$cat][$subcat];
 				$rules_o = $this->hget('goods:cat_rules', $cat . '_' . $subcat);
 				$rules = array();
 				if($rules_o){
@@ -68,7 +68,7 @@ class Keys extends _Redis {
 				return $cache_cat[$cat][$subcat];
 			}
 			else{
-				if($cache_cat_all)return $cache_cat_all;
+				//if($cache_cat_all)return $cache_cat_all;
 				$rules_all_o = $this->hgetall('goods:cat_rules');
 				$rules_all = array();
 				if($rules_all_o){
@@ -96,9 +96,28 @@ class Keys extends _Redis {
 		}
 	}
 
+	/**
+	 * 商品中分类排除规则存取
+	 * @param  [type] $cat    [description]
+	 * @param  [type] $midcat [description]
+	 * @param  string $rule   [description]
+	 * @return [type]         [description]
+	 */
+	function goodsMidcatExRule($cat, $midcat, $rule=''){
+
+		if(!$cat || !$midcat)return;
+		if($rule){
+			$this->hset('goods:cat_rules:midcat:ex_rule', $cat . '_' . $midcat, trim(r(' ', '', $rule), '|'));
+			return true;
+		}else{
+			$rule = $this->hget('goods:cat_rules:midcat:ex_rule', $cat . '_' . $midcat);
+			return $rule;
+		}
+	}
+
+	//清除不存在的cat/subcat
 	private function goodsCatClean(){
 
-		//清除不存在的cat/subcat
 		$config_cat = D('promotion')->getCatConfig();
 		$rules = array();
 		foreach($config_cat as $cat => $subcats){

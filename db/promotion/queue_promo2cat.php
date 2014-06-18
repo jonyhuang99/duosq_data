@@ -33,5 +33,13 @@ class QueuePromo2cat extends _Db {
 		}
 		return true;
 	}
+
+	//删除促销排序
+	function delete($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+
+		$this->query("DELETE FROM duosq_promotion.queue_promo2cat WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
+	}
 }
 ?>
