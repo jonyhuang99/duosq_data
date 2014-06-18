@@ -102,8 +102,8 @@ class Promotion extends _Dal {
 			$all=0;
 
 		//判断xcache防止文件发生改动
-		$config = $this->xcache()->get('cat_config_'.$all);
-		if($config)return $config;
+		//$config = $this->xcache()->get('cat_config_'.$all);
+		//if($config)return $config;
 
 		$file = file(MYCONFIGS . 'goods_cat');
 		if(!$file)return false;
@@ -135,7 +135,7 @@ class Promotion extends _Dal {
 		}
 
 		//缓存1分钟
-		$this->xcache()->set('cat_config_'.$all, $ret, 60);
+		//$this->xcache()->set('cat_config_'.$all, $ret, 60);
 		return $ret;
 	}
 
@@ -228,7 +228,7 @@ class Promotion extends _Dal {
 				$midcat = $this->subcat2Midcat($subcat);
 				$midcat_ex_rule = $this->getMidcatExRule($cat, $midcat);
 
-				if(preg_match("/{$midcat_ex_rule}/i", $name)){
+				if($midcat_ex_rule && preg_match("/{$midcat_ex_rule}/i", $name)){
 					continue;
 				}
 
@@ -266,7 +266,7 @@ class Promotion extends _Dal {
 			$match_subcat = array_keys($match_subcat);
 			return $this->updateGoodsCat($sp, $goods_id, $match_subcat);
 		}else{
-			$this->clearGoodsCat();
+			$this->clearGoodsCat($sp, $goods_id);
 		}
 	}
 

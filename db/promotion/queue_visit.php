@@ -36,7 +36,7 @@ class QueueVisit extends _Db {
 
 		if(!$days)$days = 30;
 		$visit_date = date('Y-m-d', time() - DAY*$days);
-		$ret = $this->findAll(array('visit_date'=>'> '.$visit_date));
+		$ret = $this->findAll(array('visit_date'=>'> '.$visit_date), '', '', 1000);
 		return clearTableName($ret);
 	}
 }
