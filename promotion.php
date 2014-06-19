@@ -567,8 +567,15 @@ class Promotion extends _Dal {
 			}else{
 				$saled_str = '';
 				$saled = $this->redis('promotion')->getSaleCount($ret['sp'], $ret['goods_id']);
-				if($saled > 10){
-					$saled = $saled * 100;
+				$saled = $saled + C('comm', 'promo_import_goods_sales_min');
+				if($ret['sp'] == 'taobao' || $ret['sp'] == 'tmall' || $ret['sp'] == 'jd'){
+					$saled = $saled * 50 + $ret['goods_id']%50;
+				}else{
+					$saled = $saled * 100 + $ret['goods_id']%50;
+				}
+
+				if($saled > 350){//销量超过350为热销
+
 					$saled_str = "上周原价热销：<font class=blue>{$saled}</font>件<br />";
 					$tmp['week_sales'] = $saled;
 				}

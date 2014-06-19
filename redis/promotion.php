@@ -68,7 +68,7 @@ class Promotion extends _Redis {
 		$key = 'repeat:goods:sp:'.$sp.':url_tpl:'.$url_tpl.':url_id:'.$url_id;
 		$counter = $this->incr($key);
 		$this->expire($key, WEEK);
-		if($counter > 5)return true;
+		if($counter > C('comm', 'promo_import_goods_sales_min'))return true;
 	}
 }
 ?>
