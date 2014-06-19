@@ -12,7 +12,7 @@ class Promotion extends _Redis {
 	function saleCounter($sp, $goods_id, $date = ''){
 
 		if(!$sp || !$goods_id)return;
-		$key = "sale_counter:{$sp}:{$goods_id}";
+		$key = "counter:sales:{$sp}:{$goods_id}";
 		if(!$date)$date = date('Y-m-d H:i:s');
 		$ret = $this->zadd($key, time(), date('ymdHis', strtotime($date)).rand(100,999));
 		if($ret){
@@ -26,7 +26,7 @@ class Promotion extends _Redis {
 
 		if(!$sp || !$goods_id)return;
 
-		$key = "sale_counter:{$sp}:{$goods_id}";
+		$key = "counter:sales:{$sp}:{$goods_id}";
 
 		if(!$date)$date = date('Y-m-d');
 		$start = strtotime($date) - WEEK;
@@ -35,6 +35,30 @@ class Promotion extends _Redis {
 		if(rand(0,10) > 7)//清理
 			$this->zremrangebyscore($key, 0, time() - WEEK*2);
 		return intval($this->zcount($key, $start, $end));
+	}
+
+	//入库商品计数器
+	function goodsCounter($sp, $num=0){
+
+		if(!$sp)return;
+		$key = "counter:goods:total_num";
+		if(!$num){
+			return $this->zincrby($key, 1, $sp);
+		}else{
+			$this->zadd($key, $num, $sp);
+		}
+		return true;
+	}
+
+	//返回指定商城商品数
+	function getGoodsCount($sp=''){
+
+		$key = "counter:goods:total_num";
+		if($sp){
+			return $this->zscore($key, $sp);
+		}else{
+			return $this->zrangebyscore($key, 0, '+inf', array('withscores'=>true));
+		}
 	}
 
 	//统计商品是否被重复购买，购买人数超过5个才入库，用于减轻商品数

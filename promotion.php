@@ -265,7 +265,8 @@ class Promotion extends _Dal {
 			}
 			*/
 			$match_subcat = array_keys($match_subcat);
-			return $this->updateGoodsCat($sp, $goods_id, $match_subcat);
+			$this->updateGoodsCat($sp, $goods_id, $match_subcat);
+			return $match_subcat;
 		}else{
 			$this->clearGoodsCat($sp, $goods_id);
 		}
@@ -361,6 +362,9 @@ class Promotion extends _Dal {
 			$data['pic_url'] = $goods_detail['pic_url'];
 
 			$goods_id = $this->db('promotion.goods')->add($data['sp'], arrayClean($data));
+			if($goods_id){
+				$this->redis('promotion')->goodsCounter($data['sp']);
+			}
 		}
 
 		//标识访问过该商品，等待价格抓取
@@ -529,9 +533,13 @@ class Promotion extends _Dal {
 			$goods_detail = $this->goodsDetail($ret['sp'], $ret['goods_id']);
 			if(!$goods_detail)continue;
 
+			$detail = $this->goodsDetail($ret['sp'], $ret['goods_id']);
+			if(!$goods_detail)continue;
+
+			//计算无效状态
 			$invalid = false;
 			if($promo_detail['type'] == \DB\QueuePromo::TYPE_DISCOUNT){
-				if($goods_detail['price_now'] > $promo_detail['price_now']){
+				if($goods_detail['price_now'] >= $promo_detail['price_now']*1.1){
 					$invalid = 'price_up';
 				}
 			}
@@ -540,6 +548,13 @@ class Promotion extends _Dal {
 				if(strtotime($promo_detail['hd_expire']) > 0 && strtotime($promo_detail['hd_expire']) < time()){
 					$invalid = 'hd_expired';
 				}
+			}
+			if($detail['status'] == \DB\Goods::STATUS_SELL_OUT){
+				$invalid = 'sell_out';
+			}
+
+			if($detail['status'] == \DB\Goods::STATUS_INVALID){
+				$invalid = 'invalid';
 			}
 
 			$tmp = $promo_detail;
@@ -550,14 +565,15 @@ class Promotion extends _Dal {
 				$tmp['hd_content'] = '&nbsp; &nbsp; &nbsp;' . $tmp['hd_content'];
 				$tmp['hd_content'] = r(array('meidebi','没得比'), array('dousq','多省钱'), $tmp['hd_content']);
 			}else{
+				$saled_str = '';
 				$saled = $this->redis('promotion')->getSaleCount($ret['sp'], $ret['goods_id']);
 				if($saled > 10){
 					$saled = $saled * 100;
-					$saled = "上周原价热销：<font class=blue>{$saled}</font>件<br />";
+					$saled_str = "上周原价热销：<font class=blue>{$saled}</font>件<br />";
+					$tmp['week_sales'] = $saled;
 				}
-				$tmp['hd_content'] = '90天均价：¥'.price_yuan($promo_detail['price_avg']).'<br />'.$saled.'刚刚降至：<font class=orange>¥'.price_yuan($promo_detail['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($promo_detail['price_now'], $promo_detail['price_avg']).'%</font>哟~';
+				$tmp['hd_content'] = '90天均价：¥'.price_yuan($promo_detail['price_avg']).'<br />'.$saled_str.'刚刚降至：<font class=orange>¥'.price_yuan($promo_detail['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($promo_detail['price_now'], $promo_detail['price_avg']).'%</font>哟~';
 			}
-
 			$tmp['name'] = $goods_detail['name'];
 			$tmp['pic_url'] = $goods_detail['pic_url'];
 			$tmp['url_tpl'] = $goods_detail['url_tpl'];

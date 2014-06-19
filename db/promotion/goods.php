@@ -8,9 +8,9 @@ class Goods extends _Db {
 	var $useDbConfig = 'promotion';
 
 	//商品状态定义
-	const STATUS_NORMAL = 1;
-	const STATUS_SALE_OUT = 2;
-	const STATUS_INVALID = 3;
+	const STATUS_NORMAL = 1; //正常
+	const STATUS_SELL_OUT = 2; //售罄
+	const STATUS_INVALID = 3; //下架|无效
 
 	//置空save，只允许从add/update进入
 	function save(){}

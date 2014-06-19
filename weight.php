@@ -81,28 +81,28 @@ class Weight extends _Dal {
 		$tmp_detail['day'] = "{$day_diff}|{$promo_detail['createdate']}=>".$day_diff*2;
 
 		//销量权重
-		$week_saled = $this->redis('promotion')->getSaleCount($sp, $goods_id);
+		$week_sales = $this->redis('promotion')->getSaleCount($sp, $goods_id);
 		if($sp!='taobao' && $sp!='tmall' && $sp!='jd'){
-			if($week_saled <= 50){
+			if($week_sales <= 50){
 				$weight[] = 2;
-				$tmp_detail['week_saled'] = "{$week_saled}=>2";
-			}else if($week_saled > 50 && $week_saled <= 200){
+				$tmp_detail['week_saled'] = "{$week_sales}=>2";
+			}else if($week_sales > 50 && $week_sales <= 200){
 				$weight[] = 4;
-				$tmp_detail['week_saled'] = "{$week_saled}=>4";
-			}else if($week_saled > 1000){
+				$tmp_detail['week_saled'] = "{$week_sales}=>4";
+			}else if($week_sales > 1000){
 				$weight[] = 6;
-				$tmp_detail['week_saled'] = "{$week_saled}=>6";
+				$tmp_detail['week_saled'] = "{$week_sales}=>6";
 			}
 		}else{
-			if($week_saled <= 200){
+			if($week_sales <= 200){
 				$weight[] = 2;
-				$tmp_detail['week_saled'] = "{$week_saled}=>2";
-			}else if($week_saled > 200 && $week_saled <= 1000){
+				$tmp_detail['week_saled'] = "{$week_sales}=>2";
+			}else if($week_sales > 200 && $week_sales <= 1000){
 				$weight[] = 4;
-				$tmp_detail['week_saled'] = "{$week_saled}=>4";
-			}else if($week_saled > 5000){
+				$tmp_detail['week_saled'] = "{$week_sales}=>4";
+			}else if($week_sales > 5000){
 				$weight[] = 6;
-				$tmp_detail['week_saled'] = "{$week_saled}=>6";
+				$tmp_detail['week_saled'] = "{$week_sales}=>6";
 			}
 		}
 
