@@ -570,19 +570,20 @@ class Promotion extends _Dal {
 				$saled_str = '';
 				$saled = $this->redis('promotion')->getSaleCount($ret['sp'], $ret['goods_id']);
 				$saled = $saled + C('comm', 'promo_import_goods_sales_min');
-				if($ret['sp'] == 'taobao' || $ret['sp'] == 'tmall' || $ret['sp'] == 'jd'){
-					$saled = $saled * 50 + $ret['goods_id']%50;
+				if(iSp($ret['sp'])){
+					$saled = $saled * 25 + $ret['goods_id']%50;
 				}else{
-					$saled = $saled * 100 + $ret['goods_id']%50;
+					$saled = $saled * 50 + $ret['goods_id']%50;
 				}
 
-				if($saled > 350){//销量超过350为热销
+				if($saled > 300){//周销量超过300为热销
 
 					$saled_str = "上周原价热销：<font class=blue>{$saled}</font>件<br />";
 					$tmp['week_sales'] = $saled;
 				}
 				$tmp['hd_content'] = '90天均价：¥'.price_yuan($promo_detail['price_avg']).'<br />'.$saled_str.'刚刚降至：<font class=orange>¥'.price_yuan($promo_detail['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($promo_detail['price_now'], $promo_detail['price_avg']).'%</font>哟~';
 			}
+
 			$tmp['name'] = $goods_detail['name'];
 			$tmp['pic_url'] = $goods_detail['pic_url'];
 			$tmp['url_tpl'] = $goods_detail['url_tpl'];
