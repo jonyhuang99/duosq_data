@@ -101,9 +101,10 @@ class Promotion extends _Dal {
 		else
 			$all=0;
 
-		//判断xcache防止文件发生改动
-		//$config = $this->xcache()->get('cat_config_'.$all);
-		//if($config)return $config;
+		//判断mcache防止文件发生改动
+		$succ = false;
+		$config = $this->mcache()->get('cat_config_'.$all, $succ);
+		if($succ)return $config;
 
 		$file = file(MYCONFIGS . 'goods_cat');
 		if(!$file)return false;
@@ -135,7 +136,7 @@ class Promotion extends _Dal {
 		}
 
 		//缓存1分钟
-		//$this->xcache()->set('cat_config_'.$all, $ret, 60);
+		$this->mcache()->set('cat_config_'.$all, $ret, 60);
 		return $ret;
 	}
 
@@ -528,18 +529,19 @@ class Promotion extends _Dal {
 			$goods_detail = $this->goodsDetail($ret['sp'], $ret['goods_id']);
 			if(!$goods_detail)continue;
 
-			$valid = true;
-			if($promo_detail == \DB\QueuePromo::TYPE_DISCOUNT){
+			$invalid = false;
+			if($promo_detail['type'] == \DB\QueuePromo::TYPE_DISCOUNT){
 				if($goods_detail['price_now'] > $promo_detail['price_now']){
-					$valid = false;
+					$invalid = 'price_up';
 				}
 			}
 
-			if($promo_detail == \DB\QueuePromo::TYPE_HUODONG){
+			if($promo_detail['type'] == \DB\QueuePromo::TYPE_HUODONG){
 				if(strtotime($promo_detail['hd_expire']) > 0 && strtotime($promo_detail['hd_expire']) < time()){
-					$valid = false;
+					$invalid = 'hd_expired';
 				}
 			}
+
 			$tmp = $promo_detail;
 			if($tmp['hd_content']){
 				$tmp['hd_content'] = r(array("\r", "\n",'	','&nbsp;'), '', $tmp['hd_content']);
@@ -560,7 +562,7 @@ class Promotion extends _Dal {
 			$tmp['pic_url'] = $goods_detail['pic_url'];
 			$tmp['url_tpl'] = $goods_detail['url_tpl'];
 			$tmp['url_id'] = $goods_detail['url_id'];
-			$tmp['valid'] = $valid;
+			$tmp['invalid'] = $invalid;
 
 			$new_ret[] = $tmp;
 		}

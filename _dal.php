@@ -65,13 +65,13 @@ class _Dal extends \Object {
 
 	}
 
-	//返回xcache操作对象
-	function xcache() {
+	//返回mcache操作对象
+	function mcache() {
 
 		$m_key = '_xcache_';
 		if(isset(self::$_loaded[$m_key]))return self::$_loaded[$m_key];
-		require_once '_xcache.php';
-		self::$_loaded[$m_key] = new \XCACHE\_Xcache;
+		require_once '_apc.php';
+		self::$_loaded[$m_key] = new \MCACHE\_Apc;
 		return self::$_loaded[$m_key];
 	}
 

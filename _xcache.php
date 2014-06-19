@@ -1,7 +1,7 @@
 <?php
-//DAL:xcache本地缓存层
+//DAL:mcache本地缓存层
 
-namespace XCACHE;
+namespace MCACHE;
 
 class _Xcache extends \Object {
 

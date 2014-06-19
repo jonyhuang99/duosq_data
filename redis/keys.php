@@ -106,10 +106,13 @@ class Keys extends _Redis {
 	function goodsMidcatExRule($cat, $midcat, $rule=''){
 
 		if(!$cat || !$midcat)return;
+
 		if($rule){
+
 			$this->hset('goods:cat_rules:midcat:ex_rule', $cat . '_' . $midcat, trim(r(' ', '', $rule), '|'));
 			return true;
 		}else{
+
 			$rule = $this->hget('goods:cat_rules:midcat:ex_rule', $cat . '_' . $midcat);
 			return $rule;
 		}
