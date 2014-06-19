@@ -1,11 +1,12 @@
 <?php
 //DAL:权重计算模块
+//TODO权重计算改为不用重启进程即可生效
 namespace DAL;
 
 class Weight extends _Dal {
 
 	//默认算法
-	var $default_exp = 'e140619';
+	var $default_exp = 'e1406191';
 
 	function getExp(){
 		return $this->default_exp;
@@ -41,7 +42,7 @@ class Weight extends _Dal {
 	 * 越新降价的商品权重越大，8折降价商品高于2天前4折商品
 	 * 销量越高权重越大，最高周销量可停留3天
 	 */
-	function e140619($promo_detail, &$exp_detail){
+	function e1406191($promo_detail, &$exp_detail){
 
 		$sp = $promo_detail['sp'];
 		$goods_id = $promo_detail['goods_id'];
@@ -83,30 +84,30 @@ class Weight extends _Dal {
 		//销量权重
 		$week_sales = $this->redis('promotion')->getSaleCount($sp, $goods_id);
 		if(!iSp($sp)){
-			if($week_sales <= 2){
+			if($week_sales <= 20){
 				$weight[] = 2;
 				$tmp_detail['week_saled'] = "{$week_sales}=>2";
-			}else if($week_sales > 2 && $week_sales <= 5){
+			}else if($week_sales > 20 && $week_sales <= 50){
 				$weight[] = 4;
 				$tmp_detail['week_saled'] = "{$week_sales}=>4";
-			}else if($week_sales > 5 && $week_sales <= 10){
+			}else if($week_sales > 50 && $week_sales <= 100){
 				$weight[] = 6;
 				$tmp_detail['week_saled'] = "{$week_sales}=>6";
-			}else if($week_sales > 10){
+			}else if($week_sales > 150){
 				$weight[] = 8;
 				$tmp_detail['week_saled'] = "{$week_sales}=>8";
 			}
 		}else{
-			if($week_sales <= 4){
+			if($week_sales <= 40){
 				$weight[] = 2;
 				$tmp_detail['week_saled'] = "{$week_sales}=>2";
-			}else if($week_sales > 4 && $week_sales <= 10){
+			}else if($week_sales > 40 && $week_sales <= 100){
 				$weight[] = 4;
 				$tmp_detail['week_saled'] = "{$week_sales}=>4";
-			}else if($week_sales > 10 && $week_sales <= 15){
+			}else if($week_sales > 100 && $week_sales <= 200){
 				$weight[] = 6;
 				$tmp_detail['week_saled'] = "{$week_sales}=>6";
-			}else if($week_sales > 20){
+			}else if($week_sales > 300){
 				$weight[] = 8;
 				$tmp_detail['week_saled'] = "{$week_sales}=>8";
 			}
