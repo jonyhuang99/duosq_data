@@ -484,7 +484,7 @@ class Promotion extends _Dal {
 
 		list($order, $limit, $page) = $pn->init($condition, array('modelClass' => $this->db('promotion.queue_promo2cat')));
 
-		$result = $this->db('promotion.queue_promo2cat')->findAll($condition, '', 'GROUP BY sp, goods_id ORDER BY ' . $order, $limit+5, $page);
+		$result = $this->db('promotion.queue_promo2cat')->findAll($condition, '', 'GROUP BY sp, goods_id ORDER BY weight DESC, createtime DESC', $limit+5, $page);
 		clearTableName($result);
 		if(!$result)$result = array();
 
