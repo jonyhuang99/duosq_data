@@ -530,7 +530,10 @@ class Promotion extends _Dal {
 
 		$key = 'promo:get_list:cond:'.md5(serialize($cat_condition)).':show:'.$show.':page:'.intval(@$_GET['page']);
 		$cache = D('cache')->get($key);
-		if($cache)return D('cache')->ret($cache);
+		if($cache){
+			$pn->controller->set('page_count', D('cache')->get($key.':page_count'));
+			return D('cache')->ret($cache);
+		}
 
 		$condition = arrayClean($cat_condition);
 		$condition['sp'] = '<> taobao';
@@ -582,6 +585,8 @@ class Promotion extends _Dal {
 		$result = $this->_renderPromoDetail($result);
 		$ret = array_slice($result, 0, $show+3);
 		D('cache')->set($key, $ret, MINUTE*10, true);
+		D('cache')->set($key.':page_count', $pn->paging['pageCount'], MINUTE*11, true);
+		$pn->controller->set('page_count', $pn->paging['pageCount']);
 
 		return $ret;
 	}
