@@ -102,9 +102,8 @@ class Promotion extends _Dal {
 			$all=0;
 
 		//判断mcache防止文件发生改动
-		$succ = false;
-		$config = $this->mcache()->get('cat_config_'.$all, $succ);
-		if($succ)return $config;
+		$cache = $this->mcache()->get('cat_config_'.$all);
+		if($cache)return $cache;
 
 		$file = file(MYCONFIGS . 'goods_cat');
 		if(!$file)return false;
@@ -136,16 +135,21 @@ class Promotion extends _Dal {
 		}
 
 		//缓存1分钟
-		$this->mcache()->set('cat_config_'.$all, $ret, 60);
+		$this->mcache()->set('cat_config_'.$all, $ret, MINUTE);
 		return $ret;
 	}
 
 	//从商品的子分类找出父分类
-	function subcat2Cat($subcat){
+	function subcat2cat($subcat){
+
+		if(!$subcat)return;
+		static $subcat2cat = array();
+		if(isset($subcat2cat[$subcat]))return $subcat2cat[$subcat];
 
 		$cat_config = $this->getCatConfig();
 		foreach($cat_config as $c_cat => $c_subcats){
 			foreach($c_subcats as $c_subcat){
+				$subcat2cat[$c_subcat] = $c_cat;
 				if($c_subcat == $subcat){
 					return $c_cat;
 				}
@@ -155,12 +159,17 @@ class Promotion extends _Dal {
 	}
 
 	//从商品的子分类找出中分类
-	function subcat2Midcat($subcat){
+	function subcat2midcat($subcat){
+
+		if(!$subcat)return;
+		static $subcat2midcat = array();
+		if(isset($subcat2midcat[$subcat]))return $subcat2midcat[$subcat];
 
 		$cat_config = $this->getCatConfig(true);
 		foreach($cat_config as $c_cat => $values){
 			foreach ($values as $midcat => $c_subcats) {
 				foreach($c_subcats as $c_subcat){
+					$subcat2midcat[$c_subcat] = $midcat;
 					if($c_subcat == $subcat){
 						return $midcat;
 					}
@@ -188,7 +197,11 @@ class Promotion extends _Dal {
 	function getMidcatExRule($cat, $midcat){
 
 		if(!$cat || !$midcat)return;
-		return $this->redis('keys')->goodsMidcatExRule($cat, $midcat);
+
+		$key = 'midcat_ex_rule:cat:'.$cat.':subcat:'.$midcat;
+		$ret =  $this->redis('keys')->goodsMidcatExRule($cat, $midcat);
+
+		return $ret;
 	}
 
 	//保存商品中分类排除规则
@@ -202,12 +215,19 @@ class Promotion extends _Dal {
 	//获取商品详情
 	function goodsDetail($sp, $goods_id){
 
+		if(!$sp || !$goods_id)return;
+
+		$key = 'goods:detail:sp:'.$sp.':goods_id:'.$goods_id;
+		$cache = D('cache')->get($key);
+		if($cache)return D('cache')->ret($cache);
+
 		$detail = $this->db('promotion.goods')->detail($sp, $goods_id);
 		if($detail){
 			$detail['url'] = $this->buildUrl($detail['url_tpl'], $detail['url_id']);
 			if($detail['cat'])$detail['cat'] = explode('|', $detail['cat']);
 			if($detail['subcat'])$detail['subcat'] = explode('|', $detail['subcat']);
 		}
+		D('cache')->set($key, $detail, MINUTE*10);
 
 		return $detail;
 	}
@@ -218,6 +238,8 @@ class Promotion extends _Dal {
 		if(!$sp || !$goods_id)return;
 		$detail = $this->goodsDetail($sp, $goods_id);
 
+		if(!$detail)return;
+
 		$name = $detail['name'];
 		$all_rules = $this->getCatRules();
 
@@ -226,7 +248,8 @@ class Promotion extends _Dal {
 		foreach($all_rules as $cat => $val){
 			foreach($val as $subcat => $rules){
 
-				$midcat = $this->subcat2Midcat($subcat);
+				$midcat = $this->subcat2midcat($subcat);
+
 				$midcat_ex_rule = $this->getMidcatExRule($cat, $midcat);
 
 				if($midcat_ex_rule && preg_match("/{$midcat_ex_rule}/i", $name)){
@@ -264,6 +287,7 @@ class Promotion extends _Dal {
 				}
 			}
 			*/
+
 			$match_subcat = array_keys($match_subcat);
 			$this->updateGoodsCat($sp, $goods_id, $match_subcat);
 			return $match_subcat;
@@ -278,7 +302,7 @@ class Promotion extends _Dal {
 		if(!$sp || !$goods_id || !$subcats)return;
 		$match_cats = array();
 		foreach($subcats as $subcat){
-			if($cat = $this->subcat2Cat($subcat)){
+			if($cat = $this->subcat2cat($subcat)){
 				$match_cats[$cat] = 1;
 			}
 		}
@@ -316,7 +340,7 @@ class Promotion extends _Dal {
 
 			foreach($subcats as $subcat){
 				$this->db('promotion.queue_promo2cat')->create();
-				$this->db('promotion.queue_promo2cat')->save(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2Cat($subcat),'subcat'=>$subcat,'type'=>$promo['type'],'createtime'=>$promo['createtime']));
+				$this->db('promotion.queue_promo2cat')->save(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2cat($subcat),'subcat'=>$subcat,'type'=>$promo['type'],'createtime'=>$promo['createtime']));
 			}
 
 			$this->db('promotion.queue_promo')->update($sp, $goods_id, array('cat_assign'=>1));
@@ -449,8 +473,15 @@ class Promotion extends _Dal {
 	function promoDetail($sp, $goods_id){
 
 		if(!$sp || !$goods_id)return;
+
+		$key = 'promo:detail:sp:'.$sp.':goods_id:'.$goods_id;
+		$cache = D('cache')->get($key);
+		if($cache)return D('cache')->ret($cache);
+
 		$promo = $this->db('promotion.queue_promo')->find(array('sp'=>$sp, 'goods_id'=>$goods_id));
-		return clearTableName($promo);
+		clearTableName($promo);
+		D('cache')->set($key, $promo, MINUTE*10, true);
+		return $promo;
 	}
 
 	//更新特卖信息
@@ -527,6 +558,7 @@ class Promotion extends _Dal {
 	private function _renderPromoDetail($result){
 
 		$new_ret = array();
+		$this->db('promotion.goods');
 		foreach ($result as $ret) {
 
 			$promo_detail = $this->promoDetail($ret['sp'], $ret['goods_id']);
@@ -551,6 +583,7 @@ class Promotion extends _Dal {
 					$invalid = 'hd_expired';
 				}
 			}
+
 			if($detail['status'] == \DB\Goods::STATUS_SELL_OUT){
 				$invalid = 'sell_out';
 			}

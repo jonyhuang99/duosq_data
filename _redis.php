@@ -22,6 +22,8 @@ class _Redis extends \Object {
 	protected $exec_timeout = 10;
 	protected $dsn_type = 'cache'; //数据源类型(cache:不做dump数据操作，database:做AOF实时备份)
 	protected $redis;
+	protected $mcache = false; //启用本地内存缓存，单位秒
+	protected $mcache_update = false; //是否马上更新本地缓存确保一致，写频繁的key启用会减低性能(不建议打开mcache)
 
 	/**
 	 * 析构方法，初始化redis
@@ -165,7 +167,7 @@ class _Redis extends \Object {
 	 * @param string $key
 	 * @return mixed
 	 */
-	function getJson($key) {
+	function getArray($key) {
 		return unserialize($this->get($key));
 	}
 
@@ -179,7 +181,7 @@ class _Redis extends \Object {
 	 * @param int $exp
 	 * @return boolean
 	 */
-	function setJson($key, $val, $exp = null) {
+	function setArray($key, $val, $exp = null) {
 		if (is_null($exp)) {
 			$ret = $this->set($key, serialize($val));
 		}
@@ -233,7 +235,32 @@ class _Redis extends \Object {
 			$arg_array[0] = $this->namespace . ':' . $arg_array[0];
 		}
 
-		$ret = call_user_func_array(array($this->redis(), $method), $arg_array);
+		if($this->mcache && D()->mcache()->enable()){
+			$low_m = strtolower($method);
+			$all_cache_m = array('get','hget','hgetall','hmget','smembers');
+			$key_md5 = md5($arg_array[0]);
+			$aKey = $method.':'.$key_md5.':'.md5(serialize($arg_array));
+			if(in_array($low_m, $all_cache_m)){
+
+				$succ = false;
+				$ret = apc_fetch($aKey, $succ);
+				//缓存包括非的结果
+				if ($succ === false) {
+					$ret = call_user_func_array(array($this->redis(), $method), $arg_array);
+					D()->mcache()->set($aKey, $ret, $this->mcache);
+				}
+				return $ret;
+			}else{
+
+				$ret = call_user_func_array(array($this->redis(), $method), $arg_array);
+				if($this->mcache_update){
+					$cachedKeys = new \APCIterator('user', '/'.$key_md5.'/', APC_ITER_VALUE);
+					D()->mcache()->delete($cachedKeys);
+				}
+			}
+		}else{
+			$ret = call_user_func_array(array($this->redis(), $method), $arg_array);
+		}
 
 		return $ret;
 	}

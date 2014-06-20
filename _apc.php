@@ -5,6 +5,10 @@ namespace MCACHE;
 
 class _Apc extends \Object {
 
+	function enable(){
+		return function_exists('apc_fetch');
+	}
+
 	function get($key, &$succ=''){
 		$ret = apc_fetch($key, $succ);
 		return $ret;

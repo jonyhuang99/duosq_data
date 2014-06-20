@@ -5,6 +5,10 @@ namespace MCACHE;
 
 class _Xcache extends \Object {
 
+	function enable(){
+		return function_exists('xcache_get');
+	}
+
 	function get($key){
 		return xcache_get($key);
 	}

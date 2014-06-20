@@ -6,8 +6,9 @@ class Cache extends _Dal {
 
 	//获取缓存
 	function get($key){
+
 		if(CACHE_DATA && !DEBUG)
-			return $this->redis('cache')->getJson($key);
+			return $this->redis('cache')->getArray($key);
 		else
 			return null;
 	}
@@ -19,11 +20,11 @@ class Cache extends _Dal {
 			if(!$key)return;
 			if(!$data && $data !== 0)$data = '__empty__';
 			if($data === 0)$data = '__zero__';
-			return $this->redis('cache')->setJson($key, $data, $expire);
+			return $this->redis('cache')->setArray($key, $data, $expire);
 		}else{
 			if((!$key || !$data) && $data !== 0)return;
 			if($data === 0)$data = '__zero__';
-			return $this->redis('cache')->setJson($key, $data, $expire);
+			return $this->redis('cache')->setArray($key, $data, $expire);
 		}
 	}
 
@@ -40,7 +41,7 @@ class Cache extends _Dal {
 	}
 
 	//清除缓存
-	function clear($key){
+	function clean($key){
 		return $this->redis('cache')->delete($key);
 	}
 }

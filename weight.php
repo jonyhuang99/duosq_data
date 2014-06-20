@@ -1,6 +1,6 @@
 <?php
 //DAL:权重计算模块
-//TODO权重计算改为不用重启进程即可生效
+//TODO权重计算改为不用重启进程即可生效，目前要重启import_goods和update_weight进程
 namespace DAL;
 
 class Weight extends _Dal {

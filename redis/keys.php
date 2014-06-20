@@ -7,6 +7,8 @@ class Keys extends _Redis {
 
 	protected $namespace = 'keys';
 	protected $dsn_type = 'database';
+	protected $mcache = 300;
+	protected $mcache_update = true;
 
 	/**
 	 * 多多集分宝打款key，7天过期，value为空表示获取数据
@@ -109,7 +111,7 @@ class Keys extends _Redis {
 
 		if($rule){
 
-			$this->hset('goods:cat_rules:midcat:ex_rule', $cat . '_' . $midcat, trim(r(' ', '', $rule), '|'));
+			$this->hset('goods:cat_rules:midcat:ex_rule', $cat . '_' . $midcat, trim(preg_replace('/\s/', '', $rule), '|'));
 			return true;
 		}else{
 
