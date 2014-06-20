@@ -235,7 +235,7 @@ class _Redis extends \Object {
 			$arg_array[0] = $this->namespace . ':' . $arg_array[0];
 		}
 
-		if($this->mcache && D()->mcache()->enable()){
+		if($this->mcache && D()->mcache()->enable() && !DEBUG){
 			$low_m = strtolower($method);
 			$all_cache_m = array('get','hget','hgetall','hmget','smembers');
 			$key_md5 = md5($arg_array[0]);

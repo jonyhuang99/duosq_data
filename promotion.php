@@ -614,9 +614,9 @@ class Promotion extends _Dal {
 				$saled = $this->redis('promotion')->getSaleCount($ret['sp'], $ret['goods_id']);
 				$saled = $saled + C('comm', 'promo_import_goods_sales_min');
 				if(iSp($ret['sp'])){
-					$saled = $saled * 25 + $ret['goods_id']%50;
+					$saled = $saled * 12 + $ret['goods_id']%50;
 				}else{
-					$saled = $saled * 50 + $ret['goods_id']%50;
+					$saled = $saled * 25 + $ret['goods_id']%50;
 				}
 
 				if($saled > 300){//周销量超过300为热销
