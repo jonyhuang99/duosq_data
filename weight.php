@@ -37,6 +37,11 @@ class Weight extends _Dal {
 		return $this->db('promotion.queue_promo2cat')->update($sp, $goods_id, array('weight'=>$weight,'weight_exp'=>$e,'weight_detail'=>$exp_detail));
 	}
 
+	//获取指定特卖商品权重
+	function get($sp, $goods_id){
+
+	}
+
 	/**
 	 * 非京东B2C权重调高，8折商品与tmall 3折商品权重一样
 	 * 越新降价的商品权重越大，8折降价商品高于2天前4折商品

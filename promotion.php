@@ -227,7 +227,8 @@ class Promotion extends _Dal {
 			if($detail['cat'])$detail['cat'] = explode('|', $detail['cat']);
 			if($detail['subcat'])$detail['subcat'] = explode('|', $detail['subcat']);
 		}
-		D('cache')->set($key, $detail, MINUTE*10);
+
+		D('cache')->set($key, $detail, MINUTE*10, true);
 
 		return $detail;
 	}
@@ -444,7 +445,8 @@ class Promotion extends _Dal {
 			}
 
 			$detail = $this->goodsDetail($sp, $goods_id);
-			$this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'type'=>\DB\QueuePromo::TYPE_DISCOUNT));
+			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'type'=>\DB\QueuePromo::TYPE_DISCOUNT));
+			if($ret)$this->redis('promotion')->promoCounter($sp);
 			return true;
 		}
 	}
@@ -464,7 +466,8 @@ class Promotion extends _Dal {
 			}
 
 			$detail = $this->goodsDetail($sp, $goods_id);
-			$this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'hd_content'=>$hd_content, 'hd_begin'=>$hd_begin, 'hd_expire'=>$hd_begin, 'type'=>\DB\QueuePromo::TYPE_HUODONG));
+			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'hd_content'=>$hd_content, 'hd_begin'=>$hd_begin, 'hd_expire'=>$hd_begin, 'type'=>\DB\QueuePromo::TYPE_HUODONG));
+			if($ret)$this->redis('promotion')->promoCounter($sp);
 			return true;
 		}
 	}
@@ -480,6 +483,30 @@ class Promotion extends _Dal {
 
 		$promo = $this->db('promotion.queue_promo')->find(array('sp'=>$sp, 'goods_id'=>$goods_id));
 		clearTableName($promo);
+		//计算无效状态
+		$invalid = false;
+		$goods_detail = $this->goodsDetail($sp, $goods_id);
+		if($promo['type'] == \DB\QueuePromo::TYPE_DISCOUNT){
+			if($goods_detail['price_now'] >= $promo['price_now']*1.1){
+				$invalid = 'price_up';
+			}
+		}
+
+		if($promo['type'] == \DB\QueuePromo::TYPE_HUODONG){
+			if(strtotime($promo['hd_expire']) > 0 && strtotime($promo['hd_expire']) < time()){
+				$invalid = 'hd_expired';
+			}
+		}
+
+		if($goods_detail['status'] == \DB\Goods::STATUS_SELL_OUT){
+			$invalid = 'sell_out';
+		}
+
+		if($goods_detail['status'] == \DB\Goods::STATUS_INVALID){
+			$invalid = 'invalid';
+		}
+
+		$promo['invalid'] = $invalid;
 		D('cache')->set($key, $promo, MINUTE*10, true);
 		return $promo;
 	}
@@ -499,7 +526,11 @@ class Promotion extends _Dal {
 	 * @param  integer $maxPages      [description]
 	 * @return [type]                 [description]
 	 */
-	function getList($pn, $cat_condition=array(), $show = 3, $maxPages = 10) {
+	function getList($pn, $cat_condition=array(), $show = 3) {
+
+		$key = 'promo:get_list:cond:'.md5(serialize($cat_condition)).':show:'.$show.':page:'.intval(@$_GET['page']);
+		$cache = D('cache')->get($key);
+		if($cache)return D('cache')->ret($cache);
 
 		$condition = arrayClean($cat_condition);
 		$condition['sp'] = '<> taobao';
@@ -509,7 +540,6 @@ class Promotion extends _Dal {
 		$pn->show = $show;
 		$pn->sortBy = 'weight';
 		$pn->direction = 'desc';
-		$pn->maxPages = $maxPages;
 
 		//最多加载20页
 		if(isset($_GET['page']) && $_GET['page'] > C('comm', 'promo_cat_max_page'))
@@ -517,7 +547,7 @@ class Promotion extends _Dal {
 
 		list($order, $limit, $page) = $pn->init($condition, array('modelClass' => $this->db('promotion.queue_promo2cat')));
 
-		$result = $this->db('promotion.queue_promo2cat')->findAll($condition, '', 'GROUP BY sp, goods_id ORDER BY weight DESC, createtime DESC', $limit+5, $page);
+		$result = $this->db('promotion.queue_promo2cat')->findAll($condition, '', 'GROUP BY sp, goods_id ORDER BY weight DESC, id DESC', $limit+5, $page);
 		clearTableName($result);
 		if(!$result)$result = array();
 
@@ -538,7 +568,7 @@ class Promotion extends _Dal {
 				$condition['goods_id'] = "not in ({$jump_goods_ids})";
 			}
 
-			$result_hodong = $this->db('promotion.queue_promo2cat')->findAll($condition, '', 'GROUP BY sp,goods_id ORDER BY createtime DESC', 3);
+			$result_hodong = $this->db('promotion.queue_promo2cat')->findAll($condition, '', 'GROUP BY sp,goods_id ORDER BY id DESC', 3);
 			clearTableName($result_hodong);
 
 			if($result_hodong){
@@ -550,8 +580,10 @@ class Promotion extends _Dal {
 		}
 
 		$result = $this->_renderPromoDetail($result);
+		$ret = array_slice($result, 0, $show+3);
+		D('cache')->set($key, $ret, MINUTE*10, true);
 
-		return array_slice($result, 0, $show+3);
+		return $ret;
 	}
 
 	//渲染特卖信息
@@ -569,28 +601,6 @@ class Promotion extends _Dal {
 
 			$detail = $this->goodsDetail($ret['sp'], $ret['goods_id']);
 			if(!$goods_detail)continue;
-
-			//计算无效状态
-			$invalid = false;
-			if($promo_detail['type'] == \DB\QueuePromo::TYPE_DISCOUNT){
-				if($goods_detail['price_now'] >= $promo_detail['price_now']*1.1){
-					$invalid = 'price_up';
-				}
-			}
-
-			if($promo_detail['type'] == \DB\QueuePromo::TYPE_HUODONG){
-				if(strtotime($promo_detail['hd_expire']) > 0 && strtotime($promo_detail['hd_expire']) < time()){
-					$invalid = 'hd_expired';
-				}
-			}
-
-			if($detail['status'] == \DB\Goods::STATUS_SELL_OUT){
-				$invalid = 'sell_out';
-			}
-
-			if($detail['status'] == \DB\Goods::STATUS_INVALID){
-				$invalid = 'invalid';
-			}
 
 			$tmp = $promo_detail;
 			if($tmp['hd_content']){
@@ -621,12 +631,20 @@ class Promotion extends _Dal {
 			$tmp['pic_url'] = $goods_detail['pic_url'];
 			$tmp['url_tpl'] = $goods_detail['url_tpl'];
 			$tmp['url_id'] = $goods_detail['url_id'];
-			$tmp['invalid'] = $invalid;
 
 			$new_ret[] = $tmp;
 		}
 
 		return $new_ret;
+	}
+
+	//获取入库商品数，特卖数
+	function getStat(){
+
+		$num_goods = $this->redis('promotion')->getGoodsCount();
+		$num_promo = $this->redis('promotion')->getPromoCount();
+		$num_promo_today = $this->redis('promotion')->getPromoCountDate();
+		return array('num_goods'=>$num_goods, 'num_promo'=>$num_promo, 'num_promo_today'=>$num_promo_today);
 	}
 }
 ?>

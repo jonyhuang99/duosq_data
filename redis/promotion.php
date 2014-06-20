@@ -61,6 +61,45 @@ class Promotion extends _Redis {
 		}
 	}
 
+	//特卖商品计数器
+	function promoCounter($sp, $num=0){
+
+		if(!$sp)return;
+		$key = "counter:promo:total_num";
+		$key_today = $key.":date:".date('Ymd');
+		if(!$num){
+			$this->zincrby($key_today, 1, $sp);
+			$this->expire($key_today, WEEK);
+			return $this->zincrby($key, 1, $sp);
+		}else{
+			$this->zadd($key, $num, $sp);
+		}
+		return true;
+	}
+
+	//返回指定商城特卖商品数
+	function getPromoCount($sp=''){
+
+		$key = "counter:promo:total_num";
+		if($sp){
+			return $this->zscore($key, $sp);
+		}else{
+			return $this->zrangebyscore($key, 0, '+inf', array('withscores'=>true));
+		}
+	}
+
+	//返回指定日期商城特卖商品数
+	function getPromoCountDate($date='', $sp=''){
+
+		if(!$date)$date = date('Ymd');
+		$key = "counter:promo:total_num:date:".$date;
+		if($sp){
+			return $this->zscore($key, $sp);
+		}else{
+			return $this->zrangebyscore($key, 0, '+inf', array('withscores'=>true));
+		}
+	}
+
 	//统计商品是否被重复购买，购买人数超过5个才入库，用于减轻商品数
 	function repeatBuy($sp, $url_tpl, $url_id){
 

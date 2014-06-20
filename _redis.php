@@ -247,7 +247,7 @@ class _Redis extends \Object {
 				//缓存包括非的结果
 				if ($succ === false) {
 					$ret = call_user_func_array(array($this->redis(), $method), $arg_array);
-					D()->mcache()->set($aKey, $ret, $this->mcache);
+					if($ret)D()->mcache()->set($aKey, $ret, $this->mcache);
 				}
 				return $ret;
 			}else{
