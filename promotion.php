@@ -488,6 +488,7 @@ class Promotion extends _Dal {
 		if($cache)return D('cache')->ret($cache);
 
 		$promo = $this->db('promotion.queue_promo')->find(array('sp'=>$sp, 'goods_id'=>$goods_id));
+		if(!$promo)return;
 		clearTableName($promo);
 		//计算无效状态
 		$invalid = false;
@@ -508,7 +509,7 @@ class Promotion extends _Dal {
 			$invalid = 'sell_out';
 		}
 
-		if($goods_detail['status'] == \DB\Goods::STATUS_INVALID){
+		if($goods_detail['status'] == \DB\Goods::STATUS_INVALID || $goods_detail['status'] == \DB\Goods::STATUS_INVALID_FORCE){
 			$invalid = 'invalid';
 		}
 

@@ -38,8 +38,19 @@ class Weight extends _Dal {
 	}
 
 	//获取指定特卖商品权重
-	function get($sp, $goods_id){
+	function get($sp, $goods_id, &$exp = ''){
 
+		if($exp && method_exists(this, $exp)){
+			$e = $exp;
+		}else{
+			$e = $this->default_exp;
+		}
+
+		$promo_detail = D('promotion')->promoDetail($sp, $goods_id);
+		if(!$promo_detail)return;
+
+		$exp_detail = '';
+		return $this->$e($promo_detail, $exp_detail);
 	}
 
 	/**

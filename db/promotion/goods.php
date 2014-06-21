@@ -11,6 +11,7 @@ class Goods extends _Db {
 	const STATUS_NORMAL = 1; //正常
 	const STATUS_SELL_OUT = 2; //售罄
 	const STATUS_INVALID = 3; //下架|无效
+	const STATUS_INVALID_FORCE = 4; //手动强制下架
 
 	//置空save，只允许从add/update进入
 	function save(){}
