@@ -434,7 +434,8 @@ class Promotion extends _Dal {
 	function markPromoDiscount($sp, $goods_id, $price_avg, $price_now){
 
 		if(!$sp || !$goods_id || !$price_avg || !$price_now)return;
-		if(!$this->promoDetail($sp, $goods_id)){
+		$promo = $this->promoDetail($sp, $goods_id);
+		if(!$promo){
 
 			$config = C('comm', 'promo_auto_pass');
 			//是否自动发布
@@ -448,6 +449,11 @@ class Promotion extends _Dal {
 			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'type'=>\DB\QueuePromo::TYPE_DISCOUNT));
 			if($ret)$this->redis('promotion')->promoCounter($sp);
 			return true;
+		}else{
+			//如果价格更低，允许更新
+			if($price_now < $promo['price_now']){
+				$this->db('promotion.queue_promo')->update($sp, $goods_id, array('price_now'=>$price_now));
+			}
 		}
 	}
 
