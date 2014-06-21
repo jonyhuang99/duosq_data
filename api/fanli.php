@@ -11,7 +11,10 @@ class Fanli extends _Api {
 
 		$key = 'api:fanli:goodsPrice:day:'.date('d').':'.md5($url);
 		$cache = D('cache')->get($key);
-		if($cache)return D('cache')->ret($cache);
+		if($cache){
+			//l("[succ][api][goodsPrice][from cache][{$url}]");
+			return D('cache')->ret($cache);
+		}
 		$api = 'http://www.budou.com/priceflash/flash?callback=jQuery183005654067010618746_1401779'.rand(100000, 999999);
 		I('curl');
 		$curl = new \CURL();
@@ -24,7 +27,7 @@ class Fanli extends _Api {
 		$ret = $curl->post($api, $post);
 
 		if(stripos($ret, 'success')!==false){
-			l("[succ][api][goodsPrice][{$url}]");
+			//l("[succ][api][goodsPrice][{$url}]");
 			$ret = $this->trimJQuery($ret);
 			if($ret['data']['url']){
 				$ret = parse_url($ret['data']['url']);
@@ -34,7 +37,7 @@ class Fanli extends _Api {
 				$query = $info['query'];
 				parse_str($query, $result);
 
-				D('cache')->set($key, $result, DAY);
+				D('cache')->set($key, $result, HOUR*12);
 				return $result;
 			}
 		}else{
@@ -50,7 +53,10 @@ class Fanli extends _Api {
 
 		$key = 'api:fanli:goodsDetail:day:'.date('d').':'.md5($url);
 		$cache = D('cache')->get($key);
-		if($cache)return D('cache')->ret($cache);
+		if($cache){
+			//l("[succ][api][goodsDetail][from cache][{$url}]");
+			return D('cache')->ret($cache);
+		}
 		$api = 'http://www.budou.com/index.php?m=Ajax&a=checkurl&canginput=1&code=F913422A-3853-245F-9BFF-D27E30'.rand(100000,999999).'&r=0.901604669'.rand(1000,9999).'&url='.urlencode($url).'&callback=jQuery18309776429124176502_140204'.rand(100000, 999999);
 		I('curl');
 		$curl = new \CURL();
@@ -58,7 +64,7 @@ class Fanli extends _Api {
 
 		$detail = array();
 		if(stripos($ret, 'success')!==false){
-			l("[succ][api][goodsDetail][{$url}]");
+			//l("[succ][api][goodsDetail][{$url}]");
 			$ret = $this->trimJQuery($ret);
 			I('html_dom');
 			$html = new \simple_html_dom();
@@ -73,7 +79,7 @@ class Fanli extends _Api {
 			$detail['price_now'] = $dom->innertext;
 
 			if($detail['name'] && $detail['pic_url'] && $detail['price_now'] > 0){
-				D('cache')->set($key, $detail, DAY);
+				D('cache')->set($key, $detail, HOUR*12);
 
 				//TODO 标识商品状态正常
 				return $detail;

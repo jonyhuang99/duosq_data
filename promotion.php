@@ -536,7 +536,6 @@ class Promotion extends _Dal {
 		}
 
 		$condition = arrayClean($cat_condition);
-		$condition['sp'] = '<> taobao';
 		static $huodong_repeat=array();
 
 		//page = 0 返回总页数
@@ -548,9 +547,15 @@ class Promotion extends _Dal {
 		if(isset($_GET['page']) && $_GET['page'] > C('comm', 'promo_cat_max_page'))
 			return false;
 
-		list($order, $limit, $page) = $pn->init($condition, array('modelClass' => $this->db('promotion.queue_promo2cat')));
+		$condition_str = array();
+		foreach($condition as $field => $c){
+			$condition_str[] = "{$field} = '{$c}'";
+		}
+		$condition_str[] = "sp <> 'taobao'";
+		$condition_str = join(' AND ', $condition_str);
+		list($order, $limit, $page) = $pn->init($condition_str, array('modelClass' => $this->db('promotion.queue_promo2cat'), 'fields'=>'DISTINCT sp, goods_id, type'));
 
-		$result = $this->db('promotion.queue_promo2cat')->findAll($condition, '', 'GROUP BY sp, goods_id ORDER BY weight DESC, id DESC', $limit+5, $page);
+		$result = $this->db('promotion.queue_promo2cat')->findAll($condition_str, 'DISTINCT sp, goods_id, type', 'ORDER BY weight DESC, id DESC', $limit, $page);
 		clearTableName($result);
 		if(!$result)$result = array();
 
@@ -619,7 +624,7 @@ class Promotion extends _Dal {
 				$saled = $this->redis('promotion')->getSaleCount($ret['sp'], $ret['goods_id']);
 				$saled = $saled + C('comm', 'promo_import_goods_sales_min');
 				if(iSp($ret['sp'])){
-					$saled = $saled * 12 + $ret['goods_id']%50;
+					$saled = $saled * 10 + $ret['goods_id']%50;
 				}else{
 					$saled = $saled * 25 + $ret['goods_id']%50;
 				}

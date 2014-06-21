@@ -24,11 +24,11 @@ class QueueVisit extends _Db {
 	}
 
 	//标识该商品今日已进行过价格探测
-	function detected($sp, $goods_id){
+	function detected($sp, $goods_id, $succ=1){
 
 		if(!$sp || !$goods_id)return;
 
-		return $this->query("UPDATE queue_visit SET price_update = '".date('Y-m-d')."' WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
+		return $this->query("UPDATE queue_visit SET price_update = '".date('Y-m-d')."', price_ret = '".$succ."' WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
 	}
 
 	//获取指定时间段被访问过的商品
@@ -36,7 +36,7 @@ class QueueVisit extends _Db {
 
 		if(!$days)$days = 30;
 		$visit_date = date('Y-m-d', time() - DAY*$days);
-		$ret = $this->findAll("visit_date > '{$visit_date}' AND price_update < '".date('Y-m-d')."'", '', '', 1000);
+		$ret = $this->findAll("visit_date > '{$visit_date}' AND price_update < '".date('Y-m-d')."'", '', 'visit_date DESC, id DESC', 3000);
 		return clearTableName($ret);
 	}
 }
