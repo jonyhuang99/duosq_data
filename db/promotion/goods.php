@@ -72,5 +72,9 @@ class Goods extends _Db {
 		$this->table = 'goods_' . ord(md5($sp.'_')) % 5;
 		//$this->table = 'goods_0'; //测试用，TODO恢复
 	}
+
+	function setTableNo($no='0'){
+		$this->table = 'goods_' . $no;
+	}
 }
 ?>

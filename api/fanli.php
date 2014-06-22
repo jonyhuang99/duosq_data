@@ -28,7 +28,7 @@ class Fanli extends _Api {
 
 		if(stripos($ret, 'success')!==false){
 			//l("[succ][api][goodsPrice][{$url}]");
-			$ret = $this->trimJQuery($ret);
+			$ret = trimJQuery($ret);
 			if($ret['data']['url']){
 				$ret = parse_url($ret['data']['url']);
 				$query = $ret['query'];
@@ -65,7 +65,7 @@ class Fanli extends _Api {
 		$detail = array();
 		if(stripos($ret, 'success')!==false){
 			//l("[succ][api][goodsDetail][{$url}]");
-			$ret = $this->trimJQuery($ret);
+			$ret = trimJQuery($ret);
 			I('html_dom');
 			$html = new \simple_html_dom();
 			$html->load($ret['data']);
@@ -91,15 +91,6 @@ class Fanli extends _Api {
 		}else{
 			//TODO 出错报警
 		}
-	}
-
-	//格式化JQuery
-	private function trimJQuery($json){
-
-		$ret = preg_replace('/jQuery[0-9\_]+\(/', '', $json);
-		$ret = trim($ret, ')');
-		$ret = json_decode($ret, true);
-		return $ret;
 	}
 }
 

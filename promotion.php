@@ -448,6 +448,10 @@ class Promotion extends _Dal {
 			$detail = $this->goodsDetail($sp, $goods_id);
 			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'type'=>\DB\QueuePromo::TYPE_DISCOUNT));
 			if($ret)$this->redis('promotion')->promoCounter($sp);
+			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
+			$this->matchGoodsCat($sp, $goods_id);
+			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
+			D('search')->buildIndex($sp, $goods_id);
 			return true;
 		}else{
 			//如果价格更低，允许更新
@@ -474,6 +478,10 @@ class Promotion extends _Dal {
 			$detail = $this->goodsDetail($sp, $goods_id);
 			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'hd_content'=>$hd_content, 'hd_begin'=>$hd_begin, 'hd_expire'=>$hd_begin, 'type'=>\DB\QueuePromo::TYPE_HUODONG));
 			if($ret)$this->redis('promotion')->promoCounter($sp);
+			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
+			$this->matchGoodsCat($sp, $goods_id);
+			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
+			D('search')->buildIndex($sp, $goods_id);
 			return true;
 		}
 	}
@@ -583,7 +591,7 @@ class Promotion extends _Dal {
 				$condition['goods_id'] = "not in ({$jump_goods_ids})";
 			}
 
-			$result_hodong = $this->db('promotion.queue_promo2cat')->findAll($condition, '', 'GROUP BY sp,goods_id ORDER BY id DESC', 3);
+			$result_hodong = $this->db('promotion.queue_promo2cat')->findAll($condition, 'DISTINCT sp, goods_id, type', 'ORDER BY weight DESC, ORDER BY id DESC', 3);
 			clearTableName($result_hodong);
 
 			if($result_hodong){
@@ -594,7 +602,7 @@ class Promotion extends _Dal {
 			}
 		}
 
-		$result = $this->_renderPromoDetail($result);
+		$result = $this->renderPromoDetail($result);
 		$ret = array_slice($result, 0, $show+3);
 		D('cache')->set($key, $ret, MINUTE*10, true);
 		D('cache')->set($key.':page_count', $pn->paging['pageCount'], MINUTE*11, true);
@@ -604,8 +612,9 @@ class Promotion extends _Dal {
 	}
 
 	//渲染特卖信息
-	private function _renderPromoDetail($result){
+	function renderPromoDetail($result){
 
+		if(!$result)return;
 		$new_ret = array();
 		$this->db('promotion.goods');
 		foreach ($result as $ret) {
@@ -614,9 +623,6 @@ class Promotion extends _Dal {
 			if(!$promo_detail || $promo_detail['status'] != \DB\QueuePromo::STATUS_NORMAL)continue;
 
 			$goods_detail = $this->goodsDetail($ret['sp'], $ret['goods_id']);
-			if(!$goods_detail)continue;
-
-			$detail = $this->goodsDetail($ret['sp'], $ret['goods_id']);
 			if(!$goods_detail)continue;
 
 			$tmp = $promo_detail;
@@ -662,6 +668,39 @@ class Promotion extends _Dal {
 		$num_promo = $this->redis('promotion')->getPromoCount();
 		$num_promo_today = $this->redis('promotion')->getPromoCountDate();
 		return array('num_goods'=>$num_goods, 'num_promo'=>$num_promo, 'num_promo_today'=>$num_promo_today);
+	}
+
+	//获取商品搜索提示
+	function getSuggest($keyword){
+
+		if(!$keyword)return;
+		$key = 'promotion:suggest:keyword:'.md5($keyword);
+		$cache = D('cache')->get($key);
+		$new_suggest = array();
+		if($cache)return D('cache')->ret($cache);
+
+		$suggest = $this->api('taobao')->getSuggest($keyword, 15);
+		$new_suggest = array();
+		if($suggest){
+			foreach($suggest as $s_k){
+				$hit = D('search')->promo($s_k);
+				if($hit){
+					$new_suggest[] = $s_k;
+				}
+			}
+
+			if(!$new_suggest){
+				foreach($suggest as $s_k){
+					$hit = D('search')->goods($s_k);
+					if($hit){
+						$new_suggest[] = $s_k;
+					}
+				}
+			}
+		}
+
+		D('cache')->set($key, $new_suggest, DAY*10, true);
+		return $new_suggest;
 	}
 }
 ?>

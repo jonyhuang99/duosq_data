@@ -153,5 +153,23 @@ class Taobao extends _Api {
 		}
 		return $goods;
 	}
+
+	//访问淘宝suggest接口
+	function getSuggest($keyword, $limit = 10){
+
+		$data = file_get_contents('http://suggest.taobao.com/sug?code=utf-8&callback=jQuery'.rand(10000,99999).'&q='.urlencode($keyword));
+		if(!$data)return array();
+
+		$suggest = trimJQuery($data);
+		if(!$suggest || !$suggest['result'])return array();
+
+		$suggest = array_slice($suggest['result'], 0, 10);
+		$tmp = array();
+		foreach($suggest as $val){
+			$tmp[] = $val[0];
+		}
+
+		return $tmp;
+	}
 }
 ?>
