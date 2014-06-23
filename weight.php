@@ -6,7 +6,7 @@ namespace DAL;
 class Weight extends _Dal {
 
 	//默认算法
-	var $default_exp = 'e1406191';
+	var $default_exp = 'e140624';
 
 	function getExp(){
 		return $this->default_exp;
@@ -58,7 +58,7 @@ class Weight extends _Dal {
 	 * 越新降价的商品权重越大，8折降价商品高于2天前4折商品
 	 * 销量越高权重越大，最高周销量可停留3天
 	 */
-	function e1406191($promo_detail, &$exp_detail){
+	function e140624($promo_detail, &$exp_detail){
 
 		$sp = $promo_detail['sp'];
 		$goods_id = $promo_detail['goods_id'];
@@ -74,28 +74,28 @@ class Weight extends _Dal {
 
 		//折扣权重
 		$rate = rate_diff($promo_detail['price_now'], $promo_detail['price_avg']);
-		if($rate > 80){
-			$weight[] = 1;
+		if($rate > 70){
+			$weight[] = 5;
 			$tmp_detail['discount'] = "{$rate}%=>1";
-		}else if($rate > 60 && $rate <= 80){
-			$weight[] = 2;
+		}else if($rate > 60 && $rate <= 70){
+			$weight[] = 4;
 			$tmp_detail['discount'] = "{$rate}%=>2";
 		}else if($rate > 40 && $rate <= 60){
 			$weight[] = 3;
 			$tmp_detail['discount'] = "{$rate}%=>3";
-		}else if($rate > 30 && $rate <= 40){
-			$weight[] = 4;
+		}else if($rate > 20 && $rate <= 40){
+			$weight[] = 2;
 			$tmp_detail['discount'] = "{$rate}%=>4";
-		}else if($rate <= 30){
-			$weight[] = 5;
+		}else if($rate <= 20){
+			$weight[] = 1;
 			$tmp_detail['discount'] = "{$rate}%=>5";
 		}
 
 		//日期权重
 		$time_diff = strtotime($promo_detail['createdate']) - strtotime('2014-06-01');
 		$day_diff = ceil($time_diff/DAY);
-		$weight[] = $day_diff * 2;
-		$tmp_detail['day'] = "{$day_diff}|{$promo_detail['createdate']}=>".$day_diff*2;
+		$weight[] = $day_diff * 3;
+		$tmp_detail['day'] = "{$day_diff}|{$promo_detail['createdate']}=>".$day_diff*3;
 
 		//销量权重
 		$week_sales = $this->redis('promotion')->getSaleCount($sp, $goods_id);
