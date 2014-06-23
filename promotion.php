@@ -340,8 +340,7 @@ class Promotion extends _Dal {
 			$this->db('promotion.queue_promo2cat')->query("DELETE FROM queue_promo2cat WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
 
 			foreach($subcats as $subcat){
-				$this->db('promotion.queue_promo2cat')->create();
-				$this->db('promotion.queue_promo2cat')->save(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2cat($subcat),'subcat'=>$subcat,'type'=>$promo['type'],'createtime'=>$promo['createtime']));
+				$this->db('promotion.queue_promo2cat')->add(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2cat($subcat),'subcat'=>$subcat,'type'=>$promo['type'],'createtime'=>$promo['createtime']));
 			}
 
 			$this->db('promotion.queue_promo')->update($sp, $goods_id, array('cat_assign'=>1));
@@ -650,6 +649,9 @@ class Promotion extends _Dal {
 				$tmp['hd_content'] = '90天均价：¥'.price_yuan($promo_detail['price_avg']).'<br />'.$saled_str.'刚刚降至：<font class=orange>¥'.price_yuan($promo_detail['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($promo_detail['price_now'], $promo_detail['price_avg']).'%</font>哟~';
 			}
 
+			if(time() - strtotime($promo_detail['createdate']) < DAY){
+				$tmp['is_new'] = true;
+			}
 			$tmp['name'] = $goods_detail['name'];
 			$tmp['pic_url'] = $goods_detail['pic_url'];
 			$tmp['url_tpl'] = $goods_detail['url_tpl'];
