@@ -16,7 +16,12 @@ class Go extends _Dal {
 		$outcode = $this->redis('outcode')->create();
 		$fanli = $driver->getCommission($sp);
 		$driver_n = low(str_replace('GO_DRIVER\\Driver', '', get_class($driver)));
-		$user_id = D('myuser')->getId();
+
+		if(!D('myuser')->isLogined()){
+			$user_id = C('comm', 'sysuser_promo');
+		}else{
+			$user_id = D('myuser')->getId();
+		}
 
 		$data = array('user_id'=>$user_id, 'driver'=>$driver_n, 'sp'=>$sp, 'param'=>$param, 'tc'=>$tc, 'outcode'=>$outcode, 'cashtype'=>$fanli['cashtype'], 'fanli_rate' => $driver->getFanliRate());
 
