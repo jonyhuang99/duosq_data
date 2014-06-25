@@ -17,6 +17,7 @@ class Outcode extends _Redis {
 		$date = date('ymd');
 		$key = 'date:' . $date;
 		$current = $this->incr($key);
+		if(!$current)return;
 		$this->expire($key, DAY * 2);
 		return $date . pad($current, 6);
 	}

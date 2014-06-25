@@ -507,7 +507,7 @@ class Promotion extends _Dal {
 		}
 
 		if($promo['type'] == \DB\QueuePromo::TYPE_HUODONG){
-			if(strtotime($promo['hd_expire']) > 0 && strtotime($promo['hd_expire']) < time()){
+			if(strtotime($promo['hd_expire']) > 0 && strtotime($promo['hd_expire']) < strtotime(date('Y-m-d'))){
 				$invalid = 'hd_expired';
 			}
 		}
@@ -656,11 +656,21 @@ class Promotion extends _Dal {
 			$tmp['pic_url'] = $goods_detail['pic_url'];
 			$tmp['url_tpl'] = $goods_detail['url_tpl'];
 			$tmp['url_id'] = $goods_detail['url_id'];
-
+			if($fix_now_price = $this->getFixNowPrice($ret['sp'], $ret['goods_id'])){
+				$tmp['price_now'] = $fix_now_price;
+			}
 			$new_ret[] = $tmp;
 		}
 
 		return $new_ret;
+	}
+
+	//获取经过人工修正后的当前价格
+	function getFixNowPrice($sp, $goods_id){
+		//纠正当前价格
+		if($price_now_fixed = $this->db('promotion.price_fix')->field('price_now', array('sp'=>$sp, 'goods_id'=>$goods_id, 'expire'=>'>= '.date('Y-m-d')))){
+			return $price_now_fixed;
+		}
 	}
 
 	//获取入库商品数，特卖数

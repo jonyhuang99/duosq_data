@@ -30,6 +30,7 @@ class Search extends _Dal {
 		$cond['sp'] = $sp;
 		$cond['name'] = "like %{$keyword}%";
 		$cond = arrayClean($cond);
+		if(!isset($cond['sp']))$cond['sp'] = '<> taobao';
 
 		$ret = $this->db('promotion.search_promo')->findAll($cond, 'sp, goods_id', 'weight DESC, id DESC', $limit);
 		clearTableName($ret);
