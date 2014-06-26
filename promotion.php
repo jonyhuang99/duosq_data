@@ -228,7 +228,7 @@ class Promotion extends _Dal {
 			if($detail['subcat'])$detail['subcat'] = explode('|', $detail['subcat']);
 		}
 
-		D('cache')->set($key, $detail, MINUTE, true);
+		D('cache')->set($key, $detail, MINUTE*2, true);
 
 		return $detail;
 	}
@@ -521,7 +521,7 @@ class Promotion extends _Dal {
 		}
 
 		$promo['invalid'] = $invalid;
-		D('cache')->set($key, $promo, MINUTE, true);
+		D('cache')->set($key, $promo, MINUTE*2, true);
 		return $promo;
 	}
 
@@ -546,7 +546,7 @@ class Promotion extends _Dal {
 		$cache = D('cache')->get($key);
 		if($cache){
 			$pn->controller->set('page_count', D('cache')->get($key.':page_count'));
-			//return D('cache')->ret($cache);
+			return D('cache')->ret($cache);
 		}
 
 		$condition = arrayClean($cat_condition);
@@ -603,8 +603,8 @@ class Promotion extends _Dal {
 
 		$result = $this->renderPromoDetail($result);
 		$ret = array_slice($result, 0, $show+3);
-		D('cache')->set($key, $ret, MINUTE, true);
-		D('cache')->set($key.':page_count', $pn->paging['pageCount'], MINUTE+1, true);
+		D('cache')->set($key, $ret, MINUTE*2, true);
+		D('cache')->set($key.':page_count', $pn->paging['pageCount'], MINUTE*2+1, true);
 		$pn->controller->set('page_count', $pn->paging['pageCount']);
 
 		return $ret;
