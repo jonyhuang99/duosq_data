@@ -226,6 +226,10 @@ class Promotion extends _Dal {
 			$detail['url'] = $this->buildUrl($detail['url_tpl'], $detail['url_id']);
 			if($detail['cat'])$detail['cat'] = explode('|', $detail['cat']);
 			if($detail['subcat'])$detail['subcat'] = explode('|', $detail['subcat']);
+
+			if($fix_now_price = $this->getFixNowPrice($sp, $goods_id)){
+				$detail['price_now'] = $fix_now_price;
+			}
 		}
 
 		D('cache')->set($key, $detail, MINUTE*2, true);
@@ -656,9 +660,6 @@ class Promotion extends _Dal {
 			$tmp['pic_url'] = $goods_detail['pic_url'];
 			$tmp['url_tpl'] = $goods_detail['url_tpl'];
 			$tmp['url_id'] = $goods_detail['url_id'];
-			if($fix_now_price = $this->getFixNowPrice($ret['sp'], $ret['goods_id'])){
-				$tmp['price_now'] = $fix_now_price;
-			}
 			$new_ret[] = $tmp;
 		}
 

@@ -28,6 +28,22 @@ class Cache extends _Dal {
 		}
 	}
 
+	//获取文本缓存
+	function getFile($key){
+
+		if(CACHE_DATA && !DEBUG)
+			return $this->redis('cache')->get($key);
+		else
+			return null;
+	}
+
+	//设置文本缓存
+	function setFile($key, $data, $expire=3600){
+
+		if(!$key || !$data)return;
+		return $this->redis('cache')->set($key, $data, $expire);
+	}
+
 	//判断cache是否空值，进行返回
 	function ret($cache, $default=null){
 
