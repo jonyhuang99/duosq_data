@@ -215,7 +215,9 @@ class Promotion extends _Dal {
 	//获取商品详情
 	function goodsDetail($sp, $goods_id){
 
+		static $d = array();
 		if(!$sp || !$goods_id)return;
+		if(isset($d[$sp][$goods_id]))return $d[$sp][$goods_id];
 
 		$key = 'goods:detail:sp:'.$sp.':goods_id:'.$goods_id;
 		$cache = D('cache')->get($key);
@@ -233,7 +235,7 @@ class Promotion extends _Dal {
 		}
 
 		D('cache')->set($key, $detail, MINUTE*2, true);
-
+		$d[$sp][$goods_id] = $detail;
 		return $detail;
 	}
 
@@ -546,7 +548,9 @@ class Promotion extends _Dal {
 	//获取特卖详情
 	function promoDetail($sp, $goods_id){
 
+		static $d = array();
 		if(!$sp || !$goods_id)return;
+		if(isset($d[$sp][$goods_id]))return $d[$sp][$goods_id];
 
 		$key = 'promo:detail:sp:'.$sp.':goods_id:'.$goods_id;
 		$cache = D('cache')->get($key);
@@ -558,17 +562,18 @@ class Promotion extends _Dal {
 		//计算无效状态
 		$invalid = false;
 		$goods_detail = $this->goodsDetail($sp, $goods_id);
-		if($promo['type'] == \DB\QueuePromo::TYPE_DISCOUNT){
-			if($goods_detail['price_now'] >= $promo['price_now']*1.1){
-				$invalid = 'price_up';
-			}
+		if($goods_detail['price_now'] >= $promo['price_now']*1.1){
+			$invalid = 'price_up';
+		}
+
+		//修正当前价格比特卖价格更低，用户就觉得不准
+		if($promo['price_now'] > $goods_detail['price_now']){
+			$promo['price_now'] = $goods_detail['price_now'];
 		}
 
 		if($promo['type'] == \DB\QueuePromo::TYPE_HUODONG){
 			if(strtotime($promo['hd_expire']) > 0 && strtotime($promo['hd_expire']) < strtotime(date('Y-m-d'))){
 				$invalid = 'hd_expired';
-			}elseif($goods_detail['price_now'] >= $promo['price_now']*1.1){
-				$invalid = 'price_up';
 			}
 		}
 
@@ -582,6 +587,7 @@ class Promotion extends _Dal {
 
 		$promo['invalid'] = $invalid;
 		D('cache')->set($key, $promo, MINUTE*2, true);
+		$d[$sp][$goods_id] = $promo;
 		return $promo;
 	}
 
@@ -685,6 +691,7 @@ class Promotion extends _Dal {
 			if(!$goods_detail)continue;
 
 			$tmp = $promo_detail;
+
 			if($tmp['hd_content']){
 				$tmp['hd_content'] = r(array("\r", "\n",'	','&nbsp;'), '', $tmp['hd_content']);
 				$tmp['hd_content'] = strip_tags(nl2br($tmp['hd_content']));
@@ -706,7 +713,7 @@ class Promotion extends _Dal {
 					$saled_str = "上周原价热销：<font class=blue>{$saled}</font>件<br />";
 					$tmp['week_sales'] = $saled;
 				}
-				$tmp['hd_content'] = '90天均价：¥'.price_yuan($promo_detail['price_avg']).'<br />'.$saled_str.'刚刚降至：<font class=orange>¥'.price_yuan($promo_detail['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($promo_detail['price_now'], $promo_detail['price_avg']).'%</font>哟~';
+				$tmp['hd_content'] = '90天均价：¥'.price_yuan($tmp['price_avg']).'<br />'.$saled_str.'刚刚降至：<font class=orange>¥'.price_yuan($tmp['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($tmp['price_now'], $tmp['price_avg']).'%</font>哟~';
 			}
 
 			if(time() - strtotime($promo_detail['createdate']) < DAY){
