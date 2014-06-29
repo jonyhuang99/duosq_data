@@ -567,6 +567,8 @@ class Promotion extends _Dal {
 		if($promo['type'] == \DB\QueuePromo::TYPE_HUODONG){
 			if(strtotime($promo['hd_expire']) > 0 && strtotime($promo['hd_expire']) < strtotime(date('Y-m-d'))){
 				$invalid = 'hd_expired';
+			}elseif($goods_detail['price_now'] >= $promo['price_now']*1.1){
+				$invalid = 'price_up';
 			}
 		}
 
@@ -789,7 +791,7 @@ class Promotion extends _Dal {
 		$cond = arrayClean($cond);
 
 		$cond['brand_id'] = '<> 0';
-		$brands = $this->db('promotion.queue_promo2cat')->findAll($cond, 'DISTINCT brand_id', 'weight ASC', 500);
+		$brands = $this->db('promotion.queue_promo2cat')->findAll($cond, 'DISTINCT brand_id', 'weight ASC', 300);
 		if(!$brands)return;
 		clearTableName($brands);
 		$brand_ids = array();
