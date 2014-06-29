@@ -76,19 +76,19 @@ class Weight extends _Dal {
 		$rate = rate_diff($promo_detail['price_now'], $promo_detail['price_avg']);
 		if($rate > 70){
 			$weight[] = 5;
-			$tmp_detail['discount'] = "{$rate}%=>1";
+			$tmp_detail['discount'] = "{$rate}%=>5";
 		}else if($rate > 60 && $rate <= 70){
 			$weight[] = 4;
-			$tmp_detail['discount'] = "{$rate}%=>2";
+			$tmp_detail['discount'] = "{$rate}%=>4";
 		}else if($rate > 40 && $rate <= 60){
 			$weight[] = 3;
 			$tmp_detail['discount'] = "{$rate}%=>3";
 		}else if($rate > 20 && $rate <= 40){
 			$weight[] = 2;
-			$tmp_detail['discount'] = "{$rate}%=>4";
+			$tmp_detail['discount'] = "{$rate}%=>2";
 		}else if($rate <= 20){
 			$weight[] = 1;
-			$tmp_detail['discount'] = "{$rate}%=>5";
+			$tmp_detail['discount'] = "{$rate}%=>1";
 		}
 
 		//日期权重

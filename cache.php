@@ -7,7 +7,7 @@ class Cache extends _Dal {
 	//获取缓存
 	function get($key){
 
-		if(CACHE_DATA && !DEBUG)
+		if(CACHE_DATA && !DEBUG && !$_COOKIE['auth_promo_review'])
 			return $this->redis('cache')->getArray($key);
 		else
 			return null;
