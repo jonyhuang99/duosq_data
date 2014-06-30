@@ -228,10 +228,10 @@ class Promotion extends _Dal {
 			$detail['url'] = $this->buildUrl($detail['url_tpl'], $detail['url_id']);
 			if($detail['cat'])$detail['cat'] = explode('|', $detail['cat']);
 			if($detail['subcat'])$detail['subcat'] = explode('|', $detail['subcat']);
+		}
 
-			if($fix_now_price = $this->getFixNowPrice($sp, $goods_id)){
-				$detail['price_now'] = $fix_now_price;
-			}
+		if($fix_now_price = $this->getFixNowPrice($sp, $goods_id)){
+			$detail['price_now'] = $fix_now_price;
 		}
 
 		D('cache')->set($key, $detail, MINUTE*2, true);
@@ -363,58 +363,6 @@ class Promotion extends _Dal {
 		$this->db('promotion.queue_promo')->update($sp, $goods_id, array('cat_assign'=>0));
 	}
 
-	//匹配品牌
-	function matchAndUpdateBrand($sp, $goods_id){
-
-		if(!$sp || !$goods_id)return;
-		$detail = $this->goodsDetail($sp, $goods_id);
-		//人工审核后不再匹配
-		if(!$detail['cat'] || $detail['brand_review'])return;
-
-		$key = 'brand:details:cat:'.md5(serialize($detail['cat']));
-		$cache = D('cache')->get($key);
-		if($cache){
-			$brands = D('cache')->ret($cache);
-		}else{
-			$brands = $this->db('promotion.brand')->findAll(array('cat'=>$detail['cat']), 'id,name,name_en,sp_rule');
-			D('cache')->set($key, $brands, MINUTE*5);
-		}
-
-		clearTableName($brands);
-		$detail['name'] = goodsName($detail['name']);
-		$brand_hit = false;
-		foreach($brands as $brand){
-
-			if(preg_match('/^[a-z\\x20]$/i', $detail['name'])){
-				$detail['name_en'] = $detail['name'];
-				$detail['name'] = '';
-			}
-
-			if($detail['name'] && preg_match("/{$brand['name']}/i", $detail['name'])){
-				$brand_hit = $brand;
-				break;
-			}else if($brand['name_en'] && preg_match("/{$brand['name_en']}[^a-z0-9\+\·\'\’\:\-\&]/i", $detail['name'])){
-				$brand_hit = $brand;
-				break;
-			}else if($brand['sp_rule'] && preg_match("/({$brand['sp_rule']})[^a-z0-9\+\·\'\’\:\-\&]/i", $detail['name'])){
-				$brand_hit = $brand;
-				break;
-			}
-		}
-
-		if($brand_hit){
-			$this->db('promotion.goods')->update($sp, $goods_id, array('brand_id'=>$brand_hit['id']));
-			$this->db('promotion.queue_promo2cat')->update($sp, $goods_id, array('brand_id'=>$brand_hit['id']));
-			$this->db('promotion.review_brand')->add($sp, $goods_id);
-			//加入待审核列表
-			return $brand_hit;
-		}else{
-
-			$this->db('promotion.goods')->update($sp, $goods_id, array('brand_id'=>0));
-			$this->db('promotion.queue_promo2cat')->update($sp, $goods_id, array('brand_id'=>0));
-		}
-	}
-
 	/**
 	 * 新增商品
 	 * @return bool         是否新增成功
@@ -507,7 +455,7 @@ class Promotion extends _Dal {
 			if($ret)$this->redis('promotion')->promoCounter($sp);
 			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
 			$this->matchGoodsCat($sp, $goods_id);
-			$this->matchAndUpdateBrand($sp, $goods_id);
+			D('brand')->matchAndUpdateBrand($sp, $goods_id);
 			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
 			D('search')->buildIndex($sp, $goods_id);
 			return true;
@@ -538,7 +486,7 @@ class Promotion extends _Dal {
 			if($ret)$this->redis('promotion')->promoCounter($sp);
 			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
 			$this->matchGoodsCat($sp, $goods_id);
-			$this->matchAndUpdateBrand($sp, $goods_id);
+			D('brand')->matchAndUpdateBrand($sp, $goods_id);
 			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
 			D('search')->buildIndex($sp, $goods_id);
 			return true;
@@ -562,8 +510,19 @@ class Promotion extends _Dal {
 		//计算无效状态
 		$invalid = false;
 		$goods_detail = $this->goodsDetail($sp, $goods_id);
-		if($goods_detail['price_now'] >= $promo['price_now']*1.1){
-			$invalid = 'price_up';
+
+		//此处活动报价极有可能与探测价格不符，因此仅判断降价类型的特卖
+		if($promo['type'] == \DB\QueuePromo::TYPE_DISCOUNT){
+			if($goods_detail['price_now'] > $promo['price_now']){
+				$invalid = 'price_up';
+			}
+		}
+
+		//如果进行了强制修正，说明即使是活动，也有可能不准
+		if($fix_now_price = $this->getFixNowPrice($sp, $goods_id)){
+			if($fix_now_price > $promo['price_now']){
+				$invalid = 'price_up';
+			}
 		}
 
 		//修正当前价格比特卖价格更低，用户就觉得不准
@@ -777,51 +736,6 @@ class Promotion extends _Dal {
 
 		D('cache')->set($key, $new_suggest, DAY*10, true);
 		return $new_suggest;
-	}
-
-	//获取指定分类的品牌
-	function searchBrands($cat=null, $subcat=null, $sp_cond=array(), $limit=20){
-
-		if(!$cat && !$subcat)return;
-
-		$cond = array();
-		if($cat){
-			$cond['cat'] = $cat;
-		}
-
-		if($subcat){
-			$cond['subcat'] = $subcat;
-			$cond['cat'] = $cat = $this->subcat2cat($subcat);
-		}
-
-		$cond = $cond + $sp_cond;
-		$cond = arrayClean($cond);
-
-		$cond['brand_id'] = '<> 0';
-		$brands = $this->db('promotion.queue_promo2cat')->findAll($cond, 'DISTINCT brand_id', 'weight ASC', 300);
-		if(!$brands)return;
-		clearTableName($brands);
-		$brand_ids = array();
-		foreach ($brands as $brand) {
-			$brand_ids[] = $brand['brand_id'];
-		}
-
-		if(!$brand_ids)return;
-		$brands = $this->db('promotion.brand')->findAll(array('cat'=>$cat, 'id'=>$brand_ids), 'id,name,name_en', 'weight ASC', $limit);
-		clearTableName($brands);
-		return $brands;
-	}
-
-	//获取品牌详情
-	function brandDetail($id, $field=''){
-
-		if(!$id)return;
-		$brand = $this->db('promotion.brand')->find(array('id'=>$id));
-		clearTableName($brand);
-		if($field)
-			return $brand[$field];
-		else
-			return $brand;
 	}
 }
 ?>

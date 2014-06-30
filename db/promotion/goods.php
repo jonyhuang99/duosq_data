@@ -20,7 +20,7 @@ class Goods extends _Db {
 	function add($sp, $data){
 		if(!$sp || !$data['sp'] || !$data['url_tpl'] || !$data['url_id'])return;
 
-		$data['name'] = goodsName($data['name']);
+		$data['name'] = formatGoodsName($data['name']);
 		$this->setTable($sp);
 
 		if($goods_id = $this->field('id', array('sp'=>$data['sp'], 'url_tpl'=>$data['url_tpl'], 'url_id'=>$data['url_id']))){

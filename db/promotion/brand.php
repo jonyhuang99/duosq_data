@@ -14,7 +14,7 @@ class Brand extends _Db {
 
 		if(!$cat || !$name)return;
 		$name_en = '';
-		$name = goodsName($name);
+		$name = formatGoodsName($name);
 		if(strpos($name, '/')){
 			list($n1, $n2) = explode('/', $name);
 			if(preg_match('/^[a-z0-9\\x20\'\’\-\.\&\%\‘\:\·\~]+$/i', $n1)){

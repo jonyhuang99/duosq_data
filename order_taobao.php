@@ -13,6 +13,9 @@ class OrderTaobao extends _Dal {
 	//TODO 改匹配算法正式拿到接口后，迁移成go模块进行outcode匹配
 	function matchOutcode($order, $update_taobao_no=true, &$debug=''){
 
+		$order['user_id'] = C('comm', 'sysuser_promo');
+		return $order;
+
 		if($order['buydatetime'] == '0000-00-00 00:00:00' || date('H:i:s', strtotime($order['buydatetime'])) == '00:00:00'){
 			$buydatetime = date('Y-m-d H:i:s', strtotime($order['buydate'])+DAY);
 		}else{
