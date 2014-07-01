@@ -14,6 +14,7 @@ class OrderTaobao extends _Dal {
 	function matchOutcode($order, $update_taobao_no=true, &$debug=''){
 
 		$order['user_id'] = C('comm', 'sysuser_promo');
+		$order['fanli'] = 0;
 		return $order;
 
 		if($order['buydatetime'] == '0000-00-00 00:00:00' || date('H:i:s', strtotime($order['buydatetime'])) == '00:00:00'){

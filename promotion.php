@@ -215,9 +215,9 @@ class Promotion extends _Dal {
 	//获取商品详情
 	function goodsDetail($sp, $goods_id){
 
-		static $d = array();
+		//static $d = array();
 		if(!$sp || !$goods_id)return;
-		if(isset($d[$sp][$goods_id]))return $d[$sp][$goods_id];
+		//if(isset($d[$sp][$goods_id]))return $d[$sp][$goods_id];
 
 		$key = 'goods:detail:sp:'.$sp.':goods_id:'.$goods_id;
 		$cache = D('cache')->get($key);
@@ -235,7 +235,7 @@ class Promotion extends _Dal {
 		}
 
 		D('cache')->set($key, $detail, MINUTE*2, true);
-		$d[$sp][$goods_id] = $detail;
+		//$d[$sp][$goods_id] = $detail;
 		return $detail;
 	}
 
@@ -496,9 +496,9 @@ class Promotion extends _Dal {
 	//获取特卖详情
 	function promoDetail($sp, $goods_id){
 
-		static $d = array();
+		//static $d = array();
 		if(!$sp || !$goods_id)return;
-		if(isset($d[$sp][$goods_id]))return $d[$sp][$goods_id];
+		//if(isset($d[$sp][$goods_id]))return $d[$sp][$goods_id];
 
 		$key = 'promo:detail:sp:'.$sp.':goods_id:'.$goods_id;
 		$cache = D('cache')->get($key);
@@ -546,7 +546,7 @@ class Promotion extends _Dal {
 
 		$promo['invalid'] = $invalid;
 		D('cache')->set($key, $promo, MINUTE*2, true);
-		$d[$sp][$goods_id] = $promo;
+		//$d[$sp][$goods_id] = $promo;
 		return $promo;
 	}
 

@@ -36,9 +36,13 @@ class Review extends _Db {
 	function updateStatus($sp, $goods_id, $status){
 
 		if(!$sp || !$goods_id)return;
-		$id = $this->field('id', array('sp'=>$sp, 'goods_id'=>$goods_id));
-		if($id){
-			return parent::save(array('id'=>$id, 'status'=>$status));
+		$ids = $this->findAll(array('sp'=>$sp, 'goods_id'=>$goods_id));
+		clearTableName($ids);
+		if($ids){
+			foreach($ids as $id){
+				parent::save(array('id'=>$id['id'], 'status'=>$status));
+			}
+			return true;
 		}
 	}
 }
