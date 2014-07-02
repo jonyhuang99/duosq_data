@@ -37,7 +37,7 @@ class Review extends _Db {
 
 		if(!$sp || !$goods_id)return;
 		$ids = $this->findAll(array('sp'=>$sp, 'goods_id'=>$goods_id));
-		clearTableName($ids);
+		$ids = clearTableName($ids);
 		if($ids){
 			foreach($ids as $id){
 				parent::save(array('id'=>$id['id'], 'status'=>$status));

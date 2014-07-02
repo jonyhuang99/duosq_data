@@ -237,7 +237,7 @@ class Pay extends _Dal {
 		if(!$user_id)return false;
 		$exist = $this->db('wait_paycash')->find(array('user_id'=>$user_id));
 		if($exist){
-			clearTableName($exist);
+			$exist = clearTableName($exist);
 			$d = unserialize($exist['detail']);
 			$d[$tag] = intval(@$d[$tag]) + $amount;
 			$amount = $amount + intval($exist['amount']);

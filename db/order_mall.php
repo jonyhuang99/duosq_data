@@ -66,7 +66,7 @@ class OrderMall extends _Db {
 			throw new \Exception("[order_mall][error][o_id:{$o_id}][update][param error]");
 		}
 		$old_detail = $this->find(array('o_id'=>$o_id));
-		clearTableName($old_detail);
+		$old_detail = clearTableName($old_detail);
 
 		if(!$old_detail){
 			throw new \Exception("[order_mall][error][o_id:{$o_id}][update][o_id not exist]");

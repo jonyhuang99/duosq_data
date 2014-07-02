@@ -27,14 +27,14 @@ class OrderTaobao extends _Dal {
 		$before = date('Y-m-d', $before - DAY*15);
 
 		$hit_outcode = D()->db('outcode')->query("SELECT * FROM outcode WHERE createtime <= '{$buydatetime}' AND createtime >= '{$before}' AND param = '{$order['r_id']}' GROUP BY user_id");
-		clearTableName($hit_outcode);
+		$hit_outcode = clearTableName($hit_outcode);
 
 		//校验该店铺是否被其他人访问过，以免错单
 		$bak_user_ids = array();
 		if($order['r_wangwang']){
 
 			$ret = D('log')->db('log_search')->query("SELECT * FROM log_search WHERE createtime <= '{$buydatetime}' AND createtime >= '{$before}' AND seller = '{$order['r_wangwang']}' AND user_id <> 0 GROUP BY user_id");
-			clearTableName($ret);
+			$ret = clearTableName($ret);
 
 			if($ret){
 				foreach($ret as $log){
@@ -66,7 +66,7 @@ class OrderTaobao extends _Dal {
 				$before = strtotime($buydatetime);
 				$before = date('Y-m-d', $before - MINUTE * 10);
 				$recent_shop_ret = D('log')->db('log_search')->query("SELECT * FROM log_search WHERE createtime <= '{$buydatetime}' AND createtime >= '{$before}' AND seller = '{$order['r_wangwang']}' AND user_id <> 0 GROUP BY user_id");
-				clearTableName($hit_outcode);
+				$hit_outcode = clearTableName($hit_outcode);
 				if(count($recent_shop_ret)>1){
 					$hit_outcode = false;
 				}

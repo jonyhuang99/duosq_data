@@ -85,7 +85,7 @@ class Friend extends _Dal {
 		if($cache)return D('cache')->ret($cache, false);
 
 		$ret = $this->db('friend_quan')->findAll(array('recevier'=>$recevier, 'agree'=>0));
-		clearTableName($ret);
+		$ret = clearTableName($ret);
 
 		D('cache')->set($key, $ret, MINUTE, true);
 
@@ -98,7 +98,7 @@ class Friend extends _Dal {
 		$detail = $this->db('friend_quan')->find(array('id'=>$req_id));
 		if(!$detail)return;
 
-		clearTableName($detail);
+		$detail = clearTableName($detail);
 		if($detail['recevier'] != $recevier){
 			return;
 		}
@@ -190,7 +190,7 @@ class Friend extends _Dal {
 		}
 
 		$all = $this->db('friend_quan')->findAll("(sender='{$user_id}' AND agree=1) OR (recevier='{$user_id}' AND agree=1) ", '', 'id DESC');
-		clearTableName($all);
+		$all = clearTableName($all);
 		$friends = array();
 		if($all){
 			foreach($all as $friend){
@@ -256,10 +256,10 @@ class Friend extends _Dal {
 			$friends[] = D('myuser')->getId();
 		}
 		$list1 = $this->db('friend_quan_reward')->findAll("(user_id IN(".join(',',$friends).") AND recevier>0) OR user_id=3", '', 'createtime DESC', 50);
-		clearTableName($list1);
+		$list1 = clearTableName($list1);
 
 		$list2 = $this->db('friend_quan_reward')->findAll("user_id IN(".join(',',$friends).") AND recevier=0 AND user_id!=3", '', 'createtime DESC');
-		clearTableName($list2);
+		$list2 = clearTableName($list2);
 		$list = array_merge((array)$list2, (array)$list1);
 
 		//渲染官方红包记录
@@ -343,7 +343,7 @@ class Friend extends _Dal {
 		$luck = $this->db('friend_quan_reward')->find(array('id'=>$quan_reward_id, 'recevier'=>0));
 
 		if($luck){
-			clearTableName($luck);
+			$luck = clearTableName($luck);
 
 			//不准抢其他省钱圈的红包，官方红包除外
 			if($quan_reward_id!=1){
@@ -413,7 +413,7 @@ class Friend extends _Dal {
 
 		$last_6_hour = date('Y-m-d H:i:s', time() - $between);
 		$shopping_rank = D('order')->db('order_taobao')->query("SELECT count(*) nu, user_id FROM order_taobao WHERE createtime > '{$last_6_hour}' AND user_id > 100 AND r_status IN(".\DB\OrderTaobao::R_STATUS_PAYED.",".\DB\OrderTaobao::R_STATUS_COMPLETED.") GROUP BY user_id ORDER BY nu DESC limit 5");
-		clearTableName($shopping_rank);
+		$shopping_rank = clearTableName($shopping_rank);
 		D('cache')->set($key, $shopping_rank, HOUR);
 		return $shopping_rank;
 	}

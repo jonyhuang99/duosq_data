@@ -149,7 +149,7 @@ class Log extends _Dal {
 		$datetime = date('Y-m-d H:i:s', time()-$days*86400);
 		$records = $this->db('log_search')->findAll(array('user_id'=>D('myuser')->getId(), 'type'=>$type, 'createtime'=>"> {$datetime}"), '', 'createtime DESC', 30);
 		if(!$records)return;
-		clearTableName($records);
+		$records = clearTableName($records);
 		$new = array();
 		foreach($records as $r){
 			if(!isset($new[$r['sp'].'_'.$r['param']]))$new[$r['sp'].'_'.$r['param']] = $r;
@@ -178,7 +178,7 @@ class Log extends _Dal {
 		$sql = "SELECT sp,max(createtime) createtime FROM log_search WHERE user_id='{$user_id}' AND createtime>'{$datetime}' GROUP BY sp ORDER BY createtime DESC LIMIT {$limit}";
 		$records = $this->db('log_search')->query($sql);
 		if(!$records)return;
-		clearTableName($records);
+		$records = clearTableName($records);
 
 		return $records;
 	}

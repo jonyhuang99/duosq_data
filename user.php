@@ -22,7 +22,7 @@ class user extends _Dal {
 			$ret = self::$user_detail[$user_id];
 		}else{
 			$ret = $this->db('user')->find(array('id'=>$user_id));
-			clearTableName($ret);
+			$ret = clearTableName($ret);
 			self::$user_detail[$user_id] = $ret;
 		}
 
@@ -116,7 +116,7 @@ class user extends _Dal {
 		$hit = $this->db('user_taobao')->findAll(array('taobao_no'=>$no));
 		$user_ids = array();
 		if($hit){
-			clearTableName($hit);
+			$hit = clearTableName($hit);
 			foreach($hit as $h){
 				$user_ids[$h['user_id']] = 1;
 			}
@@ -139,7 +139,7 @@ class user extends _Dal {
 
 		$taobao_no = array();
 		if($hit){
-			clearTableName($hit);
+			$hit = clearTableName($hit);
 			foreach($hit as $h){
 				$taobao_no[] = $h['taobao_no'];
 			}

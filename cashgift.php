@@ -35,7 +35,7 @@ class Cashgift extends _Dal {
 
 		$gift = D('order')->getSubList('cashgift', array('user_id'=>$user_id, 'gifttype'=>$gifttype, 'status'=>\DB\OrderCashgift::STATUS_WAIT_ACTIVE), 'reach ASC', 1);
 		if($gift){
-			clearTableName($gift);
+			$gift = clearTableName($gift);
 			$reach = $gift['reach'];
 		}else{
 			return false;

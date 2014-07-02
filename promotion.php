@@ -330,7 +330,7 @@ class Promotion extends _Dal {
 
 		if($promo){
 			$promo2cat = $this->db('promotion.queue_promo2cat')->findAll(array('sp'=>$sp, 'goods_id'=>$goods_id));
-			clearTableName($promo2cat);
+			$promo2cat = clearTableName($promo2cat);
 			if($promo2cat && count($promo2cat) == count($subcats)){
 				$promo2cat_subcat = array();
 				foreach($promo2cat as $p){
@@ -506,7 +506,7 @@ class Promotion extends _Dal {
 
 		$promo = $this->db('promotion.queue_promo')->find(array('sp'=>$sp, 'goods_id'=>$goods_id));
 		if(!$promo)return;
-		clearTableName($promo);
+		$promo = clearTableName($promo);
 		//计算无效状态
 		$invalid = false;
 		$goods_detail = $this->goodsDetail($sp, $goods_id);
@@ -595,7 +595,7 @@ class Promotion extends _Dal {
 		list($order, $limit, $page) = $pn->init($condition_str, array('modelClass' => $this->db('promotion.queue_promo2cat'), 'fields'=>'DISTINCT sp, goods_id, type'));
 
 		$result = $this->db('promotion.queue_promo2cat')->findAll($condition_str, 'DISTINCT sp, goods_id, type', 'ORDER BY weight DESC, id DESC', $limit, $page);
-		clearTableName($result);
+		$result = clearTableName($result);
 		if(!$result)$result = array();
 
 		$this->db('promotion.queue_promo');
@@ -616,7 +616,7 @@ class Promotion extends _Dal {
 			}
 
 			$result_hodong = $this->db('promotion.queue_promo2cat')->findAll($condition, 'DISTINCT sp, goods_id, type', 'ORDER BY weight DESC, ORDER BY id DESC', 3);
-			clearTableName($result_hodong);
+			$result_hodong = clearTableName($result_hodong);
 
 			if($result_hodong){
 				foreach($result_hodong as $huodong){
@@ -672,7 +672,7 @@ class Promotion extends _Dal {
 					$saled_str = "上周原价热销：<font class=blue>{$saled}</font>件<br />";
 					$tmp['week_sales'] = $saled;
 				}
-				$tmp['hd_content'] = '90天均价：¥'.price_yuan($tmp['price_avg']).'<br />'.$saled_str.'刚刚降至：<font class=orange>¥'.price_yuan($tmp['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($tmp['price_now'], $tmp['price_avg']).'%</font>哟~';
+				$tmp['hd_content'] = '<br />90天均价：<font class="blue">¥'.price_yuan($tmp['price_avg']).'</font><br />'.$saled_str.'刚刚降至：<font class=orange>¥'.price_yuan($tmp['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($tmp['price_now'], $tmp['price_avg']).'%</font>哟~';
 			}
 
 			if(time() - strtotime($promo_detail['createdate']) < DAY){

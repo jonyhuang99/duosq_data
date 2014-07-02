@@ -28,7 +28,7 @@ class Brand extends _Db {
 
 		$exist = $this->find(array('cat'=>$cat, 'name'=>$name));
 		if(!$exist && $name_en) $this->find(array('cat'=>$cat, 'name_en'=>$name_en));
-		clearTableName($exist);
+		$exist = clearTableName($exist);
 		if(!$exist){
 			$this->create();
 			return parent::save(array('cat'=>$cat, 'name'=>$name, 'name_en'=>$name_en, 'weight'=>$weight));

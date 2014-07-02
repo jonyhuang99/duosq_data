@@ -11,7 +11,7 @@ class Item extends _Dal {
 		if (!$sp || !$param) return false;
 		$log_obj = $this->db('cache_api_item');
 		$cache = $log_obj->find(array('sp' => $sp, 'p_id' => $param, 'createdate' => date('Y-m-d')));
-		clearTableName($cache);
+		$cache = clearTableName($cache);
 
 		if ($cache){
 			if(!$cache['content'])return;
@@ -57,7 +57,7 @@ class Item extends _Dal {
 		if(!$wangwang)return;
 		$log_obj = $this->db('cache_api_item');
 		$cache = $log_obj->find(array('sp' => 'taobao', 'seller' => $wangwang, 'is_tmall'=>1));
-		clearTableName($cache);
+		$cache = clearTableName($cache);
 		if($cache){
 			return $cache['is_tmall'];
 		}else{

@@ -47,7 +47,7 @@ class Goods extends _Db {
 
 		$this->setTable($sp);
 		$ret = $this->find(array('id'=>$goods_id, 'sp'=>$sp));
-		clearTableName($ret);
+		$ret = clearTableName($ret);
 
 		if($field)return $ret[$field];
 

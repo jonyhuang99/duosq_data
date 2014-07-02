@@ -19,7 +19,7 @@ class Shop extends _Dal {
 				$shop = D('cache')->ret($cache);
 			}else{
 				$shop = $this->db('shop')->find(array('sp'=>$sp));
-				clearTableName($shop);
+				$shop = clearTableName($shop);
 
 				D('cache')->set($key, $shop, MINUTE*10);
 			}

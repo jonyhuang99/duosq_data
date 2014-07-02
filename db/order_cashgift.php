@@ -95,7 +95,7 @@ class OrderCashgift extends _Db {
 		}
 
 		if(isset($new_field['status'])){
-			clearTableName($old_detail);
+			$old_detail = clearTableName($old_detail);
 			if($old_detail['status'] != $new_field['status']){
 				$this->afterUpdateStatus($o_id, $old_detail['status'], $new_field['status']);
 			}

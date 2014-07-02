@@ -103,7 +103,7 @@ class Order extends _Db {
 		if($fanli){
 
 			$old = $this->find(array('o_id'=>$o_id));
-			clearTableName($old);
+			$old = clearTableName($old);
 			if($old['n']==0 && $old['amount']==0){
 				$ret = parent::save(array('o_id'=>$o_id, 'n'=>self::N_ADD, 'amount'=>$fanli));
 			}else{

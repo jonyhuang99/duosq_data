@@ -33,7 +33,7 @@ class Search extends _Dal {
 		if(!isset($cond['sp']))$cond['sp'] = '<> taobao';
 
 		$ret = $this->db('promotion.search_promo')->findAll($cond, 'sp, goods_id', 'weight DESC, id DESC', $limit);
-		clearTableName($ret);
+		$ret = clearTableName($ret);
 		return D('promotion')->renderPromoDetail($ret);
 	}
 

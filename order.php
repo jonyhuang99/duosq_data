@@ -39,7 +39,7 @@ class Order extends _Dal {
 
 		$result = $this->db('order')->findAll($condition, '', $order, $limit, $page);
 		//TODO联合子表查出子表状态
-		clearTableName($result);
+		$result = clearTableName($result);
 		$result = $this->_withSubDetail($result);
 		$result = $this->_renderStatus($result);
 		$result = $this->_renderSub($result);
@@ -97,7 +97,7 @@ class Order extends _Dal {
 
 		if(!$sub)return;
 		$lists = $this->db('order_'.$sub)->findAll(arrayClean($condition), '', $orderby, $limit);
-		clearTableName($lists);
+		$lists = clearTableName($lists);
 		$lists = $this->_withMainDetail($lists);
 		return $lists;
 	}
@@ -112,7 +112,7 @@ class Order extends _Dal {
 
 		if(!$sub)return;
 		$ret = $this->db('order_'.$sub)->find(array('o_id'=>$o_id));
-		clearTableName($ret);
+		$ret = clearTableName($ret);
 		if($field){
 			return $ret[$field];
 		}else{
@@ -555,7 +555,7 @@ class Order extends _Dal {
 
 		if(!$r_orderid)return;
 		$detail = $this->db('order_chuser')->find(array('r_orderid'=>$r_orderid));
-		clearTableName($detail);
+		$detail = clearTableName($detail);
 		$user_id = $detail['user_id'];
 		$r_id = $detail['r_id'];
 		$this->db('order_chuser')->query("DELETE FROM order_chuser WHERE r_orderid = '{$r_orderid}'");
@@ -795,7 +795,7 @@ class Order extends _Dal {
 
 		foreach($o_ids as $sub => $o_id){
 			$details = $this->db('order_'.$sub)->findAll(array('o_id'=>$o_id));
-			clearTableName($details);
+			$details = clearTableName($details);
 			foreach ($details as $detail) {
 				$marked_list[$detail['o_id']]['sub_detail'] = $detail;
 			}
@@ -821,7 +821,7 @@ class Order extends _Dal {
 
 		foreach($o_ids as $o_id){
 			$details = $this->db('order')->findAll(array('o_id'=>$o_id));
-			clearTableName($details);
+			$details = clearTableName($details);
 			foreach ($details as $detail) {
 				$marked_list[$detail['o_id']]['main_detail'] = $detail;
 			}

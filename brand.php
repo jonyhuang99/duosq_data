@@ -24,7 +24,7 @@ class Brand extends _Dal {
 		$cond['brand_id'] = '<> 0';
 		$brands = $this->db('promotion.queue_promo2cat')->findAll($cond, 'DISTINCT brand_id', 'weight ASC', 300);
 		if(!$brands)return;
-		clearTableName($brands);
+		$brands = clearTableName($brands);
 		$brand_ids = array();
 		foreach ($brands as $brand) {
 			$brand_ids[] = $brand['brand_id'];
@@ -32,7 +32,7 @@ class Brand extends _Dal {
 
 		if(!$brand_ids)return;
 		$brands = $this->db('promotion.brand')->findAll(array('id'=>$brand_ids, 'cat'=>$cat), 'id,name,name_en,weight', 'weight ASC', $limit);
-		clearTableName($brands);
+		$brands = clearTableName($brands);
 		return $brands;
 	}
 
@@ -41,7 +41,7 @@ class Brand extends _Dal {
 
 		if(!$id)return;
 		$brand = $this->db('promotion.brand')->find(array('id'=>$id));
-		clearTableName($brand);
+		$brand = clearTableName($brand);
 		if($field)
 			return $brand[$field];
 		else
@@ -65,7 +65,7 @@ class Brand extends _Dal {
 			D('cache')->set($key, $brands, MINUTE*5);
 		}
 
-		clearTableName($brands);
+		$brands = clearTableName($brands);
 		$brand_hit = false;
 		foreach($brands as $brand){
 

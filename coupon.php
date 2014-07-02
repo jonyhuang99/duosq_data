@@ -81,7 +81,7 @@ class Coupon extends _Dal {
 		$coupon_id = $this->db('coupon')->field('id', array('is_used'=>0, 'user_id'=>$user_id, 'type'=>$in_type, 'expiredate'=>'>= '.date('Y-m-d')));
 
 		if($coupon_id){
-			clearTableName($detail);
+			$detail = clearTableName($detail);
 			//判断订单归属
 			if(D('order')->detail($o_id, 'user_id')!= $user_id)return;
 
@@ -111,7 +111,7 @@ class Coupon extends _Dal {
 
 		$ret = array();
 		if($coupons){
-			clearTableName($coupons);
+			$coupons = clearTableName($coupons);
 			foreach($coupons as $coupon){
 				@$ret[$coupon['type']] += 1;
 			}
@@ -156,7 +156,7 @@ class Coupon extends _Dal {
 		$luck_users = $this->db('coupon')->findAll(array('createdate'=>date('Y-m-d'), 'type'=>self::TYPE_DOUBLE), '', 'id DESC', 10);
 		$list = array();
 		if($luck_users){
-			clearTableName($luck_users);
+			$luck_users = clearTableName($luck_users);
 			foreach($luck_users as $detail){
 				$list[$detail['type']][$detail['user_id']] = $detail;
 			}
@@ -164,7 +164,7 @@ class Coupon extends _Dal {
 
 		$luck_users2 = $this->db('coupon')->findAll(array('createdate'=>'>'.date('Y-m-d', time()-DAY*10), 'type'=>'<> '.self::TYPE_DOUBLE), '', 'id DESC', 10);
 		if($luck_users2){
-			clearTableName($luck_users2);
+			$luck_users2 = clearTableName($luck_users2);
 			foreach($luck_users2 as $detail){
 				$list[$detail['type']][] = $detail;
 			}

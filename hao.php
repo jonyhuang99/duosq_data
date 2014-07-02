@@ -118,7 +118,7 @@ class Hao extends _Dal {
 	function get($user_id){
 
 		$design = $this->db('hao')->find(array('user_id'=>$user_id));
-		clearTableName($design);
+		$design = clearTableName($design);
 		if($design){
 			$this->db('hao')->save(array('user_id'=>$design['user_id'], 'times'=>$design['times']+1));
 			if($design['design'])

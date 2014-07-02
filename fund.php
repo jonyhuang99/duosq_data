@@ -30,7 +30,7 @@ class Fund extends _Dal {
 
 		$ret = array(self::CASHTYPE_JFB=>0, self::CASHTYPE_CASH=>0);
 		if($fund_logs){
-			clearTableName($fund_logs);
+			$fund_logs = clearTableName($fund_logs);
 			foreach($fund_logs as $fund){
 				if($fund['n']==-1){
 					$ret[$fund['cashtype']] -= $fund['amount'];
@@ -184,7 +184,7 @@ class Fund extends _Dal {
 
 		$ret = array(self::CASHTYPE_JFB=>0, self::CASHTYPE_CASH=>0);
 		if($fund_logs){
-			clearTableName($fund_logs);
+			$fund_logs = clearTableName($fund_logs);
 			foreach($fund_logs as $fund){
 				if($fund['n']==-1){
 					$ret[$fund['cashtype']] -= $fund['amount'];

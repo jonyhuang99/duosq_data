@@ -73,7 +73,7 @@ class OrderTaobao extends _Db {
 		}
 
 		$old_detail = $this->find(array('o_id'=>$o_id));
-		clearTableName($old_detail);
+		$old_detail = clearTableName($old_detail);
 
 		if(!$old_detail){
 			throw new \Exception("[order_taobao][error][o_id:{$o_id}][update][o_id not exist]");
@@ -116,7 +116,6 @@ class OrderTaobao extends _Db {
 				unset($new_field['fanli']);
 			}
 		}
-
 
 		$new_field['o_id'] = $o_id;
 		$ret = parent::save(arrayClean($new_field));

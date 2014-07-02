@@ -25,7 +25,7 @@ class QueuePromo2cat extends _Db {
 
 		$hits = $this->findAll(array('sp'=>$sp, 'goods_id'=>$goods_id));
 		$hit_ids = array();
-		clearTableName($hits);
+		$hits = clearTableName($hits);
 		if(!$hits)return;
 		foreach($hits as $hit){
 			$data['id'] = $hit['id'];
