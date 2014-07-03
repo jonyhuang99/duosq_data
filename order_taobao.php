@@ -109,11 +109,11 @@ class OrderTaobao extends _Dal {
 			if(!$hit_outcode['fanli_rate']) $fanli_rate = C('comm', 'fanli_taobao_rate');
 		}
 
+		//该订单必须是新增的，此处修正查找同订单，不同商品比例不同导致旧佣金比例错乱
+		$order_existed = D('order')->getSubList('taobao', array('r_orderid'=>$order['r_orderid'], 'r_id'=>$order['r_id']));
+
 		//修正用户购买同一个商品，不同r_taobao_no，进入审核，防止大量误assign
 		if(!D('user')->sys($user_id)){
-
-			//该订单必须是新增的，此处修正查找同订单，不同商品比例不同导致旧佣金比例错乱
-			$order_existed = D('order')->getSubList('taobao', array('r_orderid'=>$order['r_orderid'], 'r_id'=>$order['r_id']));
 
 			$hit = D('order')->getSubList('taobao', array('user_id'=>$user_id,'r_taobao_no'=>"<> {$taobao_no}", 'r_id'=>$order['r_id']));
 			if($hit){

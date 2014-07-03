@@ -84,6 +84,7 @@ class OrderTaobao extends _Db {
 
 		//用户ID从系统号变化，当主订单状态未打款前，都可以修正
 		//TODO 与chuser统一
+		/*
 		if(isset($new_field['user_id']) && $new_field['user_id']!=$old_detail['user_id'] && ((!D('user')->sys($new_field['user_id']) && D('user')->sys($old_detail['user_id'])) || $force)){
 			//修正主订单用户ID
 			$main_status = D('order')->detail($o_id, 'status');
@@ -101,6 +102,8 @@ class OrderTaobao extends _Db {
 		}else if(isset($new_field['user_id'])){
 			unset($new_field['user_id']);
 		}
+		*/
+		unset($new_field['user_id']);//7.1不再跟单，新单强制为系统用户，旧单不允许改用户名
 
 		//返利变化，及时更改订单返利，订单审核过了就不能再变
 		//TODO实在是审核后在变化，需要走特殊通道调整
