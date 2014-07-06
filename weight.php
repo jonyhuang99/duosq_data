@@ -69,7 +69,7 @@ class Weight extends _Dal {
 		//B2C权重
 		if($sp!='taobao' && $sp!='tmall' && $sp!='jd'){
 			$weight[] = 1;
-			$tmp_detail['sp_weight'] = "{$sp}=>3";
+			$tmp_detail['sp_weight'] = "{$sp}=>1";
 		}
 
 		//折扣权重

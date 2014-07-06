@@ -179,6 +179,25 @@ class Promotion extends _Dal {
 		return '';
 	}
 
+	//从商品的中分类找出中分类
+	function midcat2cat($midcat){
+
+		if(!$midcat)return;
+		static $midcat2cat = array();
+		if(isset($midcat2cat[$midcat]))return $midcat2cat[$midcat];
+
+		$cat_config = $this->getCatConfig(true);
+		foreach($cat_config as $c_cat => $c_subcats){
+			foreach($c_subcats as $c_midcat => $c_subcat){
+				$midcat2cat[$c_midcat] = $c_cat;
+				if($c_midcat == $midcat){
+					return $c_cat;
+				}
+			}
+		}
+		return '';
+	}
+
 	//获取商品分类匹配规则(全填读取指定子分类规则，任一不填返回所有分类匹配规则)
 	function getCatRules($cat='', $subcat=''){
 
