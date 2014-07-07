@@ -30,10 +30,10 @@ class Promotion extends _Redis {
 
 		if(!$date)$date = date('Y-m-d');
 		$start = strtotime($date) - WEEK;
-		$end = strtotime($date) + DAY;
+		$end = time();
 
 		if(rand(0,10) > 7)//清理
-			$this->zremrangebyscore($key, 0, time() - WEEK*2);
+			$this->zremrangebyscore($key, 0, time() - WEEK*4);
 		return intval($this->zcount($key, $start, $end));
 	}
 

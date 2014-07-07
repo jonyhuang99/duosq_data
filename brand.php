@@ -5,7 +5,7 @@ namespace DAL;
 class Brand extends _Dal {
 
 	//搜索指定分类下特卖的品牌
-	function searchInPromo($cat, $subcat=null, $sp_cond=array(), $limit=20){
+	function searchInPromo($cat=null, $subcat=null, $sp_cond=array(), $limit=20){
 
 		if(!$cat)return;
 
@@ -18,11 +18,12 @@ class Brand extends _Dal {
 			$cond['subcat'] = $subcat;
 		}
 
-		$cond = $cond + $sp_cond;
+		$cond = $cond + (array)$sp_cond;
 		$cond = arrayClean($cond);
 
 		$cond['brand_id'] = '<> 0';
-		$brands = $this->db('promotion.queue_promo2cat')->findAll($cond, 'DISTINCT brand_id', 'weight ASC', 300);
+
+		$brands = $this->db('promotion.queue_promo2cat')->findAll($cond, 'DISTINCT brand_id', 'weight DESC', 300);
 		if(!$brands)return;
 		$brands = clearTableName($brands);
 		$brand_ids = array();
@@ -31,7 +32,7 @@ class Brand extends _Dal {
 		}
 
 		if(!$brand_ids)return;
-		$brands = $this->db('promotion.brand')->findAll(array('id'=>$brand_ids, 'cat'=>"like %{$cat}%"), 'id,name,name_en,weight', 'weight ASC', $limit);
+		$brands = $this->db('promotion.brand')->findAll(array('id'=>$brand_ids, 'cat'=>"like %{$cat}%"), 'id,name,name_en,weight', 'weight DESC', $limit);
 		$brands = clearTableName($brands);
 		return $brands;
 	}
@@ -40,7 +41,7 @@ class Brand extends _Dal {
 	function search($name, $limit=10){
 
 		if(!$name)return;
-		$brands = $this->db('promotion.brand')->findAll(array('name_search' => "like %{$name}%"), 'id,name,name_en,weight', 'weight ASC', $limit);
+		$brands = $this->db('promotion.brand')->findAll(array('name_search' => "like %{$name}%"), 'id,name,name_en,weight', 'weight DESC', $limit);
 		return clearTableName($brands);
 	}
 
