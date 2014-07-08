@@ -89,6 +89,7 @@ class Taobao extends _Api {
 	//判断商品是否支持返利
 	function isRebateAuth($num_iid){
 
+		if(!$num_iid)return;
 		I('api/taobao/top/TopClient');
 		I('api/taobao/top/request/TaobaokeRebateAuthorizeGetRequest.php');
 		//实例化TopClient类
@@ -110,6 +111,7 @@ class Taobao extends _Api {
 	//TODO用户搜索时，使用daemon模式获取淘点金跳转链接，默认渲染到taobao跳转页面，提高兼容性
 	function getItemDetailByServer($iid){
 
+		if(!$iid)return;
 		$rf=urlencode(MY_HOMEPAGE_URL.'/go/taobao?param='.$iid.'&tc=index');
 		$pid=C('keys', 'taobao_mm');
 
@@ -157,6 +159,7 @@ class Taobao extends _Api {
 	//访问淘宝suggest接口
 	function getSuggest($keyword, $limit = 10){
 
+		if(!$keyword)return;
 		$data = file_get_contents('http://suggest.taobao.com/sug?code=utf-8&callback=jQuery'.rand(10000,99999).'&q='.urlencode($keyword));
 		if(!$data)return array();
 
@@ -170,6 +173,29 @@ class Taobao extends _Api {
 		}
 
 		return $tmp;
+	}
+
+	//搜索淘宝店铺
+	function searchShop($keyword){
+
+		if(!$keyword)return;
+		I('api/taobao/top/TopClient');
+		I('api/taobao/top/request/TbkShopsGetRequest.php');
+		//实例化TopClient类
+		$client = new \TopClient;
+		$client->format = 'json';
+		$keys = C('keys', 'taobao_api_appkey_main');
+		$client->appkey = $keys[0]['key'];
+		$client->secretKey = $keys[0]['secret'];
+
+		$req = new \TbkShopsGetRequest;
+		$req->setKeyword($keyword);
+		$req->setFields('user_id,seller_nick,shop_title,pic_url,shop_url');
+		$resp = $client->execute($req);
+		if($resp && isset($resp->tbk_shops)){
+			var_dump($resp->tbk_shops);
+		}
+		return;
 	}
 }
 ?>

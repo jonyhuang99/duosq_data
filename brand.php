@@ -5,6 +5,7 @@ namespace DAL;
 class Brand extends _Dal {
 
 	//搜索指定分类下特卖的品牌
+	//cat支持数组
 	function searchInPromo($cat=null, $subcat=null, $sp_cond=array(), $limit=20){
 
 		if(!$cat)return;
@@ -32,7 +33,12 @@ class Brand extends _Dal {
 		}
 
 		if(!$brand_ids)return;
-		$brands = $this->db('promotion.brand')->findAll(array('id'=>$brand_ids, 'cat'=>"like %{$cat}%"), 'id,name,name_en,weight', 'weight DESC', $limit);
+
+		if(is_array($cat)){
+			$cat = '(' . join('|', $cat) . ')';
+		}
+
+		$brands = $this->db('promotion.brand')->findAll(array('id'=>$brand_ids, 'cat'=>"REGEXP {$cat}"), 'id,name,name_en,weight', 'weight DESC', $limit);
 		$brands = clearTableName($brands);
 		return $brands;
 	}
@@ -56,6 +62,22 @@ class Brand extends _Dal {
 		}else{
 			$detail = $this->db('promotion.brand')->find(array('id'=>$id));
 			$detail = clearTableName($detail);
+			if($detail['shop_in_b2c'])
+				$detail['shop_in_b2c'] = explode(',', $detail['shop_in_b2c']);
+			else
+				$detail['shop_in_b2c'] = array();
+
+			if($detail['shop_in_tmall']){
+				$tmp = explode("\n", $detail['shop_in_tmall']);
+				$detail['shop_in_tmall'] = array();
+				foreach($tmp as $line){
+					list($name, $url) = explode('|', $line);
+					$detail['shop_in_tmall'][] = array('name'=>$name, 'url'=>$url);
+				}
+			}else{
+				$detail['shop_in_tmall'] = array();
+			}
+
 			D('cache')->set($key, $detail, MINUTE*10, true);
 		}
 
@@ -101,8 +123,18 @@ class Brand extends _Dal {
 		if($brand_hit){
 			$this->db('promotion.goods')->update($sp, $goods_id, array('brand_id'=>$brand_hit['id']));
 			$this->db('promotion.queue_promo2cat')->update($sp, $goods_id, array('brand_id'=>$brand_hit['id']));
-			$this->db('promotion.review_brand')->add($sp, $goods_id);
 			//加入待审核列表
+			$this->db('promotion.review_brand')->add($sp, $goods_id);
+
+			//标识品牌在商城有卖
+			$brand = $this->detail($brand_hit['id']);
+			if(!in_array($sp, $brand['shop_in_b2c'])){
+				$brand['shop_in_b2c'][] = $sp;
+				$this->db('promotion.brand')->save(array('id'=>$brand_hit['id'], 'shop_in_b2c'=>join(',', $brand['shop_in_b2c'])));
+				$key = 'brand:detail:'.$brand_hit['id'];
+				D('cache')->clean($key);
+			}
+
 			return $brand_hit;
 		}else{
 
