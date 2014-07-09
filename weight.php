@@ -6,7 +6,7 @@ namespace DAL;
 class Weight extends _Dal {
 
 	//默认算法
-	var $default_exp = 'e140703';
+	var $default_exp = 'e140709';
 
 	function getExp(){
 		return $this->default_exp;
@@ -58,7 +58,7 @@ class Weight extends _Dal {
 	 * 越新降价的商品权重越大，8折降价商品高于2天前4折商品
 	 * 销量越高权重越大，最高周销量可停留3天
 	 */
-	function e140703($promo_detail, &$exp_detail){
+	function e140709($promo_detail, &$exp_detail){
 
 		$sp = $promo_detail['sp'];
 		$goods_id = $promo_detail['goods_id'];
