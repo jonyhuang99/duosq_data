@@ -22,7 +22,7 @@ class Alarm extends _Dal {
 	//导入订单出错紧急报警
 	function importOrdersErr($type){
 
-		if(date('d') == 1){
+		if(date('d') == 1 || date('H') < 12){
 			//每月1号，yiqifa数据为空，导致误报，此时延迟6小时报警
 			$expire = HOUR * 6;
 		}else{
