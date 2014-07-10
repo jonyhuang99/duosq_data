@@ -749,7 +749,6 @@ class Promotion extends _Dal {
 		if(!$keyword)return;
 		$key = 'promotion:suggest:keyword:'.md5($keyword);
 		$cache = D('cache')->get($key);
-		$new_suggest = array();
 		if($cache)return D('cache')->ret($cache);
 
 		$suggest = $this->api('taobao')->getSuggest($keyword, 15);

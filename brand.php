@@ -128,7 +128,7 @@ class Brand extends _Dal {
 
 			//标识品牌在商城有卖
 			$brand = $this->detail($brand_hit['id']);
-			if(!in_array($sp, $brand['shop_in_b2c'])){
+			if(!in_array($sp, $brand['shop_in_b2c']) && $sp <> 'taobao' && $sp <> 'tmall'){
 				$brand['shop_in_b2c'][] = $sp;
 				$this->db('promotion.brand')->save(array('id'=>$brand_hit['id'], 'shop_in_b2c'=>join(',', $brand['shop_in_b2c'])));
 				$key = 'brand:detail:'.$brand_hit['id'];
