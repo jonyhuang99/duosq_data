@@ -4,7 +4,7 @@ namespace API;
 
 class Interal extends _Api {
 
-	var $pre = 'http://api.duosq.com/Interal/';
+	var $pre = 'http://api.duosq.com:8080/Interal/';
 
 	function pay($user_id){
 

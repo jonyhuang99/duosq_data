@@ -26,7 +26,7 @@ class Alarm extends _Dal {
 			//每月1号，yiqifa数据为空，导致误报，此时延迟6小时报警
 			$expire = HOUR * 6;
 		}else{
-			$expire = MINUTE*5;
+			$expire = HOUR;
 		}
 		$entry_params = D()->redis('alarm')->accum('auto_import:error', $expire, $type);
 
@@ -109,6 +109,16 @@ class Alarm extends _Dal {
 
 		if($entry_params){
 			$this->_fireEmail('特卖：降价数据新增', $entry_params);
+		}
+	}
+
+	//订阅：IP邮箱订阅超限新增报警
+	function subscribe($entry){
+
+		$entry_params = D()->redis('alarm')->accum('subscribe:ip', HOUR, $entry);
+
+		if($entry_params){
+			$this->_fireEmail('订阅：IP尝试超限', $entry_params);
 		}
 	}
 

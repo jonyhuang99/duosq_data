@@ -6,7 +6,7 @@ class Brand extends _Dal {
 
 	//搜索指定分类下特卖的品牌
 	//cat支持数组
-	function searchInPromo($cat=null, $subcat=null, $sp_cond=array(), $limit=20){
+	function searchInPromo($cat=null, $subcat=null, $sp_cond=array(), $limit=60){
 
 		if(!$cat)return;
 
@@ -44,10 +44,10 @@ class Brand extends _Dal {
 	}
 
 	//搜索品牌库
-	function search($name, $limit=10){
+	function search($condition, $limit=10){
 
-		if(!$name)return;
-		$brands = $this->db('promotion.brand')->findAll(array('name_search' => "like %{$name}%"), 'id,name,name_en,weight', 'weight DESC', $limit);
+		if(!$condition)return;
+		$brands = $this->db('promotion.brand')->findAll($condition, 'id,name,name_en,weight', 'weight DESC', $limit);
 		return clearTableName($brands);
 	}
 
@@ -87,6 +87,19 @@ class Brand extends _Dal {
 			return $detail;
 	}
 
+	//获取品牌名称
+	function getName($brand_id, $full=true){
+
+		$brand = $this->detail($brand_id);
+		if(!$brand)return '';
+		if(!$full){
+			return $brand['name_en']?$brand['name_en']:$brand['name'];
+		}else{
+			$tmp = array($brand['name'], $brand['name_en']);
+			return join('/', arrayClean($tmp));
+		}
+	}
+
 	//匹配品牌
 	function matchAndUpdateBrand($sp, $goods_id){
 
@@ -108,7 +121,7 @@ class Brand extends _Dal {
 		$brand_hit = false;
 		foreach($brands as $brand){
 
-			if($brand['name'] && preg_match("/{$brand['name']}/i", $detail['name']) && (!$brand['ex_rule'] || !preg_match("/({$brand['ex_rule']})/i", $detail['name']))){
+			if($brand['name'] && preg_match("/{$brand['name']}/i", $detail['name']) && (!$brand['ex_rule'] || !preg_match("/(".$brand['ex_rule'].")/i", $detail['name']))){
 				$brand_hit = $brand;
 				break;
 			}else if($brand['name_en'] && preg_match("/{$brand['name_en']}[^a-z0-9\+\·\'\’\:\-\&]/i", $detail['name']) && (!$brand['ex_rule'] || !preg_match("/({$brand['ex_rule']})/i", $detail['name']))){

@@ -183,5 +183,18 @@ class Speed extends _Dal {
 			return $this->redis('speed')->sget('pay_jfb:user_id:'.$user_id.':day:'.date('d'), DAY, 2);
 		}
 	}
+
+	/**
+	 * 订阅邮件，C段IP，每小时不超过5次
+	 * @return [bool] [是否超速]
+	 */
+	function subscribe(){
+
+		$limit = $this->redis('speed')->sincr('subscribe:ip:'.getIp(), MINUTE*10, 5);
+		if($limit){
+			D('alarm')->subscribe(getIp());
+			return true;
+		}
+	}
 }
 ?>
