@@ -93,7 +93,7 @@ class Brand extends _Dal {
 		$brand = $this->detail($brand_id);
 		if(!$brand)return '';
 		if(!$full){
-			return $brand['name_en']?$brand['name_en']:$brand['name'];
+			return $brand['name']?$brand['name']:$brand['name_en'];
 		}else{
 			$tmp = array($brand['name'], $brand['name_en']);
 			return join('/', arrayClean($tmp));
