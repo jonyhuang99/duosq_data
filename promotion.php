@@ -626,7 +626,14 @@ class Promotion extends _Dal {
 
 		$condition_str = array();
 		foreach($condition as $field => $c){
-			$condition_str[] = "{$field} = '{$c}'";
+
+			if(is_array($c)){
+				$condition_str[] = "{$field} in ('" . join("','", $c) . "')";
+			}elseif (preg_match('/^(?:in|not in)/i', $c)){
+				$condition_str[] = $field . ' ' . $value;
+			}else{
+				$condition_str[] = "{$field} = '{$c}'";
+			}
 		}
 		$condition_str[] = "sp <> 'taobao'";
 		$condition_str = join(' AND ', $condition_str);
