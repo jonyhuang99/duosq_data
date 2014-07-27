@@ -168,5 +168,30 @@ class Subscribe extends _Dal {
 		}
 		return $ret;
 	}
+
+	//标识已经接收到了通知，$message_ids为批量时，times_open也只累加1次
+	function markOpened($account, $channel, $message_ids){
+
+		if(!$account || !$channel || !$message_ids)return false;
+		$ids = explode(',', $message_ids);
+		foreach($ids as $id){
+			$detail = $this->db('promotion.subscribe_message')->detail($account, $channel, $id);
+			if($detail['status'] != \DB\SubscribeMessage::STATUS_OPENED){
+				$this->db('promotion.subscribe_message')->update($account, $channel, $id, array('status'=>\DB\SubscribeMessage::STATUS_OPENED, 'opentime'=>date('Y-m-d H:i:s')));
+			}
+		}
+
+		$times_open = $this->db('promotion.subscribe')->detail($account, $channel, 'times_open');
+		$times_open += 1;
+		$this->db('promotion.subscribe')->update($account, $channel, array('times_open'=>$times_open));
+		return true;
+	}
+
+	//读取订阅消息列表
+	function getMessageList($account, $channel, $cond=array(), $limit=10){
+		if(!$account || !$channel)return false;
+
+		return $this->db('promotion.subscribe_message')->getList($account, $channel, $cond, $limit);
+	}
 }
 ?>

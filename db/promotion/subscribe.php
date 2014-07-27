@@ -14,7 +14,7 @@ class Subscribe extends _Db {
 	//返回指定账户订阅信息
 	function detail($account, $channel='email', $field=''){
 
-		if(!$account)return false;
+		if(!$account || !$channel)return false;
 		$ret = parent::findAll(array('account'=>$account, 'channel'=>$channel));
 		if(empty($ret[0]))return false;
 		$ret = clearTableName($ret[0]);
