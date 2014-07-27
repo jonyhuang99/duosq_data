@@ -47,6 +47,7 @@ class Subscribe extends _Db {
 		$data['id'] = $id;
 
 		$ret = parent::save($data);
+		return $ret;
 	}
 
 	//置空save，只允许从add/update进入

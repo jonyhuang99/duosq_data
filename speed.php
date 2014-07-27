@@ -190,7 +190,7 @@ class Speed extends _Dal {
 	 */
 	function subscribe(){
 
-		$limit = $this->redis('speed')->sincr('subscribe:ip:'.getIp(), MINUTE*10, 5);
+		$limit = $this->redis('speed')->sincr('subscribe:ip:'.getIp(), MINUTE*10, 20);
 		if($limit){
 			D('alarm')->subscribe(getIp());
 			return true;

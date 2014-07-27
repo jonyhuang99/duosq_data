@@ -48,6 +48,12 @@ class Subscribe extends _Dal {
 			$ret['setting_subcat'] = array();
 		}
 
+		if($ret['setting_midcat']){
+			$ret['setting_midcat'] = explode(',', $ret['setting_midcat']);
+		}else{
+			$ret['setting_midcat'] = array();
+		}
+
 		return $ret;
 	}
 
@@ -55,16 +61,22 @@ class Subscribe extends _Dal {
 	function sessInit($sess_id, $setting){
 
 		if(!$this->sessCheck($sess_id))return false;
-		if($setting['setting_brand']){
+		if(isset($setting['setting_brand']) && $setting['setting_brand']){
 			$setting['setting_brand'] = join(',', $setting['setting_brand']);
 		}else{
 			$setting['setting_brand'] = '';
 		}
 
-		if($setting['setting_subcat']){
+		if(isset($setting['setting_subcat']) && $setting['setting_subcat']){
 			$setting['setting_subcat'] = join(',', $setting['setting_subcat']);
 		}else{
 			$setting['setting_subcat'] = '';
+		}
+
+		if(isset($setting['setting_midcat']) && $setting['setting_midcat']){
+			$setting['setting_midcat'] = join(',', $setting['setting_midcat']);
+		}else{
+			$setting['setting_midcat'] = '';
 		}
 
 		foreach($setting as $key => $value){
@@ -81,6 +93,7 @@ class Subscribe extends _Dal {
 
 		switch ($option) {
 			case 'setting_subcat':
+			case 'setting_midcat':
 			case 'setting_brand':
 				$sess_setting_str = $this->redis('subscribe')->get($sess_id, $option);
 				$sess_setting = array();
@@ -139,7 +152,7 @@ class Subscribe extends _Dal {
 		}
 
 		if($ret){
-			//$this->redis('subscribe')->clean($sess_id);
+			$this->redis('subscribe')->clean($sess_id);
 			return true;
 		}
 	}

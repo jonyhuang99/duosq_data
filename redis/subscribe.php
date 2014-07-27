@@ -18,7 +18,7 @@ class Subscribe extends _Redis {
 			return true;
 		}else{
 			$this->hset($key, 'init', 1);
-			$this->expire($key, DAY);
+			$this->expire($key, DAY*7);
 			return true;
 		}
 	}

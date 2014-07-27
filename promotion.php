@@ -40,12 +40,18 @@ class Promotion extends _Dal {
 	}
 
 	//封装商品url
-	function buildUrl($url_tpl, $url_id){
+	//type支持pc & mobi
+	function buildUrl($url_tpl, $url_id, $type='pc'){
 
 		if(!$url_tpl || !$url_id)return;
 		$rule = C('rule_goods_url', $url_tpl);
 		$url = preg_replace('/{.+?}/', $url_id, $rule['tpl']);
-		return $url;
+
+		if($type == 'pc'){
+			return array_shift(explode('|', $url));
+		}else{
+			return array_pop(explode('|', $url));
+		}
 	}
 
 	//从商品url获取商品信息
@@ -603,7 +609,7 @@ class Promotion extends _Dal {
 	 * @param  integer $maxPages      [description]
 	 * @return [type]                 [description]
 	 */
-	function getList($pn, $cat_condition=array(), $show = 3) {
+	function getList($pn, $cat_condition=array(), $show = 3, $need_huodong=true) {
 
 		$key = 'promo:get_list:cond:'.md5(serialize($cat_condition)).':show:'.$show.':page:'.intval(@$_GET['page']);
 		$cache = D('cache')->get($key);
@@ -645,7 +651,7 @@ class Promotion extends _Dal {
 
 		$this->db('promotion.queue_promo');
 
-		if(!isset($_GET['page'])){
+		if(!isset($_GET['page']) && $need_huodong){
 
 			//带上3个活动数据
 			$condition['type'] = \DB\QueuePromo::TYPE_HUODONG;
@@ -686,6 +692,7 @@ class Promotion extends _Dal {
 		if(!$result)return;
 		$new_ret = array();
 		$this->db('promotion.goods');
+		$this->db('promotion.queue_promo');
 		foreach ($result as $ret) {
 
 			$promo_detail = $this->promoDetail($ret['sp'], $ret['goods_id']);
@@ -751,7 +758,7 @@ class Promotion extends _Dal {
 	}
 
 	//获取商品搜索提示
-	function getSuggest($keyword){
+	function getSuggest($keyword, $limit = 10, $search_goods=true){
 
 		if(!$keyword)return;
 		$key = 'promotion:suggest:keyword:'.md5($keyword);
@@ -759,6 +766,7 @@ class Promotion extends _Dal {
 		if($cache)return D('cache')->ret($cache);
 
 		$suggest = $this->api('taobao')->getSuggest($keyword, 15);
+
 		$new_suggest = array();
 		if($suggest){
 			foreach($suggest as $s_k){
@@ -766,10 +774,12 @@ class Promotion extends _Dal {
 				if($hit){
 					$new_suggest[] = $s_k;
 				}
+				if(count($new_suggest) >= $limit)break;
 			}
 
-			if(!$new_suggest){
+			if(!$new_suggest && $search_goods){
 				foreach($suggest as $s_k){
+					if(count($new_suggest) >= $limit)break;
 					$hit = D('search')->goods($s_k);
 					if($hit){
 						$new_suggest[] = $s_k;
