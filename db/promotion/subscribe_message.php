@@ -14,19 +14,9 @@ class SubscribeMessage extends _Db {
 	const STATUS_SKIP = 3; //彻底失败(不再尝试)
 	const STATUS_OPENED = 4; //成功打开
 
-	//获取待推送消息
-	function getWaitPush($account, $channel='email', $limit=1){
+	//获取消息列表，提供给APP/微信使用，或者获取待推送列表，可以不指定账户渠道
+	function getList($account='', $channel='', $cond=array(), $limit=10){
 
-		if(!$account)return false;
-		$ret = parent::findAll(array('account'=>$account, 'channel'=>$channel, 'status'=>self::STATUS_WAIT), '', 'id DESC', $limit);
-		$ret = clearTableName($ret);
-		return $ret;
-	}
-
-	//获取消息列表，提供给APP/微信使用
-	function getList($account, $channel='email', $cond=array(), $limit=10){
-
-		if(!$account || !$channel)return false;
 		$cond['account'] = $account;
 		$cond['channel'] = $channel;
 		$cond = arrayClean($cond);

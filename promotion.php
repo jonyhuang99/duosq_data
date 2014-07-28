@@ -752,9 +752,10 @@ class Promotion extends _Dal {
 	function getStat(){
 
 		$num_goods = $this->redis('promotion')->getGoodsCount();
-		$num_promo = $this->redis('promotion')->getPromoSpCount();
-		$num_promo_today = $this->redis('promotion')->getPromoSpCountDate();
-		return array('num_goods'=>$num_goods, 'num_promo'=>$num_promo, 'num_promo_today'=>$num_promo_today);
+		$num_promo_sp = $this->redis('promotion')->getPromoSpCount();
+		$num_promo_sp_today = $this->redis('promotion')->getPromoSpCountDate();
+		$num_promo_cat_today = $this->redis('promotion')->getPromoCatCountDate();
+		return array('num_goods'=>$num_goods, 'num_promo_sp'=>$num_promo_sp, 'num_promo_sp_today'=>$num_promo_sp_today, 'num_promo_cat_today'=>$num_promo_cat_today);
 	}
 
 	//获取商品搜索提示

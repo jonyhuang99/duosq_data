@@ -170,7 +170,7 @@ class Subscribe extends _Dal {
 	}
 
 	//标识已经接收到了通知，$message_ids为批量时，times_open也只累加1次
-	function markOpened($account, $channel, $message_ids){
+	function markMessageOpened($account, $channel, $message_ids){
 
 		if(!$account || !$channel || !$message_ids)return false;
 		$ids = explode(',', $message_ids);
@@ -185,6 +185,30 @@ class Subscribe extends _Dal {
 		$times_open += 1;
 		$this->db('promotion.subscribe')->update($account, $channel, array('times_open'=>$times_open));
 		return true;
+	}
+
+	//标识消息已经推送
+	function markMessagePushed($account, $channel, $message_id, $succ=true){
+
+		if(!$account || !$channel || !$message_id)return;
+
+		$detail = $this->db('promotion.subscribe')->detail($account, $channel);
+
+		if($succ){
+			$times_push_succ = $detail['times_push_succ'] + 1;
+			$this->db('promotion.subscribe')->update($account, $channel, array('times_push_succ'=>$times_push_succ, 'pushtime'=>date('Y-m-d H:i:s')));
+			$this->db('promotion.subscribe_message')->update($account, $channel, $message_id, array('status'=>\DB\SubscribeMessage::STATUS_SUCC, 'pushtime'=>date('Y-m-d H:i:s')));
+		}else{
+			$times_push_fail = $detail['times_push_fail'] + 1;
+			$this->db('promotion.subscribe')->update($account, $channel, array('times_push_fail'=>$times_push_fail, 'pushtime'=>date('Y-m-d H:i:s')));
+			$this->db('promotion.subscribe_message')->update($account, $channel, $message_id, array('status'=>\DB\SubscribeMessage::STATUS_FAIL, 'pushtime'=>date('Y-m-d H:i:s')));
+		}
+	}
+
+	//获取待推送消息
+	function getWaitPushList($limit=100){
+
+		return $this->db('promotion.subscribe_message')->getList('','', array('status'=>\DB\SubscribeMessage::STATUS_WAIT), $limit);
 	}
 
 	//读取订阅消息列表
