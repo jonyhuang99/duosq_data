@@ -136,6 +136,7 @@ class Subscribe extends _Dal {
 
 		$setting['updatetime'] = date('Y-m-d H:i:s');
 		$setting['status'] = \DB\Subscribe::STATUS_NORMAL;
+		if(isset($_GET['push_token']))$setting['push_token'] = $_GET['push_token'];
 
 		if($exist){
 			//用空来覆盖旧配置
