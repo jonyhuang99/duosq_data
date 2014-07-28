@@ -193,5 +193,15 @@ class Subscribe extends _Dal {
 
 		return $this->db('promotion.subscribe_message')->getList($account, $channel, $cond, $limit);
 	}
+
+	//读取未打开消息数
+	function getUnOpenedMessageCount($device_id='', $platform=''){
+
+		if(!$device_id || !$platform)return 0;
+		$this->db('promotion.subscribe_message');
+		$lines = D('subscribe')->getMessageList($device_id, $platform, array('status'=>'< '.\DB\SubscribeMessage::STATUS_OPENED), 99);
+		if(!$lines)return 0;
+		return count($lines);
+	}
 }
 ?>

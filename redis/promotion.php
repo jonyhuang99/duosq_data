@@ -62,25 +62,40 @@ class Promotion extends _Redis {
 	}
 
 	//特卖商品计数器
-	function promoCounter($sp, $num=0){
+	function promoCounter($sp, $goods_id, $num=0){
 
-		if(!$sp)return;
-		$key = "counter:promo:total_num";
-		$key_today = $key.":date:".date('Ymd');
+		if(!$sp || !$goods_id)return;
+		$key_sp = "counter:promo:sp:total_num";
+		$key_cat = "counter:promo:cat:total_num";
+		$key_today_sp = $key_sp.":date:".date('Ymd');
+		$key_today_cat = $key_cat.":date:".date('Ymd');
 		if(!$num){
-			$this->zincrby($key_today, 1, $sp);
-			$this->expire($key_today, WEEK);
-			return $this->zincrby($key, 1, $sp);
+			//每日各商城特卖数
+			$this->zincrby($key_today_sp, 1, $sp);
+			$this->expire($key_today_sp, WEEK);
+
+			//每日各分类特卖数
+			$detail = D('promotion')->goodsDetail($sp, $goods_id);
+
+			if(@$detail['cat']){
+				foreach($detail['cat'] as $cat){
+					$this->zincrby($key_today_cat, 1, $cat);
+					$this->expire($key_today_cat, WEEK);
+				}
+			}
+
+			//累计各商城特卖数
+			return $this->zincrby($key_sp, 1, $sp);
 		}else{
-			$this->zadd($key, $num, $sp);
+			$this->zadd($key_sp, $num, $sp);
 		}
 		return true;
 	}
 
 	//返回指定商城特卖商品数
-	function getPromoCount($sp=''){
+	function getPromoSpCount($sp=''){
 
-		$key = "counter:promo:total_num";
+		$key = "counter:promo:sp:total_num";
 		if($sp){
 			return $this->zscore($key, $sp);
 		}else{
@@ -88,11 +103,23 @@ class Promotion extends _Redis {
 		}
 	}
 
-	//返回指定日期商城特卖商品数
-	function getPromoCountDate($date='', $sp=''){
+	//返回指定日期分类特卖商品数
+	function getPromoCatCountDate($cat='', $date=''){
 
 		if(!$date)$date = date('Ymd');
-		$key = "counter:promo:total_num:date:".$date;
+		$key = "counter:promo:cat:total_num:date:".$date;
+		if($cat){
+			return $this->zscore($key, $cat);
+		}else{
+			return $this->zrangebyscore($key, 0, '+inf', array('withscores'=>true));
+		}
+	}
+
+	//返回指定日期商城特卖商品数
+	function getPromoSpCountDate($sp='', $date=''){
+
+		if(!$date)$date = date('Ymd');
+		$key = "counter:promo:sp:total_num:date:".$date;
 		if($sp){
 			return $this->zscore($key, $sp);
 		}else{

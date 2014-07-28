@@ -496,7 +496,7 @@ class Promotion extends _Dal {
 
 			$detail = $this->goodsDetail($sp, $goods_id);
 			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'type'=>\DB\QueuePromo::TYPE_DISCOUNT));
-			if($ret)$this->redis('promotion')->promoCounter($sp);
+			if($ret)$this->redis('promotion')->promoCounter($sp, $goods_id);
 			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
 			$this->matchGoodsCat($sp, $goods_id);
 			D('brand')->matchAndUpdateBrand($sp, $goods_id);
@@ -527,7 +527,7 @@ class Promotion extends _Dal {
 
 			$detail = $this->goodsDetail($sp, $goods_id);
 			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'hd_content'=>$hd_content, 'hd_begin'=>$hd_begin, 'hd_expire'=>$hd_begin, 'type'=>\DB\QueuePromo::TYPE_HUODONG));
-			if($ret)$this->redis('promotion')->promoCounter($sp);
+			if($ret)$this->redis('promotion')->promoCounter($sp, $goods_id);
 			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
 			$this->matchGoodsCat($sp, $goods_id);
 			D('brand')->matchAndUpdateBrand($sp, $goods_id);
@@ -752,8 +752,8 @@ class Promotion extends _Dal {
 	function getStat(){
 
 		$num_goods = $this->redis('promotion')->getGoodsCount();
-		$num_promo = $this->redis('promotion')->getPromoCount();
-		$num_promo_today = $this->redis('promotion')->getPromoCountDate();
+		$num_promo = $this->redis('promotion')->getPromoSpCount();
+		$num_promo_today = $this->redis('promotion')->getPromoSpCountDate();
 		return array('num_goods'=>$num_goods, 'num_promo'=>$num_promo, 'num_promo_today'=>$num_promo_today);
 	}
 
