@@ -165,25 +165,46 @@ class Brand extends _Dal {
 	}
 
 	/**
-	 * 获取指定品牌的相关品牌
+	 * 环状获取指定品牌的相关品牌
 	 * @param  int     $brand_id 品牌ID
 	 * @param  boolean $in_cat   是否在品牌内
 	 * @return [type]            [description]
 	 */
 	function relativeBrands($brand_id, $in_cat = '', $limit = 20){
 
-		D('brand')->searchInPromo($cats);
+		if(!$brand_id)return;
+		$half = intval($limit/2);
 
-		$brands = $this->db('promotion.brand')->findAll(array('id'=>'< ' . $brand_id, 'cat'=>"REGEXP {$in_cat}"), 'id,name,name_en,weight', 'weight DESC', $limit);
-		//环状拉去分类内品牌
-		$news_prev = D('promotion')->db('promotion.brand_news')->find(array('id'=>'< '.$news_id), '', 'id DESC');
-		if(!$news_prev) $news_prev = D('promotion')->db('promotion.brand_news')->find(array('id'=>'<> '.$news_id), '', 'id DESC');
+		if($in_cat){
+			$cond_search = array('id'=>'< ' . $brand_id, 'cat'=>"REGEXP {$in_cat}");
+			$cond_fix = array('cat'=>"REGEXP {$in_cat}");
+		}else{
+			$cond_search = array('id'=>'< ' . $brand_id);
+			$cond_fix = array();
+		}
 
-		$news_next = D('promotion')->db('promotion.brand_news')->find(array('id'=>'> '.$news_id), '', 'id ASC');
-		if(!$news_next) $news_next = D('promotion')->db('promotion.brand_news')->find(array('id'=>'<> '.$news_id), '', 'id ASC');
+		$brands_prev_1 = $this->db('promotion.brand')->findAll($cond_search, 'id,name,name_en,weight', 'id DESC', $half);
+		$brands_prev_2 = array();
+		if(!$brands_prev_1 || count($brands_prev_1) < $half){
+			$brands_prev_2 = $this->db('promotion.brand')->findAll($cond_fix, 'id,name,name_en,weight', 'id DESC', $half - count($brands_prev_1));
+		}
+		$brands_prev = array_merge((array)clearTableName($brands_prev_1), (array)clearTableName($brands_prev_2));
 
-		$this->set('news_prev', clearTableName($news_prev));
-		$this->set('news_next', clearTableName($news_next));
+		if($in_cat){
+			$cond_search = array('id'=>'> ' . $brand_id, 'cat'=>"REGEXP {$in_cat}");
+			$cond_fix = array('cat'=>"REGEXP {$in_cat}");
+		}else{
+			$cond_search = array('id'=>'> ' . $brand_id);
+			$cond_fix = array();
+		}
+		$brands_next_1 = $this->db('promotion.brand')->findAll($cond_search, 'id,name,name_en,weight', 'id ASC', $half);
+		$brands_next_2 = array();
+		if(!$brands_next_1 || count($brands_next_1) < $half){
+			$brands_next_2 = $this->db('promotion.brand')->findAll($cond_fix, 'id,name,name_en,weight', 'id ASC', $half - count($brands_next_1));
+		}
+		$brands_next = array_merge((array)clearTableName($brands_next_1), (array)clearTableName($brands_next_2));
+
+		return array_merge($brands_prev, $brands_next);
 	}
 }
 ?>
