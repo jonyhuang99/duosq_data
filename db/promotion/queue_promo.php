@@ -18,7 +18,7 @@ class QueuePromo extends _Db {
 	const TYPE_HUODONG = 3;
 
 	//置空save，只允许从add/update进入
-	function save(){}
+	//function save(){}
 
 	//新增促销信息分类数据
 	function add($data){

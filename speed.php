@@ -4,6 +4,11 @@ namespace DAL;
 
 class Speed extends _Dal {
 
+	/**
+	 * 发送邮件速度控制
+	 * @param  [type] $emails 待发目标EMAIL，目前支持1个
+	 * @return [type]         [description]
+	 */
 	function email($emails){
 
 		if(!$emails)return false;
@@ -195,6 +200,15 @@ class Speed extends _Dal {
 			D('alarm')->subscribe(getIp());
 			return true;
 		}
+	}
+
+	/**
+	 * 每日新增文章不超过15篇
+	 * @return [bool] [是否超速]
+	 */
+	function importNews(){
+
+		return $this->redis('speed')->sincr('import_news:date'.date('Y-m-d'), DAY*5, 5);
 	}
 }
 ?>

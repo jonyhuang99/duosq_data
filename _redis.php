@@ -4,6 +4,7 @@
 //必须指定namespace命名空间
 //默认DSN为被动缓存，即有可能丢失数据，如果数据不能缺失，请指定dsn_type='database'
 //注意：缓存模式的redis使用时，必须指定expire时间
+//BUG：使用get_memory_use函数后，影响内存，会令redis操作抛异常
 
 namespace REDIS;
 
@@ -246,12 +247,14 @@ class _Redis extends \Object {
 				$ret = apc_fetch($aKey, $succ);
 				//缓存包括非的结果
 				if ($succ === false) {
+					//file_put_contents('/tmp/redis.log', date('[H:i:s]').$method.json_encode($arg_array)."\n\n", 8);
 					$ret = call_user_func_array(array($this->redis(), $method), $arg_array);
 					if($ret)D()->mcache()->set($aKey, $ret, $this->mcache);
 				}
 				return $ret;
 			}else{
 
+				//file_put_contents('/tmp/redis.log', date('[H:i:s]').$method.json_encode($arg_array)."\n\n", 8);
 				$ret = call_user_func_array(array($this->redis(), $method), $arg_array);
 				if($this->mcache_update){
 					$cachedKeys = new \APCIterator('user', '/'.$key_md5.'/', APC_ITER_VALUE);
@@ -259,6 +262,7 @@ class _Redis extends \Object {
 				}
 			}
 		}else{
+			//file_put_contents('/tmp/redis.log', date('[H:i:s]').$method.json_encode($arg_array)."\n\n", 8);
 			$ret = call_user_func_array(array($this->redis(), $method), $arg_array);
 		}
 

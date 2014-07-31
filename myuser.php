@@ -194,7 +194,7 @@ class Myuser extends _Dal {
 		if($ret){
 			$this->sess('userinfo.nickname', $nickname);
 			//加载到cookie方便静态js直接调用
-			setcookie('display_name', $this->getNickname(), time() + YEAR, '/');
+			setcookie('display_name', $this->getNickname(), time() + YEAR, '/', CAKE_SESSION_DOMAIN);
 			return true;
 		}
 	}
@@ -273,7 +273,7 @@ class Myuser extends _Dal {
 		if(!$nickname){
 			$this->db('user')->update($this->getId(), array('nickname'=>$nickname));
 			$this->sess('userinfo.nickname', $nickname);
-			setcookie('display_name', $this->getNickname(), time() + YEAR, '/');
+			setcookie('display_name', $this->getNickname(), time() + YEAR, '/', CAKE_SESSION_DOMAIN);
 			return true;
 		}
 	}

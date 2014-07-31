@@ -42,6 +42,7 @@ class Search extends _Dal {
 
 		$cond = array();
 		$cond['sp'] = $sp;
+		if(!isset($cond['sp']))$cond['sp'] = '<> taobao';
 		$cond['name'] = "like %{$keyword}%";
 		if($exclude){
 			$not_in = 'not in ('.join(',', $exclude).')';

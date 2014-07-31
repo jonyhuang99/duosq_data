@@ -6,7 +6,7 @@ class Brand extends _Dal {
 
 	//搜索指定分类下特卖的品牌
 	//cat支持数组
-	function searchInPromo($cat=null, $subcat=null, $sp_cond=array(), $limit=60){
+	function searchInPromo($cat=array(), $subcat=null, $sp_cond=array(), $limit=60){
 
 		if(!$cat)return;
 
@@ -156,12 +156,34 @@ class Brand extends _Dal {
 		}
 	}
 
-	//获取品牌统计
+	//获取一周发生过促销的品牌数
 	function getStat(){
 
 		$num_week = $this->db('promotion.queue_promo2cat')->query("SELECT count(DISTINCT brand_id) nu FROM queue_promo2cat WHERE createtime > '".date('Y-m-d', time()-WEEK)."'");
 		$num_week = @$num_week[0][0]['nu'];
 		return array('num_week'=>intval($num_week));
+	}
+
+	/**
+	 * 获取指定品牌的相关品牌
+	 * @param  int     $brand_id 品牌ID
+	 * @param  boolean $in_cat   是否在品牌内
+	 * @return [type]            [description]
+	 */
+	function relativeBrands($brand_id, $in_cat = '', $limit = 20){
+
+		D('brand')->searchInPromo($cats);
+
+		$brands = $this->db('promotion.brand')->findAll(array('id'=>'< ' . $brand_id, 'cat'=>"REGEXP {$in_cat}"), 'id,name,name_en,weight', 'weight DESC', $limit);
+		//环状拉去分类内品牌
+		$news_prev = D('promotion')->db('promotion.brand_news')->find(array('id'=>'< '.$news_id), '', 'id DESC');
+		if(!$news_prev) $news_prev = D('promotion')->db('promotion.brand_news')->find(array('id'=>'<> '.$news_id), '', 'id DESC');
+
+		$news_next = D('promotion')->db('promotion.brand_news')->find(array('id'=>'> '.$news_id), '', 'id ASC');
+		if(!$news_next) $news_next = D('promotion')->db('promotion.brand_news')->find(array('id'=>'<> '.$news_id), '', 'id ASC');
+
+		$this->set('news_prev', clearTableName($news_prev));
+		$this->set('news_next', clearTableName($news_next));
 	}
 }
 ?>

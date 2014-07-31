@@ -40,8 +40,8 @@ class Keys extends _Redis {
 	 */
 	function goodsCatRules($cat='', $subcat='', $rules='', $clean=true){
 
-		static $cache_cat;
-		static $cache_cat_all;
+		$cache_cat = array();
+		$cache_cat_all = array();
 
 		if($rules){
 			if(!$cat || !$subcat)return;
@@ -70,8 +70,10 @@ class Keys extends _Redis {
 				return $cache_cat[$cat][$subcat];
 			}
 			else{
+
 				//if($cache_cat_all)return $cache_cat_all;
 				$rules_all_o = $this->hgetall('goods:cat_rules');
+
 				$rules_all = array();
 				if($rules_all_o){
 					foreach($rules_all_o as $cat_subcat => $rules_o){

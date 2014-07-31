@@ -100,7 +100,7 @@ class _Session extends \Object {
 		$_SESSION = array();
 		session_destroy();
 
-		setcookie(CAKE_SESSION_COOKIE, '', time()-42000, '/');
+		setcookie(CAKE_SESSION_COOKIE, '', time()-42000, '/', CAKE_SESSION_DOMAIN);
 	}
 
 }

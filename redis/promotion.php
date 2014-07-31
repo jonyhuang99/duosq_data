@@ -34,6 +34,7 @@ class Promotion extends _Redis {
 
 		if(rand(0,10) > 7)//清理
 			$this->zremrangebyscore($key, 0, time() - WEEK*4);
+
 		return intval($this->zcount($key, $start, $end));
 	}
 
@@ -74,6 +75,8 @@ class Promotion extends _Redis {
 			$this->zincrby($key_today_sp, 1, $sp);
 			$this->expire($key_today_sp, WEEK);
 
+			//不走data缓存，否则cat数据新增无法捕获
+			$_POST['DISABLE_DATA_CACHE'] = true;
 			//每日各分类特卖数
 			$detail = D('promotion')->goodsDetail($sp, $goods_id);
 

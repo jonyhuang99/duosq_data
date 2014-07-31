@@ -241,10 +241,7 @@ class Promotion extends _Dal {
 	function getMidcatExRule($cat, $midcat){
 
 		if(!$cat || !$midcat)return;
-
-		$key = 'midcat_ex_rule:cat:'.$cat.':subcat:'.$midcat;
 		$ret =  $this->redis('keys')->goodsMidcatExRule($cat, $midcat);
-
 		return $ret;
 	}
 
@@ -278,7 +275,7 @@ class Promotion extends _Dal {
 			$detail['price_now'] = $fix_now_price;
 		}
 
-		D('cache')->set($key, $detail, MINUTE*2, true);
+		D('cache')->set($key, $detail, MINUTE*10, true);
 		//$d[$sp][$goods_id] = $detail;
 		return $detail;
 	}
@@ -293,7 +290,6 @@ class Promotion extends _Dal {
 
 		$name = $detail['name'];
 		$all_rules = $this->getCatRules();
-
 		$match_subcat = array();
 
 		foreach($all_rules as $cat => $val){
@@ -302,7 +298,7 @@ class Promotion extends _Dal {
 				$midcat = $this->subcat2midcat($subcat);
 
 				$midcat_ex_rule = $this->getMidcatExRule($cat, $midcat);
-
+				$midcat_ex_rule = r('/', '\/', $midcat_ex_rule);
 				if($midcat_ex_rule && preg_match("/{$midcat_ex_rule}/i", $name)){
 					continue;
 				}
@@ -320,7 +316,7 @@ class Promotion extends _Dal {
 						}
 					}else{
 						$rule = trim($rule);
-						if(preg_match("/{$rule}/i", $name)){
+						if($rule && preg_match("/{$rule}/i", $name)){
 							$match_subcat[$subcat] = 1;
 						}
 					}
@@ -366,7 +362,6 @@ class Promotion extends _Dal {
 		$subcat_str = join('|', array_slice($subcats, 0, 10));
 
 		$ret = $this->db('promotion.goods')->update($sp, $goods_id, array('cat'=>$cat_str, 'subcat'=>$subcat_str));
-
 		if(!$ret)return false;
 
 		//同步promo分类
@@ -384,7 +379,10 @@ class Promotion extends _Dal {
 					unset($promo2cat_subcat[$subcat]);
 				}
 
-				if(!count($promo2cat_subcat))return $ret;
+				if(!count($promo2cat_subcat)){
+					$this->db('promotion.queue_promo')->update($sp, $goods_id, array('cat_assign'=>1));
+					return $ret;
+				}
 			}
 
 			$this->db('promotion.queue_promo2cat')->query("DELETE FROM queue_promo2cat WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
@@ -456,7 +454,7 @@ class Promotion extends _Dal {
 	//获取最近被访问过的商品
 	function getLastVisitGoods(){
 
-		return $this->db('promotion.queue_visit')->getLastVisit(30);
+		return $this->db('promotion.queue_visit')->getLastVisit(60);
 	}
 
 	//更新商品价格走势
@@ -475,7 +473,6 @@ class Promotion extends _Dal {
 	function updateGoodsStatus($sp, $goods_id, $status){
 
 		if(!$sp || !$goods_id)return;
-
 		return $this->db('promotion.goods')->update($sp, $goods_id, array('status'=>$status));
 	}
 
@@ -485,6 +482,7 @@ class Promotion extends _Dal {
 		if(!$sp || !$goods_id || !$price_avg || !$price_now)return;
 		$promo = $this->promoDetail($sp, $goods_id);
 		if(!$promo){
+
 
 			$config = C('comm', 'promo_auto_pass');
 			//是否自动发布
@@ -496,12 +494,12 @@ class Promotion extends _Dal {
 
 			$detail = $this->goodsDetail($sp, $goods_id);
 			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'type'=>\DB\QueuePromo::TYPE_DISCOUNT));
-			if($ret)$this->redis('promotion')->promoCounter($sp, $goods_id);
 			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
 			$this->matchGoodsCat($sp, $goods_id);
 			D('brand')->matchAndUpdateBrand($sp, $goods_id);
 			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
-			D('search')->buildIndex($sp, $goods_id);
+			D('search')->buildIndex($sp, $goods_id); //-有错误
+			if($ret)$this->redis('promotion')->promoCounter($sp, $goods_id); //--有错误
 			return true;
 		}else{
 			//如果价格更低，允许更新
@@ -527,12 +525,12 @@ class Promotion extends _Dal {
 
 			$detail = $this->goodsDetail($sp, $goods_id);
 			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'hd_content'=>$hd_content, 'hd_begin'=>$hd_begin, 'hd_expire'=>$hd_begin, 'type'=>\DB\QueuePromo::TYPE_HUODONG));
-			if($ret)$this->redis('promotion')->promoCounter($sp, $goods_id);
 			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
 			$this->matchGoodsCat($sp, $goods_id);
 			D('brand')->matchAndUpdateBrand($sp, $goods_id);
 			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
 			D('search')->buildIndex($sp, $goods_id);
+			if($ret)$this->redis('promotion')->promoCounter($sp, $goods_id);
 			return true;
 		}
 	}
@@ -589,7 +587,7 @@ class Promotion extends _Dal {
 		}
 
 		$promo['invalid'] = $invalid;
-		D('cache')->set($key, $promo, MINUTE*2, true);
+		D('cache')->set($key, $promo, MINUTE*10, true);
 		//$d[$sp][$goods_id] = $promo;
 		return $promo;
 	}

@@ -84,7 +84,7 @@ class Mark extends _Dal {
 		$data['client'] = getBrowser();
 		$mark_id = $this->db('mark')->save(arrayClean($data));
 		if($mark_id){
-			setcookie('mark', $mark_id, time() + YEAR, '/');
+			setcookie('mark', $mark_id, time() + YEAR, '/', CAKE_SESSION_DOMAIN);
 		}
 	}
 }
