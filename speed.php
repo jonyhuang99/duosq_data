@@ -208,7 +208,7 @@ class Speed extends _Dal {
 	 */
 	function importNews(){
 
-		return $this->redis('speed')->sincr('import_news:date'.date('Y-m-d'), DAY*5, 5);
+		return $this->redis('speed')->sincr('import_news:date'.date('Y-m-d'), DAY*5, 6);
 	}
 }
 ?>
