@@ -185,7 +185,7 @@ class Promotion extends _Dal {
 		return '';
 	}
 
-	//从商品的中分类找出中分类
+	//从商品的中分类找出分类
 	function midcat2cat($midcat){
 
 		if(!$midcat)return;
@@ -274,6 +274,18 @@ class Promotion extends _Dal {
 		if($fix_now_price = $this->getFixNowPrice($sp, $goods_id)){
 			$detail['price_now'] = $fix_now_price;
 		}
+
+		$invalid = false;
+
+		if($detail['status'] == \DB\Goods::STATUS_SELL_OUT){
+			$invalid = 'sell_out';
+		}
+
+		if($detail['status'] == \DB\Goods::STATUS_INVALID || $detail['status'] == \DB\Goods::STATUS_INVALID_FORCE){
+			$invalid = 'invalid';
+		}
+
+		$detail['invalid'] = $invalid;
 
 		D('cache')->set($key, $detail, MINUTE*10, true);
 		//$d[$sp][$goods_id] = $detail;
@@ -446,6 +458,20 @@ class Promotion extends _Dal {
 			$this->redis('promotion')->saleCounter($sp, $goods_id);
 			//更新了销量，触发重新计算促销商品权重
 			D('weight')->update($sp, $goods_id);
+
+			//更新商品周销量
+			if($hit){
+				$saled = $this->redis('promotion')->getSaleCount($sp, $url_id);
+				$saled = $saled + C('comm', 'promo_import_goods_sales_min');
+				if(iSp($sp)){
+					$saled = $saled * 10 + $goods_id%50;
+				}else{
+					$saled = $saled * 25 + $goods_id%50;
+				}
+				if($hit['sale'] < $saled){
+					$this->db('promotion.goods')->update($sp, $url_id, array('sale'=>$saled));
+				}
+			}
 		}
 
 		return $goods_id;
@@ -611,7 +637,7 @@ class Promotion extends _Dal {
 
 		$key = 'promo:get_list:cond:'.md5(serialize($cat_condition)).':show:'.$show.':page:'.intval(@$_GET['page']);
 		$cache = D('cache')->get($key);
-		if($cache){
+		if($cache && $use_cache){
 			$pn->controller->set('page_count', D('cache')->ret(D('cache')->get($key.':page_count')));
 			return D('cache')->ret($cache);
 		}
@@ -633,9 +659,12 @@ class Promotion extends _Dal {
 
 			if(is_array($c)){
 				$condition_str[] = "{$field} in ('" . join("','", $c) . "')";
-			}elseif (preg_match('/^(?:in|not in)/i', $c)){
+			}elseif(preg_match('/^(?:in|not in)/i', $c)){
 				$condition_str[] = $field . ' ' . $value;
-			}else{
+			}elseif(preg_match('/^(<|>) (.+$)/i', $c, $m)){
+
+				$condition_str[] = "{$field} {$m[1]} '{$m[2]} '";
+			}else {
 				$condition_str[] = "{$field} = '{$c}'";
 			}
 		}
@@ -678,6 +707,7 @@ class Promotion extends _Dal {
 		$result = $this->renderPromoDetail($result);
 		if($result)$result = array_slice($result, 0, $show+3);
 		D('cache')->set($key, $result, MINUTE*2, true);
+		//修正由于缓存，无法set $paging变量，导致调用分页白屏错误
 		D('cache')->set($key.':page_count', $pn->paging['pageCount'], MINUTE*2+1, true);
 		$pn->controller->set('page_count', $pn->paging['pageCount']);
 
@@ -702,11 +732,7 @@ class Promotion extends _Dal {
 			$tmp = $promo_detail;
 
 			if($tmp['hd_content']){
-				$tmp['hd_content'] = r(array("\r", "\n",'	','&nbsp;'), '', $tmp['hd_content']);
-				$tmp['hd_content'] = strip_tags(nl2br($tmp['hd_content']));
-				$tmp['hd_content'] = preg_replace('/[\\x20]+/', ' ', $tmp['hd_content']);
-				$tmp['hd_content'] = '&nbsp; &nbsp; &nbsp;' . $tmp['hd_content'];
-				$tmp['hd_content'] = r(array('meidebi','没得比'), array('dousq','多省钱'), $tmp['hd_content']);
+				$tmp['hd_content'] = strip_tags($tmp['hd_content']);
 			}else{
 				$saled_str = '';
 				$saled = $this->redis('promotion')->getSaleCount($ret['sp'], $ret['goods_id']);
@@ -722,7 +748,7 @@ class Promotion extends _Dal {
 					$saled_str = "上周原价热销：<font class=blue>{$saled}</font>件<br />";
 					$tmp['week_sales'] = $saled;
 				}
-				$tmp['hd_content'] = '<br />90天均价：<font class="blue">¥'.price_yuan($tmp['price_avg']).'</font><br />'.$saled_str.'刚刚降至：<font class=orange>¥'.price_yuan($tmp['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($tmp['price_now'], $tmp['price_avg']).'%</font>哟~';
+				$tmp['dis_content'] = '90天均价：<font class="blue">¥'.price_yuan($tmp['price_avg']).'</font><br />'.$saled_str.'刚刚降至：<font class=orange>¥'.price_yuan($tmp['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($tmp['price_now'], $tmp['price_avg']).'%</font>哟~';
 			}
 
 			if(time() - strtotime($promo_detail['createdate']) < DAY){

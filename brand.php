@@ -78,6 +78,11 @@ class Brand extends _Dal {
 				$detail['shop_in_tmall'] = array();
 			}
 
+			if($detail['cat'])
+				$detail['cat'] = explode(',', $detail['cat']);
+			else
+				$detail['cat'] = array();
+
 			D('cache')->set($key, $detail, MINUTE*10, true);
 		}
 
