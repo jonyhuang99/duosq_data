@@ -461,7 +461,7 @@ class Promotion extends _Dal {
 
 			//更新商品周销量
 			if($hit){
-				$saled = $this->redis('promotion')->getSaleCount($sp, $url_id);
+				$saled = $this->redis('promotion')->getSaleCount($sp, $goods_id);
 				$saled = $saled + C('comm', 'promo_import_goods_sales_min');
 				if(iSp($sp)){
 					$saled = $saled * 10 + $goods_id%50;
