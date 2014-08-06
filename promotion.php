@@ -468,8 +468,8 @@ class Promotion extends _Dal {
 				}else{
 					$saled = $saled * 25 + $goods_id%50;
 				}
-				if($hit['sale'] < $saled){
-					$this->db('promotion.goods')->update($sp, $url_id, array('sale'=>$saled));
+				if($hit['saled'] < $saled){
+					$this->db('promotion.goods')->update($sp, $url_id, array('saled'=>$saled));
 				}
 			}
 		}
