@@ -62,6 +62,7 @@ class Brand extends _Dal {
 		}else{
 			$detail = $this->db('promotion.brand')->find(array('id'=>$id));
 			$detail = clearTableName($detail);
+			if(!$detail)return;
 			if($detail['shop_in_b2c'])
 				$detail['shop_in_b2c'] = explode(',', $detail['shop_in_b2c']);
 			else
