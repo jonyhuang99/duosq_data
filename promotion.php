@@ -269,6 +269,8 @@ class Promotion extends _Dal {
 			$detail['url'] = $this->buildUrl($detail['url_tpl'], $detail['url_id']);
 			if($detail['cat'])$detail['cat'] = explode('|', $detail['cat']);
 			if($detail['subcat'])$detail['subcat'] = explode('|', $detail['subcat']);
+		}else{
+			return false;
 		}
 
 		if($fix_now_price = $this->getFixNowPrice($sp, $goods_id)){
@@ -469,7 +471,7 @@ class Promotion extends _Dal {
 					$saled = $saled * 25 + $goods_id%50;
 				}
 				if($hit['saled'] < $saled){
-					$this->db('promotion.goods')->update($sp, $url_id, array('saled'=>$saled));
+					$this->db('promotion.goods')->update($sp, $goods_id, array('saled'=>$saled));
 				}
 			}
 		}

@@ -37,6 +37,7 @@ class Goods extends _Db {
 
 		$this->setTable($sp);
 		$data['id'] = $goods_id;
+		if(!$this->find(array('id'=>$goods_id)))return;
 		return parent::save($data);
 	}
 

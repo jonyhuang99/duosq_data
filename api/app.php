@@ -12,7 +12,7 @@ class App extends _Api {
 		if($platform == 'ios'){
 			I('api/ios_push');
 			$obj = new \iosPush();
-			$obj->pushMessage($device_id, $message, $notify_num, $url='');
+			return $obj->pushMessage($device_id, $message, $notify_num, $url='');
 		}
 	}
 
