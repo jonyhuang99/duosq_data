@@ -210,5 +210,19 @@ class Speed extends _Dal {
 
 		return $this->redis('speed')->sincr('import_news:date'.date('Y-m-d'), DAY*5, 10);
 	}
+
+	/**
+	 * 推广任务速控
+	 * @return [type] [description]
+	 */
+	function advtask($key, $limit, $mode = 'set'){
+
+		if(!$limit)return;
+		if($mode == 'set'){
+			return $this->redis('speed')->sincr('advtask:'.$key.':'.date('Ymd'), DAY, $limit);
+		}else{
+			return $this->redis('speed')->sget('advtask:'.$key.':'.date('Ymd'), DAY, $limit);
+		}
+	}
 }
 ?>

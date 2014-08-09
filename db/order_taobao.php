@@ -209,6 +209,7 @@ class OrderTaobao extends _Db {
 				$ret = D('order')->addCoupon($old_detail['user_id'], $sub_data);
 
 				if(!$ret){
+
 					throw new \Exception("[order_taobao][error][o_id:{$o_id}][m_order][use coupon error]");
 				}
 			}

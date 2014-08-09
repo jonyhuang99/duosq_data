@@ -818,5 +818,11 @@ class Promotion extends _Dal {
 		D('cache')->set($key, $new_suggest, DAY*10, true);
 		return $new_suggest;
 	}
+
+	//获取一个随机促销
+	function getRandPromo(){
+
+		return $this->db('promotion.queue_promo2cat')->find("subcat<>'' AND brand_id<>'' AND createtime>'".date('Y-m-d', time()-DAY*300)."'", '', 'rand()');
+	}
 }
 ?>
