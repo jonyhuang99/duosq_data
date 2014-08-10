@@ -26,17 +26,17 @@ class Advtask extends _Dal {
 	function isOverSpeed($type, $task_url){
 
 		if(!$type || !$task_url || !valid($task_url, 'url'))return true;
-		$url_ex = explode('.', $task_url);
-		$id = $url_ex[1];
-		if(!$id)return true;
+
+		$url_id = $this->_getUrlId($task_url);
+		if(!$url_id)return true;
 
 		$conf_speed = $this->_getConfSpeed($type);
 		if(!$conf_speed)return true;
 
-		$speed_limit = $conf_speed[$id];
+		$speed_limit = @$conf_speed[$url_id];
 		if(!$speed_limit)return true;
 
-		$key = "type:{$type}:{$id}";
+		$key = "type:{$type}:{$url_id}";
 
 		return D('speed')->advtask($key, $speed_limit, 'get');
 	}
@@ -45,17 +45,27 @@ class Advtask extends _Dal {
 	function incrSpeed($type, $task_url){
 
 		if(!$type || !$task_url || !valid($task_url, 'url'))return;
-		$url_ex = explode('.', $task_url);
-		$id = $url_ex[1];
-		if(!$id)return true;
+
+		$url_id = $this->_getUrlId($task_url);
+		if(!$url_id)return true;
 
 		$conf_speed = $this->_getConfSpeed($type);
+
 		if(!$conf_speed)return true;
 
-		if(!$conf_speed[$id])return true;
+		if(!$conf_speed[$url_id])return true;
 
-		$key = "type:{$type}:{$id}";
-		return D('speed')->advtask($key, $conf_speed[$id], 'set');
+		$key = "type:{$type}:{$url_id}";
+		return D('speed')->advtask($key, $conf_speed[$url_id], 'set');
+	}
+
+	//从url中获取标识
+	private function _getUrlId($url){
+
+		if(!$url || !valid($url, 'url'))return;
+		$url_ex = explode('.', $url);
+		$url_id =  r('/', '', r('http://', '', $url_ex[0]).'.'.$url_ex[1]);
+		return $url_id;
 	}
 
 	//获取指定任务类型的速控配置
@@ -89,10 +99,9 @@ class Advtask extends _Dal {
 			$i_ex = explode('|', $i_site);
 			$i_limit = intval(array_pop($i_ex));
 			$i_url = array_pop($i_ex);
-			$i_url_ex = explode('.', $i_url);
-			$i_id = $i_url_ex[1];
-			if(!$i_id || !$i_limit)continue;
-			$conf_speed[$i_id] = $i_limit;
+			$i_url_id = $this->_getUrlId($i_url);
+			if(!$i_url_id || !$i_limit)continue;
+			$conf_speed[$i_url_id] = $i_limit;
 		}
 
 		return $conf_speed;
