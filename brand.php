@@ -93,6 +93,14 @@ class Brand extends _Dal {
 			return $detail;
 	}
 
+	//随机获取品牌
+	function getRand(){
+		$brand = $this->db('promotion.brand')->find("intro<>''", '', 'rand()');
+		$brand = clearTableName($brand);
+		if(!$brand)return;
+		return $this->detail($brand['id']);
+	}
+
 	//获取品牌名称
 	function getName($brand_id, $full=true){
 
