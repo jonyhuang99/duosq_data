@@ -11,15 +11,57 @@ class Advtask extends _Dal {
 		return $this->db('advtask')->find(array('type'=>$type, 'url'=>$url));
 	}
 
+	//返回推广任务详情
+	function detail($advtask_id){
+
+		if(!$advtask_id)return;
+		$detail = $this->db('advtask')->find(array('id'=>$advtask_id));
+		$detail = clearTableName($detail);
+		return $detail;
+	}
+
 	//新增任务完成数据
-	function add($type, $url){
+	function add($type, $url, $ask_id = 0){
 
 		if(!$type || !$url)return;
 		$user_id = D('myuser')->getID();
 		if(!$user_id)return;
 
 		$this->db('advtask')->create();
-		return $this->db('advtask')->save(array('user_id'=>$user_id, 'type'=>$type, 'url'=>$url));
+		return $this->db('advtask')->save(array('user_id'=>$user_id, 'type'=>$type, 'url'=>$url, 'ask_id'=>$ask_id));
+	}
+
+	//更新任务状态
+	function updateStatus($advtask_id, $status){
+
+		if(!$advtask_id)return;
+		$data = array();
+		$data['id'] = $advtask_id;
+		$data['status'] = $status;
+		$data['clickable'] = 0;
+		return $this->db('advtask')->save($data);
+	}
+
+	//更新任务回复
+	function updateAnswer($advtask_id, $answer){
+
+		if(!$advtask_id || !$answer)return;
+		$data = array();
+		$data['id'] = $advtask_id;
+		$data['answer'] = $answer;
+
+		return $this->db('advtask')->save($data);
+	}
+
+	//更新任务作业是否可点击
+	function updateClickable($advtask_id, $clickable){
+
+		if(!$advtask_id)return;
+		$data = array();
+		$data['id'] = $advtask_id;
+		$data['clickable'] = $clickable;
+
+		return $this->db('advtask')->save($data);
 	}
 
 	//探测任务是否超过速控
@@ -86,8 +128,8 @@ class Advtask extends _Dal {
 			case \DB\Advtask::TYPE_BBS:
 				$conf = C('task_bbs');
 				break;
-			case \DB\Advtask::TYPE_ZUANKE:
-				$conf = C('task_zuanke');
+			case \DB\Advtask::TYPE_ZHUANKE:
+				$conf = C('task_zhuanke');
 				break;
 		}
 

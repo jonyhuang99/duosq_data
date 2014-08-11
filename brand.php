@@ -47,7 +47,7 @@ class Brand extends _Dal {
 	function search($condition, $limit=10){
 
 		if(!$condition)return;
-		$brands = $this->db('promotion.brand')->findAll($condition, 'id,name,name_en,weight', 'weight DESC', $limit);
+		$brands = $this->db('promotion.brand')->findAll($condition, 'id,name,name_en,intro,weight', 'weight DESC', $limit);
 		return clearTableName($brands);
 	}
 

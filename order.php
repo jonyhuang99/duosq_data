@@ -550,6 +550,19 @@ class Order extends _Dal {
 		return $this->db('order_chuser')->save(array('o_id'=>$o_id, 'user_id'=>$user_id, 'r_orderid'=>$r_orderid, 'r_id'=>$r_id, 'buydate'=>$buydate));
 	}
 
+	/**
+	 * 封装增加推广任务订单便捷方法
+	 * @param bigint  $user_id  用户ID
+	 * @param array   $sub_data 奖励订单数据
+	 */
+	function addAdvtask($user_id, $sub_data){
+
+		if(!$user_id || !$sub_data)return;
+		$ret = D('order')->add($user_id, self::STATUS_PASS, 'advtask', self::CASHTYPE_CASH, self::N_ADD, $sub_data['amount'], $sub_data);
+
+		return $ret;
+	}
+
 	//匹配到指定用户后，删除待变更表信息
 	function delChUser($r_orderid){
 
@@ -770,6 +783,11 @@ class Order extends _Dal {
 					break;
 				case 'sign':
 					$v['sub_display'] = '每日签到奖励集分宝';
+					break;
+				case 'advtask':
+					$options = C('options', 'advtask_type');
+					$url = r('http://', '', $v['sub_detail']['advtask_url']);
+					$v['sub_display'] = '[推广] <a href="http://'.$url.'" target="_blank">'.$url.'</a>';
 					break;
 				default:
 					break;

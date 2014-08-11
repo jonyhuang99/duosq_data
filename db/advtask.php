@@ -10,7 +10,7 @@ class Advtask extends _Db {
 	const STATUS_WAIT_REVIEW = 0;
 	const STATUS_PASS = 1;
 	const STATUS_INVALID = 2;
-	const STATUS_WAIT_REVIEW_ANSWER = 4;
+	const STATUS_ANSWER_WAIT_REVIEW = 4;
 	const STATUS_ANSWER_PASS = 5;
 
 	//推广任务类型定义
@@ -18,6 +18,6 @@ class Advtask extends _Db {
 	const TYPE_WENDA_ANSWER = 2;
 	const TYPE_TIEBA = 3;
 	const TYPE_BBS = 4;
-	const TYPE_ZUANKE = 5;
+	const TYPE_ZHUANKE = 5;
 }
 ?>
