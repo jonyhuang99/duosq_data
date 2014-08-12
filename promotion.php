@@ -317,6 +317,10 @@ class Promotion extends _Dal {
 					continue;
 				}
 
+				//用价格做特殊修正
+				if($midcat == '手机数码' && $detail['price_now'] < 200)continue;
+				if($midcat == '电脑整机' && $detail['price_now'] < 200)continue;
+
 				foreach($rules as $rule){
 					if(is_array($rule)){
 						$match = true;
@@ -758,6 +762,7 @@ class Promotion extends _Dal {
 			}
 			$tmp['name'] = $goods_detail['name'];
 			$tmp['pic_url'] = $goods_detail['pic_url'];
+			$tmp['cat'] = $goods_detail['cat'];
 			$tmp['url_tpl'] = $goods_detail['url_tpl'];
 			$tmp['url_id'] = $goods_detail['url_id'];
 			$new_ret[] = $tmp;
