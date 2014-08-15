@@ -142,10 +142,10 @@ class Brand extends _Dal {
 		$brand_hit = false;
 		foreach($brands as $brand){
 
-			if($brand['name'] && preg_match("/{$brand['name']}/i", $detail['name']) && (!$brand['ex_rule'] || !preg_match("/(".$brand['ex_rule'].")/i", $detail['name']))){
+			if($brand['name'] && mb_strlen($brand['name'], 'UTF-8')>1 && preg_match("/{$brand['name']}/i", $detail['name']) && (!$brand['ex_rule'] || !preg_match("/(".$brand['ex_rule'].")/i", $detail['name']))){
 				$brand_hit = $brand;
 				break;
-			}else if($brand['name_en'] && preg_match("/{$brand['name_en']}[^a-z0-9\+\·\'\’\:\-\&]/i", $detail['name']) && (!$brand['ex_rule'] || !preg_match("/({$brand['ex_rule']})/i", $detail['name']))){
+			}else if($brand['name_en'] && mb_strlen($brand['name'], 'UTF-8')>1 && preg_match("/{$brand['name_en']}[^a-z0-9\+\·\'\’\:\-\&]/i", $detail['name']) && (!$brand['ex_rule'] || !preg_match("/({$brand['ex_rule']})/i", $detail['name']))){
 				$brand_hit = $brand;
 				break;
 			}else if($brand['sp_rule'] && preg_match("/({$brand['sp_rule']})[^a-z0-9\+\·\'\’\:\-\&]/i", $detail['name']) && (!$brand['ex_rule'] || !preg_match("/({$brand['ex_rule']})/i", $detail['name']))){
