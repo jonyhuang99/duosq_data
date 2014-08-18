@@ -100,6 +100,13 @@ class Brand extends _Dal {
 		return $this->db('promotion.brand')->update($id, $data);
 	}
 
+	//更新品牌信息
+	function add($data){
+
+		if(!$data)return;
+		return $this->db('promotion.brand')->add($data);
+	}
+
 	//随机获取品牌
 	function getRand(){
 		$brand = $this->db('promotion.brand')->find("intro<>''", '', 'rand()');
@@ -164,7 +171,7 @@ class Brand extends _Dal {
 			$brand = $this->detail($brand_hit['id']);
 			if(!in_array($sp, $brand['shop_in_b2c']) && $sp <> 'taobao' && $sp <> 'tmall'){
 				$brand['shop_in_b2c'][] = $sp;
-				$this->db('promotion.brand')->save($brand_hit['id'], array('shop_in_b2c'=>join(',', $brand['shop_in_b2c'])));
+				$this->db('promotion.brand')->update($brand_hit['id'], array('shop_in_b2c'=>join(',', $brand['shop_in_b2c'])));
 				$key = 'brand:detail:'.$brand_hit['id'];
 				D('cache')->clean($key);
 			}

@@ -26,10 +26,9 @@ class OrderRefund extends _Db {
 			throw new \Exception("[order_refund][o_id:{$o_id}][add][param error]");
 		}
 
-		$this->create();
 		$data['o_id'] = $o_id;
 		$data['user_id'] = $user_id;
-		$ret = parent::save($data);
+		$ret = parent::add($data);
 		if(!$ret){
 			throw new \Exception("[order_refund][o_id:{$o_id}][add][save error]");
 		}
@@ -55,8 +54,7 @@ class OrderRefund extends _Db {
 			throw new \Exception("[order_refund][o_id:{$o_id}][update][o_id not exist]");
 		}
 
-		$new_field['o_id'] = $o_id;
-		$ret = parent::save(arrayClean($new_field));
+		$ret = parent::update($o_id, arrayClean($new_field));
 
 		if(!$ret){
 			throw new \Exception("[order_refund][o_id:{$o_id}][update][save error]");
@@ -102,8 +100,5 @@ class OrderRefund extends _Db {
 			return true;
 		}
 	}
-
-	//置空save，只允许从add/update进入
-	function save(){}
 }
 ?>

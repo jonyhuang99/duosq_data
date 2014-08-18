@@ -104,13 +104,22 @@ class Hao extends _Dal {
 	}
 
 	//用户自定义商城导航
-	function set($user_id, $sp){
+	function set($user_id, $sp=''){
 		if(!$user_id)return;
 
 		if($sp){
-			$this->db('hao')->save(array('user_id'=>$user_id, 'design'=>serialize($sp)));
+			if($this->db('hao')->find(array('user_id'=>$user_id))){
+				return $this->db('hao')->update($user_id, array('design'=>serialize($sp)));
+			}else{
+				return $this->db('hao')->add($user_id, array('design'=>serialize($sp)));
+			}
 		}else{
-			$this->db('hao')->save(array('user_id'=>$user_id, 'design'=>$sp));
+
+			if($this->db('hao')->find(array('user_id'=>$user_id))){
+				return $this->db('hao')->update($user_id, array('design'=>''));
+			}else{
+				return $this->db('hao')->add($user_id, array('design'=>''));
+			}
 		}
 	}
 
@@ -120,7 +129,7 @@ class Hao extends _Dal {
 		$design = $this->db('hao')->find(array('user_id'=>$user_id));
 		$design = clearTableName($design);
 		if($design){
-			$this->db('hao')->save(array('user_id'=>$design['user_id'], 'times'=>$design['times']+1));
+			$this->db('hao')->update($design['user_id'], array('times'=>$design['times']+1));
 			if($design['design'])
 				return unserialize($design['design']);
 			else

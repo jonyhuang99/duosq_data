@@ -33,10 +33,9 @@ class OrderReduce extends _Db {
 			throw new \Exception("[order_reduce][o_id:{$o_id}][add][param error]");
 		}
 
-		$this->create();
 		$data['o_id'] = $o_id;
 		$data['user_id'] = $user_id;
-		$ret = parent::save($data);
+		$ret = parent::add($data);
 		if(!$ret){
 			throw new \Exception("[order_reduce][o_id:{$o_id}][add][save error]");
 		}
@@ -62,8 +61,7 @@ class OrderReduce extends _Db {
 			throw new \Exception("[order_reduce][o_id:{$o_id}][update][o_id not exist]");
 		}
 
-		$new_field['o_id'] = $o_id;
-		$ret = parent::save(arrayClean($new_field));
+		$ret = parent::update($o_id, arrayClean($new_field));
 
 		if(!$ret){
 			throw new \Exception("[order_reduce][o_id:{$o_id}][update][save error]");
@@ -106,14 +104,11 @@ class OrderReduce extends _Db {
 
 		//标识正在打款时间，待重新打款不出现10分钟以内订单
 		if($to == self::STATUS_PAYING){
-			$ret = parent::save(array('o_id'=>$o_id, 'payingtime'=>date('Y-m-d H:i:s')));
+			$ret = parent::update($o_id, array('payingtime'=>date('Y-m-d H:i:s')));
 			if(!$ret){
 				throw new \Exception("[order_reduce][o_id:{$o_id}][afterUpdateStatus][payingtime update error]");
 			}
 		}
 	}
-
-	//置空save，只允许从add/update进入
-	function save(){}
 }
 ?>

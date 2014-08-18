@@ -12,16 +12,12 @@ class ReviewBrand extends _Db {
 	const STATUS_NORMAL = 1;
 	const STATUS_INVALID = 2;
 
-	//置空默认save方法
-	function save(){}
-
 	function add($sp, $goods_id){
 
 		if(!$sp || !$goods_id)return;
 		$id = $this->field('id', array('sp'=>$sp, 'goods_id'=>$goods_id));
 		if(!$id){
-			$this->create();
-			return parent::save(array('sp'=>$sp, 'goods_id'=>$goods_id));
+			return parent::add(array('sp'=>$sp, 'goods_id'=>$goods_id));
 		}
 	}
 
@@ -31,7 +27,7 @@ class ReviewBrand extends _Db {
 		if(!$sp || !$goods_id)return;
 		$id = $this->field('id', array('sp'=>$sp, 'goods_id'=>$goods_id));
 		if($id){
-			return parent::save(array('id'=>$id, 'status'=>$status));
+			return parent::update($id, array('status'=>$status));
 		}
 	}
 }

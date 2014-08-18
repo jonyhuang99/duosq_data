@@ -27,8 +27,7 @@ class Advtask extends _Dal {
 		$user_id = D('myuser')->getID();
 		if(!$user_id)return;
 
-		$this->db('advtask')->create();
-		return $this->db('advtask')->save(array('user_id'=>$user_id, 'type'=>$type, 'url'=>$url, 'ask_id'=>$ask_id));
+		return $this->db('advtask')->add(array('user_id'=>$user_id, 'type'=>$type, 'url'=>$url, 'ask_id'=>$ask_id));
 	}
 
 	//更新任务状态
@@ -36,10 +35,9 @@ class Advtask extends _Dal {
 
 		if(!$advtask_id)return;
 		$data = array();
-		$data['id'] = $advtask_id;
 		$data['status'] = $status;
 		$data['clickable'] = 0;
-		return $this->db('advtask')->save($data);
+		return $this->db('advtask')->update($advtask_id, $data);
 	}
 
 	//更新任务回复
@@ -47,10 +45,9 @@ class Advtask extends _Dal {
 
 		if(!$advtask_id || !$answer)return;
 		$data = array();
-		$data['id'] = $advtask_id;
 		$data['answer'] = $answer;
 
-		return $this->db('advtask')->save($data);
+		return $this->db('advtask')->update($advtask_id, $data);
 	}
 
 	//更新任务作业是否可点击
@@ -58,10 +55,9 @@ class Advtask extends _Dal {
 
 		if(!$advtask_id)return;
 		$data = array();
-		$data['id'] = $advtask_id;
 		$data['clickable'] = $clickable;
 
-		return $this->db('advtask')->save($data);
+		return $this->db('advtask')->update($advtask_id, $data);
 	}
 
 	//探测任务是否超过速控

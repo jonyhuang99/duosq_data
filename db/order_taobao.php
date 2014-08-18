@@ -42,16 +42,20 @@ class OrderTaobao extends _Db {
 		// 	throw new \Exception("[order_taobao][error][o_id:{$o_id}][add][r_orderid:{$data['r_orderid']} existed]");
 		// }
 
-		$this->create();
 		$data['o_id'] = $o_id;
 		$data['user_id'] = $user_id;
-		$ret = parent::save($data);
+		$ret = parent::add($data);
 		if(!$ret){
 			throw new \Exception("[order_taobao][error][o_id:{$o_id}][add]");
 		}
 
 		//更新淘宝店铺佣金表
-		$ret2 = D()->db('shop_taobao')->save(array('shopname'=>$data['r_shopname'], 'wangwang'=>$data['r_wangwang'], 'yongjin_rate'=>$data['r_yongjin_rate']));
+		if(D()->db('shop_taobao')->find(array('shopname'=>$data['r_shopname']))){
+			$ret2 = D()->db('shop_taobao')->update($data['r_shopname'], array('wangwang'=>$data['r_wangwang'], 'yongjin_rate'=>$data['r_yongjin_rate']));
+		}else{
+			$ret2 = D()->db('shop_taobao')->add(array('shopname'=>$data['r_shopname'], 'wangwang'=>$data['r_wangwang'], 'yongjin_rate'=>$data['r_yongjin_rate']));
+		}
+
 
 		if(!$ret2){
 			throw new \Exception("[order_taobao][error][o_id:{$o_id}][add][save shop_taobao error]");
@@ -120,8 +124,7 @@ class OrderTaobao extends _Db {
 			}
 		}
 
-		$new_field['o_id'] = $o_id;
-		$ret = parent::save(arrayClean($new_field));
+		$ret = parent::update($o_id, arrayClean($new_field));
 
 		if(!$ret){
 			throw new \Exception("[order_taobao][error][o_id:{$o_id}][save]");
@@ -264,13 +267,10 @@ class OrderTaobao extends _Db {
 		//订单子状态变为无效/失败，判断是否有打款流水平衡，扣除多余部分，主状态变为不通过
 		if( $to == self::R_STATUS_INVALID ){
 
-			$ret = parent::save(array('o_id'=>$o_id, 'status'=>self::STATUS_INVALID));
+			$ret = parent::update($o_id, array('status'=>self::STATUS_INVALID));
 			$this->afterUpdateStatus($o_id, self::STATUS_PASS, self::STATUS_INVALID, $old_detail);
 			return true;
 		}
 	}
-
-	//置空save，只允许从add/update进入
-	function save(){}
 }
 ?>

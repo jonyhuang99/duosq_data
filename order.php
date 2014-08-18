@@ -546,8 +546,7 @@ class Order extends _Dal {
 	function addChUser($o_id, $user_id, $r_orderid, $r_id, $buydate){
 
 		if(!$o_id || !$user_id || !$r_orderid || !$r_id)return;
-		$this->db('order_chuser')->create();
-		return $this->db('order_chuser')->save(array('o_id'=>$o_id, 'user_id'=>$user_id, 'r_orderid'=>$r_orderid, 'r_id'=>$r_id, 'buydate'=>$buydate));
+		return $this->db('order_chuser')->add(array('o_id'=>$o_id, 'user_id'=>$user_id, 'r_orderid'=>$r_orderid, 'r_id'=>$r_id, 'buydate'=>$buydate));
 	}
 
 	/**

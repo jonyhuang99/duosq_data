@@ -29,10 +29,10 @@ class Subscribe extends _Db {
 	function add($account, $channel='email', $data=array()){
 
 		if(!$account || !$channel)return false;
-		$this->create();
+
 		$data['account'] = $account;
 		$data['channel'] = $channel;
-		return parent::save($data);
+		return parent::add($data);
 	}
 
 	//修改订阅账户配置
@@ -44,14 +44,10 @@ class Subscribe extends _Db {
 
 		$id = $this->detail($account, $channel, 'id');
 		if(!$id)return false;
-		$data['id'] = $id;
 
-		$ret = parent::save($data);
+		$ret = parent::update($id, $data);
 		return $ret;
 	}
-
-	//置空save，只允许从add/update进入
-	function save(){}
 
 	//置空find/finaAll，只允许从detail进入，后续会改成分表
 	function find(){}

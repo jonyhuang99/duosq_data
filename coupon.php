@@ -47,9 +47,9 @@ class Coupon extends _Dal {
 
 			if(!$this->lock_id){
 				//没能抢到锁，但作为特例允许，抢到的数额不计入今日数额，这将导致可能新人今日可以抢2张
-				$ret = $this->db('coupon')->save(array('type'=>$type, 'user_id'=>$user_id, 'createdate'=>date('Y-m-d', time()-DAY), 'expiredate'=>date('Y-m-d', time()+DAY*30)));
+				$ret = $this->db('coupon')->add(array('type'=>$type, 'user_id'=>$user_id, 'createdate'=>date('Y-m-d', time()-DAY), 'expiredate'=>date('Y-m-d', time()+DAY*30)));
 			}else{
-				$ret = $this->db('coupon')->save(array('type'=>$type, 'user_id'=>$user_id, 'expiredate'=>date('Y-m-d', time()+DAY*30)));
+				$ret = $this->db('coupon')->add(array('type'=>$type, 'user_id'=>$user_id, 'expiredate'=>date('Y-m-d', time()+DAY*30)));
 			}
 			$this->unlock($user_id);
 			if(!$ret){
@@ -87,7 +87,7 @@ class Coupon extends _Dal {
 
 			//判断该订单是否已使用了优惠券
 			if($this->isUsed($o_id))return;
-			return $this->db('coupon')->save(array('id'=>$coupon_id, 'o_id'=>$o_id, 'is_used'=>1));
+			return $this->db('coupon')->update($coupon_id, array('o_id'=>$o_id, 'is_used'=>1));
 		}
 	}
 

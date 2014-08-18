@@ -8,7 +8,6 @@ class CacheApiItem extends _Db {
 
 	function add($status=1, $sp, $api_errcode='', $p_id='', $content='', $key=''){
 
-		$this->create();
 		$is_tmall = intval($content['is_tmall']);
 
 		if($content['p_seller']){
@@ -20,7 +19,7 @@ class CacheApiItem extends _Db {
 
 		unset($content['is_tmall']);
 
-		$this->save(array('status'=>$status, 'sp'=>$sp, 'api_errcode'=>$api_errcode, 'p_id'=>$p_id, 'content'=>json_encode($content), 'is_tmall'=>$is_tmall, 'seller'=>$seller, 'ip'=>getIp(), 'key'=>$key));
+		return parent::add(array('status'=>$status, 'sp'=>$sp, 'api_errcode'=>$api_errcode, 'p_id'=>$p_id, 'content'=>json_encode($content), 'is_tmall'=>$is_tmall, 'seller'=>$seller, 'ip'=>getIp(), 'key'=>$key));
 	}
 }
 ?>

@@ -10,8 +10,8 @@ class _Dal extends \Object {
 	 * @param  boolean $must_exist   是否允许不存在模块，自动创建同名表操作模块
 	 * @return [obj]                 cakephp model操作对象
 	 *
-	 * ex. $this->db('table')->save($data)	//操作cakephp model对象
-	 * ex. $this->db('table', true)->save($data)	//table.php必须存在db目录，否则返回空
+	 * ex. $this->db('table')->add($data)	//操作cakephp model对象
+	 * ex. $this->db('table', true)->add($data)	//table.php必须存在db目录，否则返回空
 	 * ex. $this->db()->query('sql');	//返回默认对象
 	 */
 	function db($m = '', $must_exist = false) {

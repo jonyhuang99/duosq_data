@@ -25,16 +25,16 @@ class _Db extends \Model {
 			foreach($ids as $id){
 				if(!$id)continue;
 				if($reason!==null)
-					$this->save(array($this->primaryKey=>$id, 'status'=>$status, 'reason'=>$reason));
+					$this->update($id, array('status'=>$status, 'reason'=>$reason));
 				else
-					$this->save(array($this->primaryKey=>$id, 'status'=>$status));
+					$this->update($id, array('status'=>$status));
 			}
 		}else{
 			if($status == $this->field('status', array($this->primaryKey=>$ids))) return;
 			if($reason!==null)
-				$this->save(array($this->primaryKey=>$ids, 'status'=>$status, 'reason'=>$reason));
+				$this->update($ids, array('status'=>$status, 'reason'=>$reason));
 			else
-				$this->save(array($this->primaryKey=>$ids, 'status'=>$status));
+				$this->update($ids, array('status'=>$status));
 		}
 		return true;
 	}

@@ -22,7 +22,6 @@ class Fund extends _Db {
 			throw new \Exception("[fund][o_id{$o_id}][add][param error]");
 		}
 
-		$this->create();
 		$data = array();
 		$data['o_id'] = $o_id;
 		$data['user_id'] = $user_id;
@@ -30,7 +29,7 @@ class Fund extends _Db {
 		$data['sub'] = $sub;
 		$data['n'] = $n;
 		$data['amount'] = $amount;
-		$ret = parent::save($data);
+		$ret = parent::add($data);
 
 		if(!$ret){
 			throw new \Exception("[fund][o_id{$o_id}][add][save error]");
@@ -45,8 +44,5 @@ class Fund extends _Db {
 
 		return $ret;
 	}
-
-	//置空save，只允许从add进入
-	function save(){}
 }
 ?>

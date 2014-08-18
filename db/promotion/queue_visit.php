@@ -7,20 +7,16 @@ class QueueVisit extends _Db {
 	var $name = 'QueueVisit';
 	var $useDbConfig = 'promotion';
 
-	//置空save，只允许从add/update进入
-	function save(){}
-
 	//标识商品被访问
 	function visited($sp, $goods_id){
 
 		if(!$sp || !$goods_id)return;
 
 		if($qid = $this->field('id', array('sp'=>$sp, 'goods_id'=>$goods_id))){
-			return parent::save(array('id'=>$qid, 'visit_date'=>date('Y-m-d')));
+			return parent::update($qid, array('visit_date'=>date('Y-m-d')));
 		}
 
-		$this->create();
-		return parent::save(array('sp'=>$sp, 'goods_id'=>$goods_id, 'visit_date'=>date('Y-m-d')));
+		return parent::add(array('sp'=>$sp, 'goods_id'=>$goods_id, 'visit_date'=>date('Y-m-d')));
 	}
 
 	//标识该商品今日已进行过价格探测

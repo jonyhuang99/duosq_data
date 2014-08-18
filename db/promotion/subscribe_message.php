@@ -40,12 +40,12 @@ class SubscribeMessage extends _Db {
 	function add($account, $channel='email', $title, $message){
 
 		if(!$account || !$channel || !$title ||!$message)return false;
-		$this->create();
+
 		$data['account'] = $account;
 		$data['channel'] = $channel;
 		$data['title'] = $title;
 		$data['message'] = is_array($message)?serialize($message):$message;
-		return parent::save($data);
+		return parent::add($data);
 	}
 
 	//更新推送消息
@@ -55,14 +55,9 @@ class SubscribeMessage extends _Db {
 		$data = arrayClean($data);
 		if(!$data)return false;
 
-		$data['id'] = $message_id;
-
-		$ret = parent::save($data);
+		$ret = parent::update($message_id, $data);
 		return $ret;
 	}
-
-	//置空save，只允许从add/update进入
-	function save(){}
 
 	//置空find/finaAll，只允许从detail进入，后续会改成分表
 	function find(){}

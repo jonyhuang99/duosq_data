@@ -241,12 +241,11 @@ class Pay extends _Dal {
 			$d = unserialize($exist['detail']);
 			$d[$tag] = intval(@$d[$tag]) + $amount;
 			$amount = $amount + intval($exist['amount']);
-			$this->db('wait_paycash')->save(array('id'=>$exist['id'], 'detail'=>serialize($d), 'amount'=>$amount));
+			$this->db('wait_paycash')->update($exist['id'], array('detail'=>serialize($d), 'amount'=>$amount));
 			return true;
 		}
 
-		$this->db('wait_paycash')->create();
-		return $this->db('wait_paycash')->save(array('user_id'=>$user_id, 'detail'=>serialize(array($tag=>$amount)), 'amount'=>$amount));
+		return $this->db('wait_paycash')->add(array('user_id'=>$user_id, 'detail'=>serialize(array($tag=>$amount)), 'amount'=>$amount));
 	}
 
 	/**

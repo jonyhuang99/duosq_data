@@ -40,7 +40,7 @@ class Log extends _Dal {
 		$data['client'] = getBrowser();
 
 		$this->db('log_action')->create();
-		return $this->db('log_action')->save(arrayClean($data));
+		return $this->db('log_action')->add(arrayClean($data));
 	}
 
 	/**
@@ -85,8 +85,7 @@ class Log extends _Dal {
 			$this->sess('log_search', $sess_data);
 		}
 
-		$this->db('log_search')->create();
-		return $this->db('log_search')->save(arrayClean($data));
+		return $this->db('log_search')->add(arrayClean($data));
 	}
 
 	//记录订单用户变更记录
@@ -100,7 +99,7 @@ class Log extends _Dal {
 		$data['sp'] = $sp;
 		$data['amount'] = $amount;
 		$data['has_pay'] = $has_pay;
-		return $this->db('log_order_chuser')->save($data);
+		return $this->db('log_order_chuser')->add($data);
 	}
 
 	//将用户没有登陆时，记录到session的搜索日志，插到日志表
@@ -112,8 +111,7 @@ class Log extends _Dal {
 		if($sess_data){
 			foreach($sess_data as $data){
 				$data['user_id'] = D('myuser')->getId();
-				$this->db('log_search')->create();
-				$this->db('log_search')->save(arrayClean($data));
+				$this->db('log_search')->add(arrayClean($data));
 			}
 			$this->sess('log_search', null);
 			return true;
@@ -133,8 +131,7 @@ class Log extends _Dal {
 		$data['amount'] = $amount;
 		$data['api_name'] = $api_name;
 		$data['api_ret'] = $api_ret;
-		$this->db('log_pay')->create();
-		return $this->db('log_pay')->save(arrayClean($data));
+		return $this->db('log_pay')->add(arrayClean($data));
 	}
 
 	/**
@@ -191,7 +188,7 @@ class Log extends _Dal {
 	function click($tag){
 
 		if(!$tag || !D('myuser')->isLogined())return;
-		return $this->db('log_click')->save(array('tag'=>$tag, 'user_id'=>D('myuser')->getId()));
+		return $this->db('log_click')->add(array('tag'=>$tag, 'user_id'=>D('myuser')->getId()));
 	}
 
 	/**

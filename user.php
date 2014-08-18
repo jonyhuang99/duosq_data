@@ -160,8 +160,7 @@ class user extends _Dal {
 
 		$exist = $this->db('user_taobao')->find(array('user_id'=>$user_id, 'taobao_no'=>$taobao_no));
 		if(!$exist){
-			$this->db('user_taobao')->create();
-			return $this->db('user_taobao')->save(array('user_id'=>$user_id, 'taobao_no'=>$taobao_no));
+			return $this->db('user_taobao')->add(array('user_id'=>$user_id, 'taobao_no'=>$taobao_no));
 		}
 		return true;
 	}
@@ -169,9 +168,9 @@ class user extends _Dal {
 	//标识taobao_no通过验证
 	function vaildTaobaoNo($user_id, $taobao_no){
 
-		$exist = $this->db('user_taobao')->field('id', array('user_id'=>$user_id, 'taobao_no'=>$taobao_no));
-		if($exist){
-			return $this->db('user_taobao')->save(array('id'=>$exist, 'valid'=>1));
+		$id = $this->db('user_taobao')->field('id', array('user_id'=>$user_id, 'taobao_no'=>$taobao_no));
+		if($id){
+			return $this->db('user_taobao')->update($id, array('valid'=>1));
 		}
 		return true;
 	}

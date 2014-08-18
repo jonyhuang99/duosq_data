@@ -13,9 +13,6 @@ class Goods extends _Db {
 	const STATUS_INVALID = 3; //下架|无效
 	const STATUS_INVALID_FORCE = 4; //手动强制下架
 
-	//置空save，只允许从add/update进入
-	function save(){}
-
 	//新增商品数据，返回商品ID
 	function add($sp, $data){
 		if(!$sp || !$data['sp'] || !$data['url_tpl'] || !$data['url_id'])return;
@@ -27,7 +24,7 @@ class Goods extends _Db {
 			return $goods_id;
 		}
 		$this->create();
-		return parent::save($data);
+		return parent::add($data);
 	}
 
 	//更新商品数据
@@ -36,9 +33,7 @@ class Goods extends _Db {
 		if(!$sp || !$goods_id)return;
 
 		$this->setTable($sp);
-		$data['id'] = $goods_id;
-		if(!$this->find(array('id'=>$goods_id)))return;
-		return parent::save($data);
+		return parent::update($goods_id, $data);
 	}
 
 	//获取商品详情

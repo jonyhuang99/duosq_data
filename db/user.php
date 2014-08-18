@@ -17,7 +17,7 @@ class User extends _Db {
 	function add($alipay, $mark_id=0, $sc_risk=0){
 
 		if(!$alipay)return;
-		$this->create();
+
 		I('ip2location');
 		$ip2location = new \ip2location();
 		$ip = getIp();
@@ -41,20 +41,16 @@ class User extends _Db {
 			}
 		}
 
-		return parent::save(array('status'=>$status, 'alipay'=>$alipay, 'mark_id'=>$mark_id, 'sc_risk'=>$sc_risk, 'reg_ip'=>$ip, 'reg_area'=>$area, 'reg_area_detail'=>$area_detail, 'utmo'=>$utmo, 'agent'=>$agent, 'referer'=>$referer));
+		return parent::add(array('status'=>$status, 'alipay'=>$alipay, 'mark_id'=>$mark_id, 'sc_risk'=>$sc_risk, 'reg_ip'=>$ip, 'reg_area'=>$area, 'reg_area_detail'=>$area_detail, 'utmo'=>$utmo, 'agent'=>$agent, 'referer'=>$referer));
 	}
 
 	//更新用户数据
 	function update($user_id, $data=array()){
 
 		if(!$user_id)return;
-		$this->id = $user_id;
-		$ret = parent::save(arrayClean($data));
+		$ret = parent::update($user_id, arrayClean($data));
 		return $ret;
 	}
-
-	//置空save，只允许从add/update进入
-	function save(){}
 }
 
 ?>

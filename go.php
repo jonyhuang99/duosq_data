@@ -25,8 +25,7 @@ class Go extends _Dal {
 
 		$data = array('user_id'=>$user_id, 'driver'=>$driver_n, 'sp'=>$sp, 'param'=>$param, 'tc'=>$tc, 'outcode'=>$outcode, 'cashtype'=>$fanli['cashtype'], 'fanli_rate' => $driver->getFanliRate());
 
-		$this->db('outcode')->create();
-		if($this->db('outcode')->save(arrayClean($data))){
+		if($this->db('outcode')->add(arrayClean($data))){
 			return $outcode;
 		}else{
 			return false;

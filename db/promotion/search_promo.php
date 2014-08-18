@@ -7,9 +7,6 @@ class SearchPromo extends _Db {
 	var $name = 'SearchPromo';
 	var $useDbConfig = 'promotion';
 
-	//置空默认save方法
-	function save(){}
-
 	function add($sp, $goods_id, $name, $weight=0){
 
 		if(!$sp || !$goods_id || !$name)return;
@@ -17,8 +14,7 @@ class SearchPromo extends _Db {
 		if($id){
 			return $id;
 		}else{
-			$this->create();
-			return parent::save(array('sp'=>$sp, 'goods_id'=>$goods_id, 'name'=>$name, 'weight'=>$weight));
+			return parent::add(array('sp'=>$sp, 'goods_id'=>$goods_id, 'name'=>$name, 'weight'=>$weight));
 		}
 	}
 

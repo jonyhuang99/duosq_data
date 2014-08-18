@@ -14,8 +14,7 @@ class Friend extends _Dal {
 
 		if(!$user_id || !$parent_id)return;
 		if($user_id == $parent_id)return;
-		$this->db('friend_invite')->create();
-		return $this->db('friend_invite')->save(array('user_id'=>$user_id, 'parent_id'=>$parent_id));
+		return $this->db('friend_invite')->add(array('user_id'=>$user_id, 'parent_id'=>$parent_id));
 	}
 
 	/**
@@ -103,7 +102,7 @@ class Friend extends _Dal {
 			return;
 		}
 
-		return $this->db('friend_quan')->save(array('id'=>$req_id, 'agree'=>$agree, 'agreetime'=>date('Y-m-d H:i:s')));
+		return $this->db('friend_quan')->update($req_id, array('agree'=>$agree, 'agreetime'=>date('Y-m-d H:i:s')));
 	}
 
 	//主动解除好友关系
@@ -113,12 +112,12 @@ class Friend extends _Dal {
 
 		$req_id = $this->db('friend_quan')->field('id', array('sender'=>$from_uid, 'recevier'=>$friend_uid));
 		if($req_id){
-			$this->db('friend_quan')->save(array('id'=>$req_id, 'agree'=>3, 'agreetime'=>date('Y-m-d H:i:s')));
+			$this->db('friend_quan')->update($req_id, array('agree'=>3, 'agreetime'=>date('Y-m-d H:i:s')));
 		}
 
 		$req_id = $this->db('friend_quan')->field('id', array('sender'=>$friend_uid, 'recevier'=>$from_uid));
 		if($req_id){
-			$this->db('friend_quan')->save(array('id'=>$req_id, 'agree'=>3, 'agreetime'=>date('Y-m-d H:i:s')));
+			$this->db('friend_quan')->update($req_id, array('agree'=>3, 'agreetime'=>date('Y-m-d H:i:s')));
 		}
 
 		//清除缓存
@@ -165,9 +164,9 @@ class Friend extends _Dal {
 		}
 
 		if($agree){
-			$ret = $this->db('friend_quan')->save(array('sender'=>$sender, 'recevier'=>$recevier, 'agree'=>$agree, 'agreetime'=>date('Y-m-d H:i:s')));
+			$ret = $this->db('friend_quan')->add(array('sender'=>$sender, 'recevier'=>$recevier, 'agree'=>$agree, 'agreetime'=>date('Y-m-d H:i:s')));
 		}else{
-			$ret = $this->db('friend_quan')->save(array('sender'=>$sender, 'recevier'=>$recevier, 'agree'=>$agree));
+			$ret = $this->db('friend_quan')->add(array('sender'=>$sender, 'recevier'=>$recevier, 'agree'=>$agree));
 		}
 
 		return $ret;
@@ -226,8 +225,7 @@ class Friend extends _Dal {
 
 			$amount = ceil($detail['amount'] * C('comm', 'friend_quan_reward_rate')/100);
 			if($amount){
-				$this->db('friend_quan_reward')->create();
-				$ret = $this->db('friend_quan_reward')->save(array('user_id'=>$detail['user_id'], 'o_id'=>$o_id, 'amount'=>$amount));
+				$ret = $this->db('friend_quan_reward')->add(array('user_id'=>$detail['user_id'], 'o_id'=>$o_id, 'amount'=>$amount));
 				if($ret){
 					//发送红包产生知会消息
 					D('notify')->addQuanRewardCreatedJob($o_id);
@@ -324,7 +322,7 @@ class Friend extends _Dal {
 
 		$detail = $this->getQuanRewardDetail($quan_reward_id);
 		if(!$detail['bless'] && $detail['recevier'] == D('myuser')->getId()){
-			return $this->db('friend_quan_reward')->save(array('id'=>$quan_reward_id, 'bless'=>$bless));
+			return $this->db('friend_quan_reward')->update($quan_reward_id, array('bless'=>$bless));
 		}
 	}
 
@@ -367,7 +365,7 @@ class Friend extends _Dal {
 
 			//官方红包不需更新
 			if($quan_reward_id!=1){
-				$ret1 = $this->db('friend_quan_reward')->save(array('id'=>$quan_reward_id, 'recevier'=>D('myuser')->getId(), 'recevietime'=>date('Y-m-d H:i:s')));
+				$ret1 = $this->db('friend_quan_reward')->update($quan_reward_id, array('recevier'=>D('myuser')->getId(), 'recevietime'=>date('Y-m-d H:i:s')));
 			}else{
 				$ret1 = $this->db('user')->update(D('myuser')->getId(), array('has_robtime'=>date('Y-m-d H:i:s')));
 			}

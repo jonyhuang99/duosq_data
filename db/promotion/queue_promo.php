@@ -17,15 +17,11 @@ class QueuePromo extends _Db {
 	const TYPE_HOT = 2;
 	const TYPE_HUODONG = 3;
 
-	//置空save，只允许从add/update进入
-	//function save(){}
 
 	//新增促销信息分类数据
 	function add($data){
 		if(!$data['sp'] || !$data['goods_id'])return;
-
-		$this->create();
-		return parent::save($data);
+		return parent::add($data);
 	}
 
 	//更新促销信息分类数据
@@ -36,8 +32,7 @@ class QueuePromo extends _Db {
 		$id = $this->field('id', array('sp'=>$sp, 'goods_id'=>$goods_id));
 		if(!$id)return;
 
-		$data['id'] = $id;
-		return parent::save($data);
+		return parent::update($id, $data);
 	}
 }
 ?>

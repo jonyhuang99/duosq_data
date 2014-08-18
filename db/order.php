@@ -41,7 +41,6 @@ class Order extends _Db {
 			throw new \Exception("[order:{$o_id}][add][param n&amount error]");
 		}
 
-		$this->create();
 		$data = array();
 		$data['o_id'] = $o_id;
 		$data['user_id'] = $user_id;
@@ -51,7 +50,7 @@ class Order extends _Db {
 		$data['n'] = $n;
 		$data['amount'] = $amount;
 		$data['is_show'] = $is_show;
-		$ret = parent::save($data);
+		$ret = parent::add($data);
 
 		if(!$ret){
 			throw new \Exception("[order:{$o_id}][add][save error]");
@@ -66,9 +65,9 @@ class Order extends _Db {
 	 */
 	function updateStatus($o_id, $status=''){
 
-		$data = array('o_id'=>$o_id, 'status'=>$status);
+		$data = array('status'=>$status);
 
-		$ret = parent::save(arrayClean($data));
+		$ret = parent::update($o_id, arrayClean($data));
 
 		if(!$ret){
 			throw new \Exception("[order:{$o_id}][update][save error]");
@@ -84,9 +83,9 @@ class Order extends _Db {
 	function updateFundId($o_id, $fund_id){
 
 		if(!$o_id || !$fund_id)return;
-		$data = array('o_id'=>$o_id, 'fund_id'=>$fund_id);
+		$data = array('fund_id'=>$fund_id);
 
-		$ret = parent::save(arrayClean($data));
+		$ret = parent::update($o_id, arrayClean($data));
 		if(!$ret){
 			throw new \Exception("[order:{$o_id}][updateFundId][save error]");
 		}
@@ -105,12 +104,12 @@ class Order extends _Db {
 			$old = $this->find(array('o_id'=>$o_id));
 			$old = clearTableName($old);
 			if($old['n']==0 && $old['amount']==0){
-				$ret = parent::save(array('o_id'=>$o_id, 'n'=>self::N_ADD, 'amount'=>$fanli));
+				$ret = parent::update($o_id, array('n'=>self::N_ADD, 'amount'=>$fanli));
 			}else{
-				$ret = parent::save(array('o_id'=>$o_id, 'amount'=>$fanli));
+				$ret = parent::update($o_id, array('amount'=>$fanli));
 			}
 		}else{
-			$ret = parent::save(array('o_id'=>$o_id, 'n'=>self::N_ZERO, 'amount'=>0));
+			$ret = parent::update($o_id, array('n'=>self::N_ZERO, 'amount'=>0));
 		}
 
 		if(!$ret){
@@ -126,15 +125,12 @@ class Order extends _Db {
 	 */
 	function updateUserId($o_id, $user_id){
 		if(!$o_id || !$user_id)return;
-		$ret = parent::save(array('o_id'=>$o_id, 'user_id'=>$user_id));
+		$ret = parent::update($o_id, array('user_id'=>$user_id));
 
 		if(!$ret){
 			throw new \Exception("[order:{$o_id}][updateUserId][save error]");
 		}
 		return $ret;
 	}
-
-	//置空save，只允许从add/update进入
-	function save(){}
 }
 ?>

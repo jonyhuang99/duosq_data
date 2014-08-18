@@ -44,10 +44,9 @@ class OrderMall extends _Db {
 			throw new \Exception("[order_mall][error][o_id:{$o_id}][add][r_orderid:{$data['r_orderid']} existed]");
 		}
 
-		$this->create();
 		$data['o_id'] = $o_id;
 		$data['user_id'] = $user_id;
-		$ret = parent::save($data);
+		$ret = parent::add($data);
 		if(!$ret){
 			throw new \Exception("[order_mall][error][o_id:{$o_id}][add]");
 		}
@@ -103,8 +102,7 @@ class OrderMall extends _Db {
 			}
 		}
 
-		$new_field['o_id'] = $o_id;
-		$ret = parent::save(arrayClean($new_field));
+		$ret = parent::update($o_id, arrayClean($new_field));
 
 		if(!$ret){
 			throw new \Exception("[order_mall][error][o_id:{$o_id}][update]");
@@ -206,7 +204,7 @@ class OrderMall extends _Db {
 					foreach ($all as $o) {
 						//主订单状态变为已通过
 						D('order')->updateStatus($o['o_id'], \DAL\Order::STATUS_INVALID);
-						parent::save(array('o_id'=>$o['o_id'], 'status'=>self::STATUS_INVALID, 'r_status'=>self::R_STATUS_INVALID));
+						parent::update($o['o_id'], array('status'=>self::STATUS_INVALID, 'r_status'=>self::R_STATUS_INVALID));
 					}
 				}
 			}
@@ -283,8 +281,5 @@ class OrderMall extends _Db {
 		}
 		return $exist;
 	}
-
-	//置空save，只允许从add/update进入
-	function save(){}
 }
 ?>

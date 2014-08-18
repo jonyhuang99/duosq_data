@@ -7,15 +7,11 @@ class QueuePromo2cat extends _Db {
 	var $name = 'QueuePromo2cat';
 	var $useDbConfig = 'promotion';
 
-	//置空save，只允许从add/update进入
-	function save(){}
-
 	//新增促销信息分类数据
 	function add($data){
-		if(!$data['sp'] || !$data['goods_id'])return;
 
-		$this->create();
-		return parent::save($data);
+		if(!$data['sp'] || !$data['goods_id'])return;
+		return parent::add($data);
 	}
 
 	//更新促销信息分类数据
@@ -28,10 +24,9 @@ class QueuePromo2cat extends _Db {
 		$hits = clearTableName($hits);
 		if(!$hits)return;
 		foreach($hits as $hit){
-			$data['id'] = $hit['id'];
-			parent::save($data);
+		 	$ret = parent::update($hit['id'], $data);
 		}
-		return true;
+		return $ret;
 	}
 
 	//删除促销排序
