@@ -40,6 +40,16 @@ class Advtask extends _Dal {
 		return $this->db('advtask')->update($advtask_id, $data);
 	}
 
+
+	//更新任务被删状态
+	function updateDeleted($advtask_id, $status){
+
+		if(!$advtask_id)return;
+		$data = array();
+		$data['deleted'] = $status;
+		return $this->db('advtask')->update($advtask_id, $data);
+	}
+
 	//更新任务回复
 	function updateAnswer($advtask_id, $answer){
 

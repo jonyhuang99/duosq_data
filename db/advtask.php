@@ -19,5 +19,10 @@ class Advtask extends _Db {
 	const TYPE_TIEBA = 3;
 	const TYPE_BBS = 4;
 	const TYPE_ZHUANKE = 5;
+
+	//推广任务被删状态
+	const DELETED_WAIT_REVIEW = 0;
+	const DELETED_YES = 1;
+	const DELETED_NO = 2;
 }
 ?>
