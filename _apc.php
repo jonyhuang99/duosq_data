@@ -1,5 +1,6 @@
 <?php
 //DAL:mcache本地缓存层
+//APC如果fetch命中，缓存将自动续期
 
 namespace MCACHE;
 

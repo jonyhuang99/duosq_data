@@ -137,15 +137,17 @@ class Brand extends _Dal {
 		if(!$detail['cat'] || $detail['brand_review'])return;
 
 		$key = 'brand:details:cat:'.md5(serialize($detail['cat']));
+
 		$cache = D('cache')->get($key);
 		if($cache){
 			$brands = D('cache')->ret($cache);
 		}else{
 			$brands = $this->db('promotion.brand')->findAll(array('cat'=>"regexp (".join('|',$detail['cat']).')'), 'id,name,name_en,sp_rule,ex_rule');
-			D('cache')->set($key, $brands, MINUTE*5);
+
+			$brands = clearTableName($brands);
+			D('cache')->set($key, $brands, HOUR);
 		}
 
-		$brands = clearTableName($brands);
 		$brand_hit = false;
 		foreach($brands as $brand){
 

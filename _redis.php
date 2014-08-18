@@ -240,7 +240,9 @@ class _Redis extends \Object {
 			$low_m = strtolower($method);
 			$all_cache_m = array('get','hget','hgetall','hmget','smembers');
 			$key_md5 = md5($arg_array[0]);
-			$aKey = $method.':'.$key_md5.':'.md5(serialize($arg_array));
+			//mcache 1分钟强制过期
+			$aKey = $method.':'.$key_md5.':'.md5(serialize($arg_array)).':minute:'.date('i');
+
 			if(in_array($low_m, $all_cache_m)){
 
 				$succ = false;
@@ -252,6 +254,7 @@ class _Redis extends \Object {
 					if($ret)D()->mcache()->set($aKey, $ret, $this->mcache);
 				}
 				return $ret;
+
 			}else{
 
 				//file_put_contents('/tmp/redis.log', date('[H:i:s]').$method.json_encode($arg_array)."\n\n", 8);
@@ -261,6 +264,7 @@ class _Redis extends \Object {
 					D()->mcache()->delete($cachedKeys);
 				}
 			}
+
 		}else{
 			//file_put_contents('/tmp/redis.log', date('[H:i:s]').$method.json_encode($arg_array)."\n\n", 8);
 			$ret = call_user_func_array(array($this->redis(), $method), $arg_array);
