@@ -166,8 +166,6 @@ class Brand extends _Dal {
 		if($brand_hit){
 			$this->db('promotion.goods')->update($sp, $goods_id, array('brand_id'=>$brand_hit['id']));
 			$this->db('promotion.queue_promo2cat')->update($sp, $goods_id, array('brand_id'=>$brand_hit['id']));
-			//加入待审核列表
-			$this->db('promotion.review_brand')->add($sp, $goods_id);
 
 			//标识品牌在商城有卖
 			$brand = $this->detail($brand_hit['id']);
