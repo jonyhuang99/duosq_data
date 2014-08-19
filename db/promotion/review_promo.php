@@ -2,9 +2,9 @@
 //审核促销信息
 namespace DB;
 
-class Review extends _Db {
+class ReviewPromo extends _Db {
 
-	var $name = 'Review';
+	var $name = 'ReviewPromo';
 	var $useDbConfig = 'promotion';
 
 	//特卖待审状态定义

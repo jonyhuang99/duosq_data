@@ -666,7 +666,7 @@ class Promotion extends _Dal {
 			if(is_array($c)){
 				$condition_str[] = "{$field} in ('" . join("','", $c) . "')";
 			}elseif(preg_match('/^(?:in|not in)/i', $c)){
-				$condition_str[] = $field . ' ' . $value;
+				$condition_str[] = $field . ' ' . $c;
 			}elseif(preg_match('/^(<|>) (.+$)/i', $c, $m)){
 
 				$condition_str[] = "{$field} {$m[1]} '{$m[2]} '";
@@ -674,6 +674,7 @@ class Promotion extends _Dal {
 				$condition_str[] = "{$field} = '{$c}'";
 			}
 		}
+
 		$condition_str[] = "sp <> 'taobao'";
 		$condition_str = join(' AND ', $condition_str);
 		list($order, $limit, $page) = $pn->init($condition_str, array('modelClass' => $this->db('promotion.queue_promo2cat'), 'fields'=>'DISTINCT sp, goods_id, type'));
