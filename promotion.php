@@ -628,7 +628,12 @@ class Promotion extends _Dal {
 	function updatePromo($sp, $goods_id, $new_data){
 
 		if(!$sp || !$goods_id || !$new_data)return;
-		return $this->db('promotion.queue_promo')->update($sp, $goods_id, $new_data);
+		$ret = $this->db('promotion.queue_promo')->update($sp, $goods_id, $new_data);
+		if($ret){
+			$key = 'promo:detail:sp:'.$sp.':goods_id:'.$goods_id;
+			D('cache')->clean($key);
+			return $ret;
+		}
 	}
 
 	/**

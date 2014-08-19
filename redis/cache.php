@@ -7,5 +7,6 @@ class Cache extends _Redis {
 
 	protected $namespace = 'cache';
 	protected $mcache = 600;
+	protected $mcache_update = true;
 }
 ?>
