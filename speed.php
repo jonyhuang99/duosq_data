@@ -215,14 +215,25 @@ class Speed extends _Dal {
 	 * 推广任务速控
 	 * @return [type] [description]
 	 */
-	function advtask($key, $limit, $mode = 'set'){
+	function advtaskSite($key, $limit, $mode = 'set'){
 
 		if(!$limit)return;
 		if($mode == 'set'){
-			return $this->redis('speed')->sincr('advtask:'.$key.':'.date('Ymd'), DAY, $limit);
+			return $this->redis('speed')->sincr('advtask:site:'.$key.':'.date('Ymd'), DAY, $limit);
 		}else{
-			return $this->redis('speed')->sget('advtask:'.$key.':'.date('Ymd'), DAY, $limit);
+			return $this->redis('speed')->sget('advtask:site:'.$key.':'.date('Ymd'), DAY, $limit);
 		}
+	}
+
+	/**
+	 * 推广任务每人刷新速控
+	 * @return [bool] [是否超速]
+	 */
+	function advtaskUser(){
+
+		$user_id = D('myuser')->getID();
+		if(!$user_id)return false;
+		return $this->redis('speed')->sincr('advtask:user:'.$user_id.':hour:'.date('H'), DAY, 15);
 	}
 }
 ?>
