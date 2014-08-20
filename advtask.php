@@ -86,7 +86,7 @@ class Advtask extends _Dal {
 
 		$key = "type:{$type}:{$url_id}";
 
-		return D('speed')->advtask($key, $speed_limit, 'get');
+		return D('speed')->advtaskSite($key, $speed_limit, 'get');
 	}
 
 	//累计任务速控
@@ -104,7 +104,7 @@ class Advtask extends _Dal {
 		if(!$conf_speed[$url_id])return true;
 
 		$key = "type:{$type}:{$url_id}";
-		return D('speed')->advtask($key, $conf_speed[$url_id], 'set');
+		return D('speed')->advtaskSite($key, $conf_speed[$url_id], 'set');
 	}
 
 	//从url中获取标识
