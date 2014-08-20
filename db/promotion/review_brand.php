@@ -20,15 +20,5 @@ class ReviewBrand extends _Db {
 			return parent::add(array('sp'=>$sp, 'goods_id'=>$goods_id));
 		}
 	}
-
-	//更改纠错信息状态
-	function updateStatus($sp, $goods_id, $status){
-
-		if(!$sp || !$goods_id)return;
-		$id = $this->field('id', array('sp'=>$sp, 'goods_id'=>$goods_id));
-		if($id){
-			return parent::update($id, array('status'=>$status));
-		}
-	}
 }
 ?>

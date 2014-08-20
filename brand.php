@@ -115,6 +115,13 @@ class Brand extends _Dal {
 		return $this->detail($brand['id']);
 	}
 
+	//随机获取品牌资讯
+	function getRandNews(){
+		$news = $this->db('promotion.brand_news')->find('', '', 'rand()');
+		$news = clearTableName($news);
+		return $news;
+	}
+
 	//获取品牌名称
 	function getName($brand_id, $full=true){
 
@@ -133,8 +140,8 @@ class Brand extends _Dal {
 
 		if(!$sp || !$goods_id)return;
 		$detail = D('promotion')->goodsDetail($sp, $goods_id);
-		//人工审核后不再匹配
-		if(!$detail['cat'] || $detail['brand_review'])return;
+		//人工审核品牌后不再自动匹配
+		if(!$detail || !$detail['cat'] || $detail['brand_review'])return;
 
 		$key = 'brand:details:cat:'.md5(serialize($detail['cat']));
 
@@ -164,24 +171,30 @@ class Brand extends _Dal {
 		}
 
 		if($brand_hit){
-			$this->db('promotion.goods')->update($sp, $goods_id, array('brand_id'=>$brand_hit['id']));
-			$this->db('promotion.queue_promo2cat')->update($sp, $goods_id, array('brand_id'=>$brand_hit['id']));
-
-			//标识品牌在商城有卖
-			$brand = $this->detail($brand_hit['id']);
-			if(!in_array($sp, $brand['shop_in_b2c']) && $sp <> 'taobao' && $sp <> 'tmall'){
-				$brand['shop_in_b2c'][] = $sp;
-				$this->db('promotion.brand')->update($brand_hit['id'], array('shop_in_b2c'=>join(',', $brand['shop_in_b2c'])));
-				$key = 'brand:detail:'.$brand_hit['id'];
-				D('cache')->clean($key);
-			}
-
-			return $brand_hit;
+			return $this->updateGoodsBrand($sp, $goods_id, $brand_hit['id']);
 		}else{
-
 			$this->db('promotion.goods')->update($sp, $goods_id, array('brand_id'=>0));
 			$this->db('promotion.queue_promo2cat')->update($sp, $goods_id, array('brand_id'=>0));
 		}
+	}
+
+	//更新商品品牌
+	function updateGoodsBrand($sp, $goods_id, $brand_id=0){
+
+		$this->db('promotion.goods')->update($sp, $goods_id, array('brand_id'=>$brand_id));
+		$ret = $this->db('promotion.queue_promo2cat')->update($sp, $goods_id, array('brand_id'=>$brand_id));
+		//清除品牌关联
+		if(!$brand_id)return $ret;
+		//标识品牌在商城有卖
+		$brand = $this->detail($brand_id);
+		if(!in_array($sp, $brand['shop_in_b2c']) && $sp <> 'taobao' && $sp <> 'tmall'){
+			$brand['shop_in_b2c'][] = $sp;
+			$this->update($brand_id, array('shop_in_b2c'=>join(',', $brand['shop_in_b2c'])));
+			$key = 'brand:detail:'.$brand_id;
+			D('cache')->clean($key);
+		}
+
+		return $ret;
 	}
 
 	//获取一周发生过促销的品牌数

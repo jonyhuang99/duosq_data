@@ -298,9 +298,10 @@ class Promotion extends _Dal {
 	function matchGoodsCat($sp, $goods_id){
 
 		if(!$sp || !$goods_id)return;
-		$detail = $this->goodsDetail($sp, $goods_id);
 
-		if(!$detail)return;
+		$detail = $this->goodsDetail($sp, $goods_id);
+		//人工审核分类后不再自动匹配
+		if(!$detail || $detail['cat_review'])return;
 
 		$name = $detail['name'];
 		$all_rules = $this->getCatRules();
@@ -318,7 +319,7 @@ class Promotion extends _Dal {
 				}
 
 				//用价格做特殊修正
-				if($midcat == '手机数码' && $detail['price_now'] < 200)continue;
+				if($midcat == '品牌手机' && $detail['price_now'] < 200)continue;
 				if($midcat == '电脑整机' && $detail['price_now'] < 200)continue;
 
 				foreach($rules as $rule){
@@ -365,6 +366,7 @@ class Promotion extends _Dal {
 	function updateGoodsCat($sp, $goods_id, $subcats){
 
 		if(!$sp || !$goods_id || !$subcats)return;
+
 		$match_cats = array();
 		foreach($subcats as $subcat){
 			if($cat = $this->subcat2cat($subcat)){
@@ -379,7 +381,7 @@ class Promotion extends _Dal {
 		}
 		$subcat_str = join('|', array_slice($subcats, 0, 10));
 
-		$ret = $this->db('promotion.goods')->update($sp, $goods_id, array('cat'=>$cat_str, 'subcat'=>$subcat_str));
+		$ret = $this->updateGoods($sp, $goods_id, array('cat'=>$cat_str, 'subcat'=>$subcat_str));
 		if(!$ret)return false;
 
 		//同步promo分类
@@ -398,7 +400,7 @@ class Promotion extends _Dal {
 				}
 
 				if(!count($promo2cat_subcat)){
-					$this->db('promotion.queue_promo')->update($sp, $goods_id, array('cat_assign'=>1));
+					$this->markPromoHasCat($sp, $goods_id);
 					return $ret;
 				}
 			}
@@ -409,7 +411,7 @@ class Promotion extends _Dal {
 				$this->db('promotion.queue_promo2cat')->add(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2cat($subcat),'subcat'=>$subcat,'type'=>$promo['type'],'createtime'=>$promo['createtime']));
 			}
 
-			$this->db('promotion.queue_promo')->update($sp, $goods_id, array('cat_assign'=>1));
+			$this->markPromoHasCat($sp, $goods_id);
 		}
 
 		return $ret;
@@ -489,11 +491,23 @@ class Promotion extends _Dal {
 		return $this->db('promotion.queue_visit')->getLastVisit(60);
 	}
 
+	//更新商品信息
+	function updateGoods($sp, $goods_id, $new_data){
+
+		if(!$sp || !$goods_id || !$new_data)return;
+		$ret = $this->db('promotion.goods')->update($sp, $goods_id, $new_data);
+		if($ret){
+			$key = 'goods:detail:sp:'.$sp.':goods_id:'.$goods_id;
+			D('cache')->clean($key);
+		}
+		return $ret;
+	}
+
 	//更新商品价格走势
 	function updateGoodsPrice($sp, $goods_id, $price_trend, $price_min, $price_max, $price_now){
 
 		if(!$sp || !$goods_id)return;
-		$ret = $this->db('promotion.goods')->update($sp, $goods_id, array('price_trend'=>$price_trend, 'price_min'=>$price_min, 'price_max'=>$price_max, 'price_now'=>$price_now, 'price_update'=>date('Y-m-d')));
+		$ret = $this->updateGoods($sp, $goods_id, array('price_trend'=>$price_trend, 'price_min'=>$price_min, 'price_max'=>$price_max, 'price_now'=>$price_now, 'price_update'=>date('Y-m-d')));
 
 		if($ret){
 			$this->db('promotion.queue_visit')->detected($sp, $goods_id);
@@ -505,7 +519,7 @@ class Promotion extends _Dal {
 	function updateGoodsStatus($sp, $goods_id, $status){
 
 		if(!$sp || !$goods_id)return;
-		return $this->db('promotion.goods')->update($sp, $goods_id, array('status'=>$status));
+		return $this->updateGoods($sp, $goods_id, array('status'=>$status));
 	}
 
 	//标记该商品是降价商品(type 1:特卖 2:热卖)
@@ -529,6 +543,8 @@ class Promotion extends _Dal {
 			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
 			$this->matchGoodsCat($sp, $goods_id);
 			D('brand')->matchAndUpdateBrand($sp, $goods_id);
+			//加入待审核列表
+			$this->db('promotion.review')->add(\DB\Review::TYPE_PROMO, array('sp'=>$sp, 'goods_id'=>$goods_id));
 			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
 			D('search')->buildIndex($sp, $goods_id); //-有错误
 			if($ret)$this->redis('promotion')->promoCounter($sp, $goods_id); //--有错误
@@ -560,11 +576,27 @@ class Promotion extends _Dal {
 			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
 			$this->matchGoodsCat($sp, $goods_id);
 			D('brand')->matchAndUpdateBrand($sp, $goods_id);
+			//加入待审核列表
+			$this->db('promotion.review')->add(\DB\Review::TYPE_PROMO, array('sp'=>$sp, 'goods_id'=>$goods_id));
 			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
 			D('search')->buildIndex($sp, $goods_id);
 			if($ret)$this->redis('promotion')->promoCounter($sp, $goods_id);
 			return true;
 		}
+	}
+
+	//标识特卖商品已有分类
+	function markPromoHasCat($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		return $this->db('promotion.queue_promo')->update($sp, $goods_id, array('cat_assign'=>1));
+	}
+
+	//标识推荐到APP
+	function markRecommendApp($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		return $this->db('promotion.queue_promo2cat')->update($sp, $goods_id, array('app'=>1));
 	}
 
 	//获取特卖详情
@@ -632,8 +664,8 @@ class Promotion extends _Dal {
 		if($ret){
 			$key = 'promo:detail:sp:'.$sp.':goods_id:'.$goods_id;
 			D('cache')->clean($key);
-			return $ret;
 		}
+		return $ret;
 	}
 
 	/**
