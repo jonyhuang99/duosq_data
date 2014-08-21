@@ -233,7 +233,7 @@ class Speed extends _Dal {
 
 		$user_id = D('myuser')->getID();
 		if(!$user_id)return false;
-		return $this->redis('speed')->sincr('advtask:user:'.$user_id.':hour:'.date('H'), DAY, 15);
+		return $this->redis('speed')->sincr('advtask:user:'.$user_id.':hour:'.date('H'), HOUR, 30);
 	}
 }
 ?>

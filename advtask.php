@@ -77,7 +77,6 @@ class Advtask extends _Dal {
 
 		$url_id = $this->_getUrlId($task_url);
 		if(!$url_id)return true;
-
 		$conf_speed = $this->_getConfSpeed($type);
 		if(!$conf_speed)return true;
 
@@ -113,6 +112,9 @@ class Advtask extends _Dal {
 		if(!$url || !valid($url, 'url'))return;
 		$url_ex = explode('.', $url);
 		$url_id =  r('/', '', r('http://', '', $url_ex[0]).'.'.$url_ex[1]);
+		if(stripos($url_id, '.jd')!==false || stripos($url_id, '.taobao')!==false || stripos($url_id, '.tmall')!==false){
+			$url_id = array_pop(explode('.', $url_id));
+		}
 		return $url_id;
 	}
 
