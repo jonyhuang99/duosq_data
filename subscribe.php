@@ -32,7 +32,7 @@ class Subscribe extends _Dal {
 
 		//清掉和配置无关的字段
 		foreach($ret as $option => $val){
-			if(stripos($option, 'setting')===false){
+			if(stripos($option, 'setting')===false && $option != 'status'){
 				unset($ret[$option]);
 			}
 		}
@@ -46,6 +46,12 @@ class Subscribe extends _Dal {
 			$ret['setting_subcat'] = explode(',', $ret['setting_subcat']);
 		}else{
 			$ret['setting_subcat'] = array();
+		}
+
+		if($ret['setting_clothes_color']){
+			$ret['setting_clothes_color'] = explode(',', $ret['setting_clothes_color']);
+		}else{
+			$ret['setting_clothes_color'] = array();
 		}
 
 		if($ret['setting_midcat']){
@@ -95,6 +101,7 @@ class Subscribe extends _Dal {
 			case 'setting_subcat':
 			case 'setting_midcat':
 			case 'setting_brand':
+			case 'setting_clothes_color':
 				$sess_setting_str = $this->redis('subscribe')->get($sess_id, $option);
 				$sess_setting = array();
 				if($sess_setting_str){
@@ -142,11 +149,12 @@ class Subscribe extends _Dal {
 			//用空来覆盖旧配置
 			foreach ($exist as $key => $value) {
 				if(strpos($key, 'setting')!==false){
-					if(!isset($setting[$key])){
+					if(!isset($setting[$key]) || !$setting[$key]){
 						$setting[$key] = '';
 					}
 				}
 			}
+
 			$ret = $this->db('promotion.subscribe')->update($account, $channel, $setting);
 		}else{
 			$ret = $this->db('promotion.subscribe')->add($account, $channel, $setting);

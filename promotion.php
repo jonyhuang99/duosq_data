@@ -792,7 +792,7 @@ class Promotion extends _Dal {
 					$saled_str = "上周原价热销：<font class=blue>{$saled}</font>件<br />";
 					$tmp['week_sales'] = $saled;
 				}
-				$tmp['dis_content'] = '90天均价：<font class="blue">¥'.price_yuan($tmp['price_avg']).'</font><br />'.$saled_str.'刚刚降至：<font class=orange>¥'.price_yuan($tmp['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($tmp['price_now'], $tmp['price_avg']).'%</font>哟~';
+				$tmp['dis_content'] = '90天实售：<font class="blue">¥'.price_yuan($tmp['price_avg']).'</font><br />'.$saled_str.'刚刚降至：<font class=orange>¥'.price_yuan($tmp['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($tmp['price_now'], $tmp['price_avg']).'%</font>哟~';
 			}
 
 			if(time() - strtotime($promo_detail['createdate']) < DAY){

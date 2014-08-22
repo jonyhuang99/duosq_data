@@ -39,7 +39,7 @@ class Subscribe extends _Db {
 	function update($account, $channel='email', $data){
 
 		if(!$account || !$channel)return false;
-		$data = arrayClean($data);
+		//允许置空某项配置
 		if(!$data)return false;
 
 		$id = $this->detail($account, $channel, 'id');
