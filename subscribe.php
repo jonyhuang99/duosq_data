@@ -123,7 +123,11 @@ class Subscribe extends _Dal {
 			case 'setting_clothes_size_boy':
 			case 'setting_shoes_size_girl':
 			case 'setting_shoes_size_boy':
-				$sess_setting = $value;
+				if($action == 'add'){
+					$sess_setting = $value;
+				}else{
+					$sess_setting = '';
+				}
 				break;
 		}
 
