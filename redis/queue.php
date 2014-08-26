@@ -11,6 +11,7 @@ class Queue extends _Redis {
 	static $QUEUE_DATA = array();
 
 	const KEY_BALANCE = 'fund'; //资产变更队列
+	const KEY_APP_NOTIFY_NUM = 'app_notify_num'; //应用消息数队列
 
 	/**
 	 * 增加消息，静态缓存

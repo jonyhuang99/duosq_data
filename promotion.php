@@ -798,6 +798,7 @@ class Promotion extends _Dal {
 			if(time() - strtotime($promo_detail['createdate']) < DAY){
 				$tmp['is_new'] = true;
 			}
+			//融合商品信息
 			$tmp['name'] = $goods_detail['name'];
 			$tmp['pic_url'] = $goods_detail['pic_url'];
 			$tmp['cat'] = $goods_detail['cat'];
@@ -811,6 +812,8 @@ class Promotion extends _Dal {
 
 	//获取经过人工修正后的当前价格
 	function getFixNowPrice($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
 		//纠正当前价格
 		if($price_now_fixed = $this->db('promotion.price_fix')->field('price_now', array('sp'=>$sp, 'goods_id'=>$goods_id, 'expire'=>'>= '.date('Y-m-d')))){
 			return $price_now_fixed;
@@ -866,6 +869,20 @@ class Promotion extends _Dal {
 	function getRandPromo(){
 
 		return $this->db('promotion.queue_promo2cat')->find("subcat<>'' AND brand_id<>'' AND createtime>'".date('Y-m-d', time()-DAY*300)."'", '', 'rand()');
+	}
+
+	//获取所有特卖
+	function getAllPromo(){
+
+		$ret = $this->db('promotion.queue_promo')->findAll(array('sp'=>'<> taobao'),'sp,goods_id');
+		return clearTableName($ret);
+	}
+
+	//获取特卖权重
+	function getPromoWeight($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		return $this->db('promotion.queue_promo2cat')->field('weight', array('sp'=>$push['sp'], 'goods_id'=>$push['goods_id']));
 	}
 }
 ?>

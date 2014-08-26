@@ -12,10 +12,12 @@ class Notify extends _Dal {
 	const NOTIFYTYPE_INVITE_STAT = 5;
 	const NOTIFYTYPE_WAKEUP = 6;
 	const NOTIFYTYPE_SIGN = 7;
+	const NOTIFYTYPE_SUBSCRIBE = 8;
 
 	//通知发送方式
 	const SENDTYPE_EMAIL = 'email';
 	const SENDTYPE_SMS = 'sms';
+	const SENDTYPE_IOS = 'ios';
 
 	//添加订单已到知会任务
 	function addOrderBackJob($o_id){
@@ -74,6 +76,27 @@ class Notify extends _Dal {
 
 		if(!$sendtype)return;
 		return $this->redis('notify')->getJob(self::NOTIFYTYPE_QUAN_REWARD_CREATED, $sendtype);
+	}
+
+	//添加特卖订阅知会任务
+	function addSubscribeJob($account, $channel, $msg_id){
+
+		if(!$account || !$channel || !$msg_id)return;
+
+		$ret = $this->redis('notify')->addJob(self::NOTIFYTYPE_SUBSCRIBE, $channel, $account, $msg_id);
+
+		if($ret){
+			return $channel;
+		}else{
+			return false;
+		}
+	}
+
+	//获取特卖订阅知会任务
+	function getSubscribeJob($sendtype){
+
+		if(!$sendtype)return;
+		return $this->redis('notify')->getJob(self::NOTIFYTYPE_SUBSCRIBE, $sendtype);
 	}
 
 	//增加知会任务

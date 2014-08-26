@@ -18,7 +18,7 @@ class _Session extends \Object {
 			break;
 			case 'low':
 			default:
-			$cookieLifeTime = YEAR;
+			$cookieLifeTime = MONTH;
 			break;
 		}
 

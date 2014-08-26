@@ -23,11 +23,23 @@ class Subscribe extends _Dal {
 		return $this->redis('subscribe')->check($sess_id);
 	}
 
+	//获取用户订阅信息
+	function detail($account, $channel='email', $field=''){
+
+		if(!$account)return false;
+		$ret = $this->db('promotion.subscribe')->detail($account, $channel);
+
+		if($ret && $field){
+			return $ret[$field];
+		}
+		return $ret;
+	}
+
 	//读取订阅设置
 	function getSetting($account, $channel='email'){
 
 		if(!$account)return false;
-		$ret = $this->db('promotion.subscribe')->detail($account, $channel);
+		$ret = $this->detail($account, $channel);
 		if(!$ret)return false;
 
 		//清掉和配置无关的字段
@@ -42,22 +54,23 @@ class Subscribe extends _Dal {
 		else{
 			$ret['setting_brand'] = array();
 		}
+
 		if($ret['setting_subcat']){
 			$ret['setting_subcat'] = explode(',', $ret['setting_subcat']);
 		}else{
 			$ret['setting_subcat'] = array();
 		}
 
-		if($ret['setting_clothes_color']){
-			$ret['setting_clothes_color'] = explode(',', $ret['setting_clothes_color']);
-		}else{
-			$ret['setting_clothes_color'] = array();
-		}
-
 		if($ret['setting_midcat']){
 			$ret['setting_midcat'] = explode(',', $ret['setting_midcat']);
 		}else{
 			$ret['setting_midcat'] = array();
+		}
+
+		if($ret['setting_clothes_color']){
+			$ret['setting_clothes_color'] = explode(',', $ret['setting_clothes_color']);
+		}else{
+			$ret['setting_clothes_color'] = array();
 		}
 
 		return $ret;
@@ -67,6 +80,7 @@ class Subscribe extends _Dal {
 	function sessInit($sess_id, $setting){
 
 		if(!$this->sessCheck($sess_id))return false;
+
 		if(isset($setting['setting_brand']) && $setting['setting_brand']){
 			$setting['setting_brand'] = join(',', $setting['setting_brand']);
 		}else{
@@ -83,6 +97,12 @@ class Subscribe extends _Dal {
 			$setting['setting_midcat'] = join(',', $setting['setting_midcat']);
 		}else{
 			$setting['setting_midcat'] = '';
+		}
+
+		if(isset($setting['setting_clothes_color']) && $setting['setting_clothes_color']){
+			$setting['setting_clothes_color'] = join(',', $setting['setting_clothes_color']);
+		}else{
+			$setting['setting_clothes_color'] = '';
 		}
 
 		foreach($setting as $key => $value){
@@ -102,6 +122,20 @@ class Subscribe extends _Dal {
 			case 'setting_midcat':
 			case 'setting_brand':
 			case 'setting_clothes_color':
+
+				if($option == 'setting_brand' || $option == 'setting_clothes_color'){
+					$value = intval($value);
+					if(!$value)return false;
+				}
+
+				if($option == 'setting_subcat'){
+					if(!D('promotion')->subcat2cat($value))return false;
+				}
+
+				if($option == 'setting_midcat'){
+					if(!D('promotion')->midcat2cat($value))return false;
+				}
+
 				$sess_setting_str = $this->redis('subscribe')->get($sess_id, $option);
 				$sess_setting = array();
 				if($sess_setting_str){
@@ -119,10 +153,23 @@ class Subscribe extends _Dal {
 				}
 				$sess_setting = join(',', array_keys($sess_setting));
 				break;
+
 			case 'setting_clothes_size_girl':
 			case 'setting_clothes_size_boy':
+
+				if(!in_array($value, array('s','m','l','xl','xxl')))return false;
+				if($action == 'add'){
+					$sess_setting = $value;
+				}else{
+					$sess_setting = '';
+				}
+				break;
+
 			case 'setting_shoes_size_girl':
 			case 'setting_shoes_size_boy':
+
+				$value = intval($value);
+				if(!$value)return false;
 				if($action == 'add'){
 					$sess_setting = $value;
 				}else{
@@ -197,6 +244,9 @@ class Subscribe extends _Dal {
 		$times_open = $this->db('promotion.subscribe')->detail($account, $channel, 'times_open');
 		$times_open += 1;
 		$this->db('promotion.subscribe')->update($account, $channel, array('times_open'=>$times_open));
+
+		//标识用户打开了信息，进入队列计算notify_num推送更新后的消息数
+		$this->sendAppOpenMsg($account, $channel);
 		return true;
 	}
 
@@ -219,16 +269,23 @@ class Subscribe extends _Dal {
 	}
 
 	//获取待推送消息
-	function getWaitPushList($limit=100){
+	function getWaitPushMessageList($channel='email', $limit=100){
 
-		return $this->db('promotion.subscribe_message')->getList('','', array('status'=>\DB\SubscribeMessage::STATUS_WAIT), $limit);
+		return $this->db('promotion.subscribe_message')->getList('','', array('status'=>\DB\SubscribeMessage::STATUS_WAIT, 'channel'=>$channel), $limit);
 	}
 
 	//读取订阅消息列表
 	function getMessageList($account, $channel, $cond=array(), $limit=10){
-		if(!$account || !$channel)return false;
 
+		if(!$account || !$channel)return false;
 		return $this->db('promotion.subscribe_message')->getList($account, $channel, $cond, $limit);
+	}
+
+	//获取订阅消息详情
+	function getMessageDetail($account, $channel, $message_id){
+
+		if(!$account || !$channel || !$message_id)return;
+		return $this->db('promotion.subscribe_message')->detail($account, $channel, $message_id);
 	}
 
 	//读取未打开消息数
@@ -236,9 +293,129 @@ class Subscribe extends _Dal {
 
 		if(!$device_id || !$platform)return 0;
 		$this->db('promotion.subscribe_message');
-		$lines = D('subscribe')->getMessageList($device_id, $platform, array('status'=>'< '.\DB\SubscribeMessage::STATUS_OPENED), 99);
+		$lines = $this->getMessageList($device_id, $platform, array('status'=>'< '.\DB\SubscribeMessage::STATUS_OPENED), 99);
 		if(!$lines)return 0;
 		return count($lines);
+	}
+
+	//获取用户已被发送过的特卖(2个月内)
+	function getMemberPushedPromo($account, $channel, $limit_month=2){
+
+		if(!$account || !$channel)return false;
+
+		$key = 'subscribe:pushed_promo:channel:'.$channel.':account:'.$account.':limit_month:'.$limit_month;
+		$cache = D('cache')->get($key);
+		if($cache)return D('cache')->ret($cache);
+
+		$lists = $this->getMessageList($account, $channel, $cond=array('pushtime' => '> '.date('Y-m-d', time()-MONTH*$limit_month)));
+
+		$promo = array();
+		if($lists){
+			foreach ($lists as $list) {
+				$message = unserialize($list['message']);
+				foreach ($message as $p) {
+					$promo[$p['sp'].'_'.$p['goods_id']] = $p;
+				}
+			}
+		}
+
+		D('cache')->set($key, $promo, DAY*C('comm', 'subscribe_push_space'), true);
+		return $promo;
+	}
+
+	//获取今日等待推送特卖的用户数
+	function getNeedPushMemberNum(){
+
+		return D('subscribe')->db('promotion.subscribe')->findCount(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1))));
+	}
+
+	//清空推送候选数据
+	function initPushCandidate(){
+
+		$this->db('promotion.subscribe_cand_push')->query("truncate table duosq_promotion.subscribe_cand_push");
+		$this->db('promotion.subscribe_cand')->query("UPDATE duosq_promotion.subscribe_cand SET mark = 0");
+		$this->db('promotion.subscribe_cand')->query("DELETE FROM duosq_promotion.subscribe_cand WHERE createdate < '".date('Y-m-d', time()-MONTH*2)."'");
+		return true;
+	}
+
+	//获取待推送的候选特卖
+	function getCandidatePromo(){
+
+		$promo_candidator = $this->db('promotion.subscribe_cand')->findAll(array('status'=>\DB\SubscribeCand::STATUS_NORMAL, 'createdate'=>'>= '.date('Y-m-d', time()-DAY*C('comm', 'subscribe_push_space'))));
+		return clearTableName($promo_candidator);
+	}
+
+	//获取待推送会员
+	function getWaitPushCandidateMembers($limit=1000, $page=1){
+
+
+		$ret = $this->db('promotion.subscribe')->findAll(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1))), 'channel,account', '', $limit, $page);
+		return clearTableName($ret);
+	}
+
+	//标识特卖为待推送状态
+	function markCandidatePromoWaitPush($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		$this->db('promotion.subscribe_cand')->update($sp, $goods_id, array('mark'=>1));
+	}
+
+	//获取指定会员待推送候选特卖
+	function getPushCandidatePromo($account, $channel='email', $limit=50){
+
+		$ret = $this->db('promotion.subscribe_cand_push')->findAll(array('account'=>$account, 'channel'=>$channel), '', 'hit_weight DESC, promo_weight DESC', $limit);
+		return clearTableName($ret);
+	}
+
+	//清除指定用户的待推送候选特卖
+	function deletePushCandidatePromo($account, $channel='email'){
+
+		if(!$account || !$channel)return;
+		$this->db('promotion.subscribe_cand_push')->query("DELETE FROM duosq_promotion.subscribe_cand_push WHERE channel='{$channel}' AND account='{$account}'");
+	}
+
+	/**
+	 * 发送用户打开了推送的消息
+	 */
+	function sendAppOpenMsg($account, $channel='email'){
+
+		if(!$account || !$channel)return;
+		if(!in_array($channel, array('ios', 'android')))return;
+		return D()->redis('queue')->add(\REDIS\Queue::KEY_APP_NOTIFY_NUM, $channel.'::'.$account);
+	}
+
+	/**
+	 * 获取用户打开了推送的消息
+	 */
+	function getAppOpenMsg(){
+
+		$msg = D()->redis('queue')->bget(\REDIS\Queue::KEY_APP_NOTIFY_NUM);
+		if($msg){
+			list($channel, $account) = explode('::', $msg);
+			return array('channel'=>$channel, 'account'=>$account);
+		}
+		return false;
+	}
+
+	/**
+	 * 完成打开了推送的消息
+	 * @param  int    $fund_id    资产流水ID
+	 * @return bool               是否执行成功
+	 */
+	function doneAppOpenMsg($account, $channel = 'email'){
+
+		if(!$account || !$channel)return;
+		return D()->redis('queue')->done(\REDIS\Queue::KEY_APP_NOTIFY_NUM, $channel.'::'.$account);
+	}
+
+	//获取最后APP推送标识的未读消息数
+	function getAppLastNotifyNum($account, $channel='email'){
+		return D()->redis('keys')->appLastNotifyNum($account, $channel);
+	}
+
+	//设置APP推送标识的未读消息数
+	function setAppLastNotifyNum($account, $channel='email', $num=0){
+		return D()->redis('keys')->appLastNotifyNum($account, $channel, $num);
 	}
 }
 ?>

@@ -118,11 +118,7 @@ class Myuser extends _Dal {
 		D('log')->searchSave();
 
 		//加载到cookie方便静态js直接调用
-		setcookie('display_name', $this->getNickname(), time() + YEAR, '/', CAKE_SESSION_DOMAIN);
-
-		//清理旧cookie，防止与全局cookie重叠，此处到2015年可以去除
-		setcookie('display_name', '', time() - YEAR, '/', 'www.'.CAKE_SESSION_DOMAIN);
-		setcookie(CAKE_SESSION_COOKIE, '', time() - YEAR, '/', 'www.'.CAKE_SESSION_DOMAIN);
+		setcookie('display_name', $this->getNickname(), time() + MONTH, '/', CAKE_SESSION_DOMAIN);
 
 		return true;
 	}
@@ -194,7 +190,7 @@ class Myuser extends _Dal {
 		if($ret){
 			$this->sess('userinfo.nickname', $nickname);
 			//加载到cookie方便静态js直接调用
-			setcookie('display_name', $this->getNickname(), time() + YEAR, '/', CAKE_SESSION_DOMAIN);
+			setcookie('display_name', $this->getNickname(), time() + MONTH, '/', CAKE_SESSION_DOMAIN);
 			return true;
 		}
 	}
@@ -273,7 +269,7 @@ class Myuser extends _Dal {
 		if(!$nickname){
 			$this->db('user')->update($this->getId(), array('nickname'=>$nickname));
 			$this->sess('userinfo.nickname', $nickname);
-			setcookie('display_name', $this->getNickname(), time() + YEAR, '/', CAKE_SESSION_DOMAIN);
+			setcookie('display_name', $this->getNickname(), time() + MONTH, '/', CAKE_SESSION_DOMAIN);
 			return true;
 		}
 	}
@@ -308,6 +304,33 @@ class Myuser extends _Dal {
 
 		if(!$this->isLogined())return;
 		$this->db('user')->update($this->getId(), array('lasttime'=>date('Y-m-d H:i:s')));
+	}
+
+	//设置会话订阅邮箱(加密)
+	function setSubscribeEmail($email){
+
+		if(!$email)return;
+
+		setcookie('subscribe_email', $email, 0, '/', CAKE_SESSION_DOMAIN);
+		setcookie('subscribe_sn', md5($email.MY_API_SECRET), 0, '/', CAKE_SESSION_DOMAIN);
+
+		return true;
+	}
+
+	//获取会话订阅邮箱(解密)
+	function getSubscribeEmail(){
+
+		$email = @$_COOKIE['subscribe_email'];
+		if($email && md5($email.MY_API_SECRET) == @$_COOKIE['subscribe_sn']){
+			return $email;
+		}
+	}
+
+	//清空订阅会话
+	function closeSubscribe(){
+
+		setcookie('subscribe_email', '', time()-MONTH, '/', CAKE_SESSION_DOMAIN);
+		setcookie('subscribe_sn', '', time()-MONTH, '/', CAKE_SESSION_DOMAIN);
 	}
 }
 

@@ -48,9 +48,5 @@ class Subscribe extends _Db {
 		$ret = parent::update($id, $data);
 		return $ret;
 	}
-
-	//置空find/finaAll，只允许从detail进入，后续会改成分表
-	function find(){}
-	function findAll(){}
 }
 ?>

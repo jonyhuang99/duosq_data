@@ -142,5 +142,26 @@ class Keys extends _Redis {
 			}
 		}
 	}
+
+	//APP推送未读消息数存取
+	function appLastNotifyNum($account, $channel='email', $num){
+
+		if(!$account || !$channel)return;
+
+		if($num !== null){
+
+			if(!$num){
+				$this->hdel('app:last_notify_num', $channel . '::' . $account);
+			}else{
+				$this->hset('app:last_notify_num', $channel . '::' . $account, $num);
+			}
+
+			return true;
+
+		}else{
+
+			return $this->hget('app:last_notify_num', $channel . '::' . $account);
+		}
+	}
 }
 ?>
