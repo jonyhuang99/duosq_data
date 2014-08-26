@@ -307,7 +307,7 @@ class Subscribe extends _Dal {
 		$cache = D('cache')->get($key);
 		if($cache)return D('cache')->ret($cache);
 
-		$lists = $this->getMessageList($account, $channel, $cond=array('pushtime' => '> '.date('Y-m-d', time()-MONTH*$limit_month)));
+		$lists = $this->getMessageList($account, $channel, $cond=array('createtime' => '> '.date('Y-m-d', time()-MONTH*$limit_month)));
 
 		$promo = array();
 		if($lists){

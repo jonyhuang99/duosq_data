@@ -79,7 +79,7 @@ class Notify extends _Dal {
 	}
 
 	//添加特卖订阅知会任务
-	function addSubscribeJob($account, $channel, $msg_id){
+	function addSubscribePushJob($account, $channel, $msg_id){
 
 		if(!$account || !$channel || !$msg_id)return;
 
@@ -93,7 +93,7 @@ class Notify extends _Dal {
 	}
 
 	//获取特卖订阅知会任务
-	function getSubscribeJob($sendtype){
+	function getSubscribePushJob($sendtype){
 
 		if(!$sendtype)return;
 		return $this->redis('notify')->getJob(self::NOTIFYTYPE_SUBSCRIBE, $sendtype);
