@@ -112,7 +112,8 @@ class Advtask extends _Dal {
 		if(!$url || !valid($url, 'url'))return;
 		$url_ex = explode('.', $url);
 		$url_id =  r('/', '', r('http://', '', $url_ex[0]).'.'.$url_ex[1]);
-		if(stripos($url_id, '.jd')!==false || stripos($url_id, '.taobao')!==false || stripos($url_id, '.tmall')!==false){
+		//京东、淘宝、由于评论地址与任务地址不一致，进行域名统一化，防止无法提交
+		if(stripos($url_id, '.jd')!==false || stripos($url_id, '.taobao')!==false){
 			$url_id = array_pop(explode('.', $url_id));
 		}
 		return $url_id;
