@@ -77,7 +77,7 @@ class Subscribe extends _Dal {
 	}
 
 	//初始化指定会话的全部配置
-	function sessInit($sess_id, $setting){
+	function sessInit($sess_id, $setting=array()){
 
 		if(!$this->sessCheck($sess_id))return false;
 
