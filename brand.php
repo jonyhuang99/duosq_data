@@ -97,7 +97,12 @@ class Brand extends _Dal {
 	function update($id, $data){
 
 		if(!$id || !$data)return;
-		return $this->db('promotion.brand')->update($id, $data);
+		$ret = $this->db('promotion.brand')->update($id, $data);
+		if($ret){
+			$key = 'brand:detail:'.$id;
+			D('cache')->clean($key);
+		}
+		return $ret;
 	}
 
 	//更新品牌信息
