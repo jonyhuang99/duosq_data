@@ -93,6 +93,15 @@ class Brand extends _Dal {
 			return $detail;
 	}
 
+	//更新品牌搜索索引
+	function updateSearchIndex($id){
+
+		$brand = $this->detail($id);
+		$name_search = preg_replace('/[^\\x7f-\\xff0-9a-z]/i', '', $brand['name'].$brand['name_en']);
+		$this->update($id, array('name_search'=>$name_search));
+		return true;
+	}
+
 	//更新品牌信息
 	function update($id, $data){
 
@@ -101,6 +110,7 @@ class Brand extends _Dal {
 		if($ret){
 			$key = 'brand:detail:'.$id;
 			D('cache')->clean($key);
+			if($ret)$this->updateSearchIndex($id);
 		}
 		return $ret;
 	}
@@ -109,7 +119,9 @@ class Brand extends _Dal {
 	function add($data){
 
 		if(!$data)return;
-		return $this->db('promotion.brand')->add($data);
+		$ret = $this->db('promotion.brand')->add($data);
+		if($ret)$this->updateSearchIndex($ret);
+		return $ret;
 	}
 
 	//随机获取品牌

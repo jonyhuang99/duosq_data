@@ -353,6 +353,13 @@ class Subscribe extends _Dal {
 		return clearTableName($ret);
 	}
 
+	//更新候选特卖
+	function updatePromoCand($sp, $goods_id, $data){
+
+		if(!$sp ||!$goods_id ||!$data)return;
+		D('promotion')->db('promotion.subscribe_cand')->update($sp, $goods_id, $data);
+	}
+
 	//标识特卖为待推送状态
 	function markCandidatePromoWaitPush($sp, $goods_id){
 
@@ -368,10 +375,17 @@ class Subscribe extends _Dal {
 	}
 
 	//清除指定用户的待推送候选特卖
-	function deletePushCandidatePromo($account, $channel='email'){
+	function deletePushCandidatePromoByAccount($account, $channel='email'){
 
 		if(!$account || !$channel)return;
 		$this->db('promotion.subscribe_cand_push')->query("DELETE FROM duosq_promotion.subscribe_cand_push WHERE channel='{$channel}' AND account='{$account}'");
+	}
+
+	//清除指定指定的待推送候选特卖
+	function deletePushCandidatePromoByGoodsID($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		$this->db('promotion.subscribe_cand_push')->query("DELETE FROM duosq_promotion.subscribe_cand_push WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
 	}
 
 	/**
