@@ -96,10 +96,11 @@ class Brand extends _Dal {
 	//更新品牌搜索索引
 	function updateSearchIndex($id){
 
+		if(!$id)return;
 		$brand = $this->detail($id);
 		$name_search = preg_replace('/[^\\x7f-\\xff0-9a-z]/i', '', $brand['name'].$brand['name_en']);
-		$this->update($id, array('name_search'=>$name_search));
-		return true;
+		$this->db('promotion.brand')->update($id, array('name_search'=>$name_search));
+		return $name_search;
 	}
 
 	//更新品牌信息
