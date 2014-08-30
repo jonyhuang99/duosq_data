@@ -775,25 +775,14 @@ class Promotion extends _Dal {
 
 			$tmp = $promo_detail;
 
-			if($tmp['hd_content']){
-				$tmp['hd_content'] = strip_tags($tmp['hd_content']);
+			$saled = $this->redis('promotion')->getSaleCount($ret['sp'], $ret['goods_id']);
+			$saled = $saled + C('comm', 'promo_import_goods_sales_min');
+			if(iSp($ret['sp'])){
+				$saled = $saled * 10 + $ret['goods_id']%50;
 			}else{
-				$saled_str = '';
-				$saled = $this->redis('promotion')->getSaleCount($ret['sp'], $ret['goods_id']);
-				$saled = $saled + C('comm', 'promo_import_goods_sales_min');
-				if(iSp($ret['sp'])){
-					$saled = $saled * 10 + $ret['goods_id']%50;
-				}else{
-					$saled = $saled * 25 + $ret['goods_id']%50;
-				}
-
-				if($saled > 300){//周销量超过300为热销
-
-					$saled_str = "上周原价热销：<font class=blue>{$saled}</font>件<br />";
-					$tmp['week_sales'] = $saled;
-				}
-				$tmp['dis_content'] = '90天实售：<font class="blue">¥'.price_yuan($tmp['price_avg']).'</font><br />'.$saled_str.'刚刚降至：<font class=orange>¥'.price_yuan($tmp['price_now']).'</font>，现在出手直接省掉了<font class=green>'.rate_diff($tmp['price_now'], $tmp['price_avg']).'%</font>哟~';
+				$saled = $saled * 25 + $ret['goods_id']%50;
 			}
+			$tmp['week_sales'] = $saled;
 
 			if(time() - strtotime($promo_detail['createdate']) < DAY){
 				$tmp['is_new'] = true;

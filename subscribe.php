@@ -49,9 +49,15 @@ class Subscribe extends _Dal {
 			}
 		}
 
-		if($ret['setting_brand'])
+		if($ret['setting_brand']){
 			$ret['setting_brand'] = explode(',', $ret['setting_brand']);
-		else{
+			$i = 0;
+			foreach($ret['setting_brand'] as $brand_id){
+				if(!D('brand')->detail($brand_id))
+					unset($ret['setting_brand'][$i]);
+				$i++;
+			}
+		}else{
 			$ret['setting_brand'] = array();
 		}
 
