@@ -145,6 +145,21 @@ class Promotion extends _Dal {
 		return $ret;
 	}
 
+	//找出大分类下面的中分类
+	function midcat($cat){
+
+		if(!$cat)return;
+		$cat_config = $this->getCatConfig(true);
+		$midcats = array();
+		foreach($cat_config as $c_cat => $values){
+			if($c_cat != $cat)continue;
+			foreach ($values as $midcat => $c_subcats) {
+				$midcats[] = $midcat;
+			}
+		}
+		return $midcats;
+	}
+
 	//从商品的子分类找出父分类
 	function subcat2cat($subcat){
 
@@ -260,6 +275,7 @@ class Promotion extends _Dal {
 		if(!$sp || !$goods_id)return;
 		//if(isset($d[$sp][$goods_id]))return $d[$sp][$goods_id];
 
+		$this->db('promotion.goods');
 		$key = 'goods:detail:sp:'.$sp.':goods_id:'.$goods_id;
 		$cache = D('cache')->get($key);
 		if($cache)return D('cache')->ret($cache);
@@ -606,6 +622,7 @@ class Promotion extends _Dal {
 		if(!$sp || !$goods_id)return;
 		//if(isset($d[$sp][$goods_id]))return $d[$sp][$goods_id];
 
+		$this->db('promotion.queue_promo');
 		$key = 'promo:detail:sp:'.$sp.':goods_id:'.$goods_id;
 		$cache = D('cache')->get($key);
 		if($cache)return D('cache')->ret($cache);
@@ -871,7 +888,7 @@ class Promotion extends _Dal {
 	function getPromoWeight($sp, $goods_id){
 
 		if(!$sp || !$goods_id)return;
-		return $this->db('promotion.queue_promo2cat')->field('weight', array('sp'=>$push['sp'], 'goods_id'=>$push['goods_id']));
+		return $this->db('promotion.queue_promo2cat')->field('weight', array('sp'=>$sp, 'goods_id'=>$goods_id));
 	}
 }
 ?>

@@ -122,6 +122,13 @@ class Subscribe extends _Dal {
 	function sessUpdate($sess_id, $option, $value=null, $action='add'){
 
 		if(!$this->sessCheck($sess_id) || !$option)return false;
+		//加锁防止并发save导致脏数据
+		$l = 0;
+		while(!$this->redis('lock')->getlock(\Redis\Lock::LOCK_SUBSCRIBE_OPTION, $sess_id)){
+			usleep(1000);
+			if($l > 5000)break;
+			$l++;
+		}
 
 		switch ($option) {
 			case 'setting_subcat':
@@ -185,6 +192,7 @@ class Subscribe extends _Dal {
 		}
 
 		$ret = $this->redis('subscribe')->set($sess_id, $option, $sess_setting);
+		$this->redis('lock')->unlock(\Redis\Lock::LOCK_SUBSCRIBE_OPTION, $sess_id);
 		return $ret;
 	}
 
@@ -347,7 +355,15 @@ class Subscribe extends _Dal {
 	//获取待推送的候选特卖
 	function getCandidatePromo(){
 
+		$this->db('promotion.subscribe_cand');
 		$promo_candidator = $this->db('promotion.subscribe_cand')->findAll(array('status'=>\DB\SubscribeCand::STATUS_NORMAL, 'createdate'=>'>= '.date('Y-m-d', time()-DAY*C('comm', 'subscribe_push_space'))));
+		return clearTableName($promo_candidator);
+	}
+
+	//获取本次没机会出现的候选特卖
+	function getCandidatePromoNoChance(){
+
+		$promo_candidator = $this->db('promotion.subscribe_cand')->findAll(array('mark'=>0));
 		return clearTableName($promo_candidator);
 	}
 
@@ -363,7 +379,7 @@ class Subscribe extends _Dal {
 	function updatePromoCand($sp, $goods_id, $data){
 
 		if(!$sp ||!$goods_id ||!$data)return;
-		D('promotion')->db('promotion.subscribe_cand')->update($sp, $goods_id, $data);
+		return D('promotion')->db('promotion.subscribe_cand')->update($sp, $goods_id, $data);
 	}
 
 	//标识特卖为待推送状态

@@ -12,6 +12,7 @@ class Lock extends _Redis {
 	const LOCK_COUPON_ROB = 'coupon_rob';
 	const LOCK_COUPON_ROB_NUM = 'coupon_rob_num';
 	const LOCK_SIGN = 'sign';
+	const LOCK_SUBSCRIBE_OPTION = 'subscribe_option';
 
 	/**
 	 * 获得一个业务锁
@@ -80,6 +81,11 @@ class Lock extends _Redis {
 				$id = $id.':day:'.date('d');
 				$expire = DAY*2;
 				break;
+			case self::LOCK_SUBSCRIBE_OPTION:
+				$expire = 5;
+				break;
+			default:
+				$expire = 10;
 		}
 
 		return array('key'=>$trade_type.':id:'.$id, 'expire'=>$expire);

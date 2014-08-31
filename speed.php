@@ -14,9 +14,9 @@ class Speed extends _Dal {
 		if(!$emails)return false;
 
 		$rule = array(
-			'qq.com'=>array('second'=>1,'minute'=>20,'hour'=>500),
-			'163.com'=>array('second'=>2,'minute'=>20,'hour'=>500),
-			'126.com'=>array('second'=>2,'minute'=>20,'hour'=>500),
+			'qq.com'=>array('second'=>2,'minute'=>20,'hour'=>500),
+			'163.com'=>array('second'=>3,'minute'=>20,'hour'=>500),
+			'126.com'=>array('second'=>3,'minute'=>20,'hour'=>500),
 			'gmail.com'=>array('second'=>2,'minute'=>100,'hour'=>5000),
 			'hotmail.com'=>array('second'=>2,'minute'=>100,'hour'=>5000),
 			'live.com'=>array('second'=>2,'minute'=>100,'hour'=>5000),
