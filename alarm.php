@@ -148,9 +148,8 @@ class Alarm extends _Dal {
 			$content[] = "{$k}:{$v}";
 		}
 		$param['content'] = join(',', $content);
-		$param['emails'] = array(C('comm', 'email_monitor'));
 		$param['time'] = date('H:i');
-		sendMail($param, 'alarm');
+		sendMail(C('comm', 'email_monitor'), $param, 'alarm');
 	}
 }
 ?>

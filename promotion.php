@@ -504,7 +504,7 @@ class Promotion extends _Dal {
 	//获取最近被访问过的商品
 	function getLastVisitGoods(){
 
-		return $this->db('promotion.queue_visit')->getLastVisit(60);
+		return $this->db('promotion.queue_visit')->getLastVisit(90);
 	}
 
 	//更新商品信息

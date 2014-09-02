@@ -30,7 +30,7 @@ class QueueVisit extends _Db {
 	//获取指定时间段被访问过的商品
 	function getLastVisit($days=''){
 
-		if(!$days)$days = 30;
+		if(!$days)$days = 90;
 		$visit_date = date('Y-m-d', time() - DAY*$days);
 		$ret = $this->findAll("visit_date > '{$visit_date}' AND price_update < '".date('Y-m-d')."'", '', 'visit_date DESC, id DESC', 3000);
 		return clearTableName($ret);
