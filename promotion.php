@@ -562,8 +562,11 @@ class Promotion extends _Dal {
 			//加入待审核列表
 			$this->db('promotion.review')->add(\DB\Review::TYPE_PROMO, array('sp'=>$sp, 'goods_id'=>$goods_id));
 			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
-			D('search')->buildIndex($sp, $goods_id); //-有错误
-			if($ret)$this->redis('promotion')->promoCounter($sp, $goods_id); //--有错误
+			D('search')->buildIndex($sp, $goods_id);
+			$this->redis('promotion')->promoCounter($sp, $goods_id);
+
+			//更新visit window，保持price_detect只追踪一段时间内的商品价格
+			$this->db('promotion.queue_visit')->visited($sp, $goods_id);
 			return true;
 		}else{
 			//如果价格更低，允许更新
