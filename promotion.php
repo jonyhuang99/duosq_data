@@ -803,6 +803,7 @@ class Promotion extends _Dal {
 				$saled = $saled * 25 + $ret['goods_id']%50;
 			}
 			$tmp['week_sales'] = $saled;
+			$tmp['hd_content'] = strip_tags($tmp['hd_content']);
 
 			if(time() - strtotime($promo_detail['createdate']) < DAY){
 				$tmp['is_new'] = true;

@@ -360,13 +360,6 @@ class Subscribe extends _Dal {
 		return clearTableName($promo_candidator);
 	}
 
-	//获取本次没机会出现的候选特卖
-	function getCandidatePromoNoChance(){
-
-		$promo_candidator = $this->db('promotion.subscribe_cand')->findAll(array('mark'=>0));
-		return clearTableName($promo_candidator);
-	}
-
 	//获取待推送会员
 	function getWaitPushCandidateMembers($limit=1000, $page=1){
 
@@ -408,6 +401,13 @@ class Subscribe extends _Dal {
 
 		if(!$sp || !$goods_id)return;
 		$this->db('promotion.subscribe_cand_push')->query("DELETE FROM duosq_promotion.subscribe_cand_push WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
+	}
+
+	//清除指定指定的待推送候选特卖
+	function deletePushCandidatePromoNotInGoodsID($account, $channel='email', $goods_ids){
+
+		if(!$account || !$channel || !$goods_ids)return;
+		$this->db('promotion.subscribe_cand_push')->query("DELETE FROM duosq_promotion.subscribe_cand_push WHERE channel='{$channel}' AND account='{$account}' AND goods_id NOT IN(".join(',', $goods_ids).")");
 	}
 
 	/**

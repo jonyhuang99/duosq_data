@@ -32,7 +32,27 @@ class Subscribe extends _Db {
 
 		$data['account'] = $account;
 		$data['channel'] = $channel;
-		return parent::add($data);
+
+		I('ip2location');
+		$ip2location = new \ip2location();
+		$ip = getIp();
+		$area = $ip2location->province($ip);
+		$area_detail = $ip2location->location($ip);
+
+		if($_COOKIE['referer'] && strpos($_COOKIE['referer'], 'duosq.com')===false){
+			$referer = $_COOKIE['referer'];
+		}else{
+			$referer = '';
+		}
+
+		$data['mark_id'] = D('mark')->getId();
+		$data['reg_ip'] = $ip;
+		$data['reg_area'] = $area;
+		$data['reg_area_detail'] = $area_detail;
+		$data['reg_client'] = getBrowser();
+		$data['reg_referer'] = $referer;
+
+		return parent::add(arrayClean($data));
 	}
 
 	//修改订阅账户配置

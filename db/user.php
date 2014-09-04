@@ -23,7 +23,7 @@ class User extends _Db {
 		$ip = getIp();
 		$area = $ip2location->province($ip);
 		$area_detail = $ip2location->location($ip);
-		$agent = getAgent();
+		$client = getAgent();
 		$utmo = D('track')->get();
 
 		if($_COOKIE['referer'] && strpos($_COOKIE['referer'], 'duosq.com')===false){
@@ -41,7 +41,7 @@ class User extends _Db {
 			}
 		}
 
-		return parent::add(array('status'=>$status, 'alipay'=>$alipay, 'mark_id'=>$mark_id, 'sc_risk'=>$sc_risk, 'reg_ip'=>$ip, 'reg_area'=>$area, 'reg_area_detail'=>$area_detail, 'utmo'=>$utmo, 'agent'=>$agent, 'referer'=>$referer));
+		return parent::add(array('status'=>$status, 'alipay'=>$alipay, 'mark_id'=>$mark_id, 'sc_risk'=>$sc_risk, 'reg_ip'=>$ip, 'reg_area'=>$area, 'reg_area_detail'=>$area_detail, 'reg_client'=>$client, 'reg_referer'=>$referer, 'utmo'=>$utmo));
 	}
 
 	//更新用户数据
