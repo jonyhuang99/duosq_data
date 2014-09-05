@@ -181,6 +181,10 @@ class Brand extends _Dal {
 			}else{
 				$is_left = '';
 			}
+
+			$brand['name'] = r('/', '\/', $brand['name']);
+			$brand['name_en'] = r('/', '\/', $brand['name_en']);
+
 			if($brand['name'] && mb_strlen($brand['name'], 'UTF-8')>1 && preg_match("/{$is_left}{$brand['name']}/i", $detail['name']) && (!$brand['ex_rule'] || !preg_match("/(".$brand['ex_rule'].")/i", $detail['name']))){
 				$brand_hit = $brand;
 				break;
