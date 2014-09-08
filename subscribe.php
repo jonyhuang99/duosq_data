@@ -235,7 +235,7 @@ class Subscribe extends _Dal {
 	function refuse($account, $channel='email'){
 
 		if(!$this->db('promotion.subscribe')->detail($account)){
-			$ret = $this->db('promotion.subscribe')->add($account, $channel, array('status'=>\DB\Subscribe::STATUS_STOP, 'updatetime'=>date('Y-m-d H:i:s')));
+			//$ret = $this->db('promotion.subscribe')->add($account, $channel, array('status'=>\DB\Subscribe::STATUS_STOP, 'updatetime'=>date('Y-m-d H:i:s')));
 		}else{
 			$this->db('promotion.subscribe')->update($account, $channel, array('status'=>\DB\Subscribe::STATUS_STOP, 'updatetime'=>date('Y-m-d H:i:s')));
 			$ret = true;

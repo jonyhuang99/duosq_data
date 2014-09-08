@@ -198,7 +198,8 @@ class Brand extends _Dal {
 		}
 
 		if($brand_hit){
-			return $this->updateGoodsBrand($sp, $goods_id, $brand_hit['id']);
+			$ret = $this->updateGoodsBrand($sp, $goods_id, $brand_hit['id']);
+			if($ret)return $brand_hit['id'];
 		}else{
 			$this->db('promotion.goods')->update($sp, $goods_id, array('brand_id'=>0));
 			$this->db('promotion.queue_promo2cat')->update($sp, $goods_id, array('brand_id'=>0));
