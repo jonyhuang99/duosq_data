@@ -237,10 +237,9 @@ class Subscribe extends _Dal {
 		if(!$this->db('promotion.subscribe')->detail($account)){
 			//$ret = $this->db('promotion.subscribe')->add($account, $channel, array('status'=>\DB\Subscribe::STATUS_STOP, 'updatetime'=>date('Y-m-d H:i:s')));
 		}else{
-			$this->db('promotion.subscribe')->update($account, $channel, array('status'=>\DB\Subscribe::STATUS_STOP, 'updatetime'=>date('Y-m-d H:i:s')));
-			$ret = true;
+			$ret = $this->db('promotion.subscribe')->update($account, $channel, array('status'=>\DB\Subscribe::STATUS_STOP, 'updatetime'=>date('Y-m-d H:i:s')));
 		}
-		return $ret;
+		return true;
 	}
 
 	//标识已经接收到了通知，$message_ids为批量时，times_open也只累加1次
