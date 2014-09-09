@@ -18,13 +18,13 @@ class Review extends _Db {
 
 	function add($type, $data){
 
-		if($type == TYPE_PROMO){
+		if($type == self::TYPE_PROMO){
 			if(!$data['sp'] || !$data['goods_id'])return;
-			$id = $this->field('id', array('sp'=>$sp, 'goods_id'=>$goods_id));
+			$id = $this->field('id', array('sp'=>$data['sp'], 'goods_id'=>$data['goods_id']));
 			if($id)return;
 		}
 
-		return parent::add(array('sp'=>$sp, 'goods_id'=>$goods_id));
+		return parent::add(array('sp'=>$data['sp'], 'goods_id'=>$data['goods_id']));
 	}
 }
 ?>
