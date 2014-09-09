@@ -119,7 +119,7 @@ class Subscribe extends _Dal {
 	}
 
 	//从订阅会话中，更改指定option的值，或删除指定option
-	function sessUpdate($sess_id, $option, $value=null, $action='add'){
+	function sessUpdate($sess_id, $option, $value=null, $action='add', $self_call=false){
 
 		if(!$this->sessCheck($sess_id) || !$option)return false;
 		//加锁防止并发save导致脏数据
@@ -193,6 +193,23 @@ class Subscribe extends _Dal {
 
 		$ret = $this->redis('subscribe')->set($sess_id, $option, $sess_setting);
 		$this->redis('lock')->unlock(\Redis\Lock::LOCK_SUBSCRIBE_OPTION, $sess_id);
+
+		//setting_subcat && setting_midcat 条件互斥
+		if($ret && !$self_call){
+
+			if($option == 'setting_subcat'){
+				$midcat = D('promotion')->subcat2midcat($value);
+				$this->sessUpdate($sess_id, 'setting_midcat', $midcat, 'del', true);
+			}
+
+			if($option == 'setting_midcat'){
+				$subcats = D('promotion')->midcat2subcat($value);
+				foreach ($subcats as $subcat) {
+					$this->sessUpdate($sess_id, 'setting_subcat', $subcat, 'del', true);
+				}
+			}
+		}
+
 		return $ret;
 	}
 
