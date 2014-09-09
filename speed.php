@@ -218,6 +218,7 @@ class Speed extends _Dal {
 	function advtaskSite($key, $limit, $mode = 'set'){
 
 		if(!$limit)return;
+		if(isAdmin('super'))return false;
 		if($mode == 'set'){
 			return $this->redis('speed')->sincr('advtask:site:'.$key.':'.date('Ymd'), DAY, $limit);
 		}else{
@@ -233,7 +234,7 @@ class Speed extends _Dal {
 
 		$user_id = D('myuser')->getID();
 		if(!$user_id)return false;
-		if(isDevelop())return false;
+		if(isAdmin('super'))return false;
 		return $this->redis('speed')->sincr('advtask:user:'.$user_id.':hour:'.date('H'), HOUR, 30);
 	}
 }
