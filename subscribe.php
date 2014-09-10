@@ -469,5 +469,13 @@ class Subscribe extends _Dal {
 	function setAppLastNotifyNum($account, $channel='email', $num=0){
 		return D()->redis('keys')->appLastNotifyNum($account, $channel, $num);
 	}
+
+	//增加订阅反馈
+	function addFeedback($data, $account='', $channel=''){
+
+		if(!$data)return;
+
+		return $this->db('promotion.subscribe_feedback')->add($data);
+	}
 }
 ?>
