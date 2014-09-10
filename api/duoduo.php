@@ -96,13 +96,17 @@ class Duoduo extends _Api {
 		$p['tag'] = 'send_email';
 		$p['checksum'] = '';
 		$p['version'] = 2;
-		$p['openname'] = 'duosq.com';
-		$p['openpwd']=md5('bpro880214');
+		//$p['openname'] = 'duosq.com';
+		//$p['openpwd']=md5('bpro880214');
 		$p['format']='json';
 		$p['client_url']='dd.duosq.com';
 		$url = 'http://issue.duoduo123.com/api/' . '?' . http_build_query($p);
 
-		$json = file_get_contents($url);
+		$context = array();
+		$context['http']['timeout']='10';
+		$context['http']['method']='POST';
+		$context['http']['content']='openname=duosq.com&openpwd='.md5('bpro880214');
+		$json = file_get_contents($url, false, stream_context_create($context));
 		$api_ret = json_decode($json, true);
 		return $api_ret;
 	}
