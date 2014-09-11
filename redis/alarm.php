@@ -1,6 +1,5 @@
 <?php
 //各类报警发送记录底层
-
 namespace REDIS;
 
 class Alarm extends _Redis {

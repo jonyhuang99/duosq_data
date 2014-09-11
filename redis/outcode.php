@@ -1,6 +1,5 @@
 <?php
 //跟单码相关操作底层
-
 namespace REDIS;
 
 class Outcode extends _Redis {

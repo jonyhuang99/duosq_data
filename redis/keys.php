@@ -1,6 +1,5 @@
 <?php
 //各类存于redis的临时KEY管理底层
-
 namespace REDIS;
 
 class Keys extends _Redis {

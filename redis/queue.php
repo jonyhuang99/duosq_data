@@ -1,6 +1,5 @@
 <?php
 //队列消息操作底层
-
 namespace REDIS;
 
 class Queue extends _Redis {

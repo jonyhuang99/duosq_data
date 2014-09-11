@@ -1,6 +1,5 @@
 <?php
 //订阅会话，所有option保存成字符串
-
 namespace REDIS;
 
 class Subscribe extends _Redis {

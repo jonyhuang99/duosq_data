@@ -1,6 +1,5 @@
 <?php
 //知会任务数据存储底层
-
 namespace REDIS;
 
 class Notify extends _Redis {
