@@ -218,9 +218,10 @@ class Brand extends _Dal {
 		if(!in_array($sp, $brand['shop_in_b2c']) && $sp <> 'taobao' && $sp <> 'tmall'){
 			$brand['shop_in_b2c'][] = $sp;
 			$this->update($brand_id, array('shop_in_b2c'=>join(',', $brand['shop_in_b2c'])));
-			$key = 'brand:detail:'.$brand_id;
-			D('cache')->clean($key);
 		}
+
+		$key = 'brand:detail:'.$brand_id;
+		D('cache')->clean($key);
 
 		return $ret;
 	}
