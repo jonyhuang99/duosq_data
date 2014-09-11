@@ -372,6 +372,12 @@ class Promotion extends _Dal {
 
 			$match_subcat = array_keys($match_subcat);
 			$this->updateGoodsCat($sp, $goods_id, $match_subcat);
+
+			$key1 = 'goods:detail:sp:'.$sp.':goods_id:'.$goods_id;
+			$key2 = 'promo:detail:sp:'.$sp.':goods_id:'.$goods_id;
+			D('cache')->clean($key1);
+			D('cache')->clean($key2);
+
 			return $match_subcat;
 		}else{
 			$this->clearGoodsCat($sp, $goods_id);
