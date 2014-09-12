@@ -356,7 +356,7 @@ class Subscribe extends _Dal {
 	//获取今日等待推送特卖的用户数
 	function getNeedPushMemberNum(){
 
-		return D('subscribe')->db('promotion.subscribe')->findCount(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1))));
+		return D('subscribe')->db('promotion.subscribe')->findCount(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1)), 'createtime'=>'<= '.date('Y-m-d 00:00:00')));
 	}
 
 	//清空推送候选数据
@@ -380,7 +380,7 @@ class Subscribe extends _Dal {
 	function getWaitPushCandidateMembers($limit=1000, $page=1){
 
 
-		$ret = $this->db('promotion.subscribe')->findAll(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1))), 'channel,account', '', $limit, $page);
+		$ret = $this->db('promotion.subscribe')->findAll(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1)), 'createtime'=>'<= '.date('Y-m-d 00:00:00')), 'channel,account', '', $limit, $page);
 		return clearTableName($ret);
 	}
 
