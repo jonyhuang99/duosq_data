@@ -373,15 +373,20 @@ class Promotion extends _Dal {
 			$match_subcat = array_keys($match_subcat);
 			$this->updateGoodsCat($sp, $goods_id, $match_subcat);
 
-			$key1 = 'goods:detail:sp:'.$sp.':goods_id:'.$goods_id;
-			$key2 = 'promo:detail:sp:'.$sp.':goods_id:'.$goods_id;
-			D('cache')->clean($key1);
-			D('cache')->clean($key2);
-
 			return $match_subcat;
 		}else{
 			$this->clearGoodsCat($sp, $goods_id);
 		}
+	}
+
+	//清除特卖商品信息缓存
+	function clearCache($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		$key1 = 'goods:detail:sp:'.$sp.':goods_id:'.$goods_id;
+		$key2 = 'promo:detail:sp:'.$sp.':goods_id:'.$goods_id;
+		D('cache')->clean($key1);
+		D('cache')->clean($key2);
 	}
 
 	//更新商品分类
@@ -520,8 +525,7 @@ class Promotion extends _Dal {
 		if(!$sp || !$goods_id || !$new_data)return;
 		$ret = $this->db('promotion.goods')->update($sp, $goods_id, $new_data);
 		if($ret){
-			$key = 'goods:detail:sp:'.$sp.':goods_id:'.$goods_id;
-			D('cache')->clean($key);
+			$this->clearCache($sp, $goods_id);
 		}
 		return $ret;
 	}
@@ -689,8 +693,7 @@ class Promotion extends _Dal {
 		if(!$sp || !$goods_id || !$new_data)return;
 		$ret = $this->db('promotion.queue_promo')->update($sp, $goods_id, $new_data);
 		if($ret){
-			$key = 'promo:detail:sp:'.$sp.':goods_id:'.$goods_id;
-			D('cache')->clean($key);
+			$this->clearCache($sp, $goods_id);
 		}
 		return $ret;
 	}

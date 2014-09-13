@@ -240,7 +240,7 @@ class _Redis extends \Object {
 			$low_m = strtolower($method);
 			$all_cache_m = array('get','hget','hgetall','hmget','smembers');
 			$key_md5 = md5($arg_array[0]);
-			//mcache 1分钟强制过期
+			//mcache 1分钟强制过期，防止不断命中自动续期
 			$aKey = $method.':'.$key_md5.':'.md5(serialize($arg_array)).':minute:'.date('i');
 
 			if(in_array($low_m, $all_cache_m)){
@@ -259,9 +259,12 @@ class _Redis extends \Object {
 
 				//file_put_contents('/tmp/redis.log', date('[H:i:s]').$method.json_encode($arg_array)."\n\n", 8);
 				$ret = call_user_func_array(array($this->redis(), $method), $arg_array);
-				if($this->mcache_update){
+				if($this->mcache_update || $low_m=='delete'){
+
 					$cachedKeys = new \APCIterator('user', '/'.$key_md5.'/', APC_ITER_VALUE);
-					D()->mcache()->delete($cachedKeys);
+					foreach ($cachedKeys AS $key => $value) {
+						D()->mcache()->delete($key);
+    				}
 				}
 			}
 

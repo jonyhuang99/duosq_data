@@ -229,10 +229,7 @@ class Brand extends _Dal {
 			$this->update($brand_id, array('shop_in_b2c'=>join(',', $brand['shop_in_b2c'])));
 		}
 
-		$key1 = 'brand:detail:'.$brand_id;
-		$key2 = 'goods:detail:sp:'.$sp.':goods_id:'.$goods_id;
-		D('cache')->clean($key1);
-		D('cache')->clean($key2);
+		D('promotion')->clearCache($sp, $goods_id);
 
 		return $ret;
 	}
