@@ -483,6 +483,7 @@ class Promotion extends _Dal {
 
 		//标识访问过该商品，等待价格抓取
 		if($goods_id){
+			//更新visit window，保持price_detect只追踪一段时间内的商品价格
 			$this->db('promotion.queue_visit')->visited($data['sp'], $goods_id);
 			//标识商品被导入次数，用来发现新热点
 			$this->redis('promotion')->saleCounter($sp, $goods_id);
