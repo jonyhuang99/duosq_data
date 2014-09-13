@@ -117,6 +117,15 @@ class Brand extends _Dal {
 	}
 
 	//更新品牌信息
+	function updateWork($brand_id, $data){
+
+		if(!$brand_id || !$data)return;
+		$work_id  = $this->db('promotion.brand_work')->field('id', array('brand_id'=>$brand_id));
+		$ret = $this->db('promotion.brand_work')->update($work_id, $data);
+		return $ret;
+	}
+
+	//更新品牌信息
 	function add($data){
 
 		if(!$data)return;
