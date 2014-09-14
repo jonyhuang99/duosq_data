@@ -163,11 +163,12 @@ class Brand extends _Dal {
 	}
 
 	//匹配品牌
-	function matchAndUpdateBrand($sp, $goods_id){
+	function matchAndUpdateBrand($sp, $goods_id, &$reviewed){
 
 		if(!$sp || !$goods_id)return;
 		$detail = D('promotion')->goodsDetail($sp, $goods_id);
 		//人工审核品牌后不再自动匹配
+		if($detail['brand_review'])$reviewed = true;
 		if(!$detail || !$detail['cat'] || $detail['brand_review'])return;
 
 		$key = 'brand:details:cat:'.md5(serialize($detail['cat']));
@@ -210,8 +211,7 @@ class Brand extends _Dal {
 			$ret = $this->updateGoodsBrand($sp, $goods_id, $brand_hit['id']);
 			if($ret)return $brand_hit['id'];
 		}else{
-			$this->db('promotion.goods')->update($sp, $goods_id, array('brand_id'=>0));
-			$this->db('promotion.queue_promo2cat')->update($sp, $goods_id, array('brand_id'=>0));
+			$this->updateGoodsBrand($sp, $goods_id, 0);
 		}
 	}
 

@@ -311,12 +311,13 @@ class Promotion extends _Dal {
 	}
 
 	//匹配并更新商品分类信息
-	function matchGoodsCat($sp, $goods_id){
+	function matchGoodsCat($sp, $goods_id, &$reviewed){
 
 		if(!$sp || !$goods_id)return;
 
 		$detail = $this->goodsDetail($sp, $goods_id);
 		//人工审核分类后不再自动匹配
+		if($detail['cat_review'])$reviewed = true;
 		if(!$detail || $detail['cat_review'])return;
 
 		$name = $detail['name'];
@@ -450,6 +451,7 @@ class Promotion extends _Dal {
 		$ret = $this->db('promotion.goods')->update($sp, $goods_id, array('cat'=>'', 'subcat'=>''));
 		$this->db('promotion.queue_promo2cat')->delete($sp, $goods_id);
 		$this->db('promotion.queue_promo')->update($sp, $goods_id, array('cat_assign'=>0));
+		$this->clearCache($sp, $goods_id);
 	}
 
 	/**
