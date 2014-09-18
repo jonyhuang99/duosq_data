@@ -135,7 +135,7 @@ class Alarm extends _Dal {
 		$default_p['__time__'] = date('H:i');
 		$default_p['__content__'] = join(',', $content);
 		$params = array_merge($default_p, (array)$params);
-		$ret = sendSms(C('comm', 'sms_monitor'), $sms_tpl, $params, 'alarm');
+		$ret = sendSms(C('comm', 'monitor_sms'), $sms_tpl, $params, 'alarm');
 	}
 
 	private function _fireEmail($title, $entry_params=array()){

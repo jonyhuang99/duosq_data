@@ -18,6 +18,7 @@ class Notify extends _Dal {
 	const SENDTYPE_EMAIL = 'email';
 	const SENDTYPE_SMS = 'sms';
 	const SENDTYPE_IOS = 'ios';
+	const SENDTYPE_ANDROID = 'android';
 
 	//添加订单已到知会任务
 	function addOrderBackJob($o_id){

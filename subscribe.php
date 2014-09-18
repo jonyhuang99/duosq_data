@@ -26,7 +26,7 @@ class Subscribe extends _Dal {
 	//获取用户订阅信息
 	function detail($account, $channel='email', $field=''){
 
-		if(!$account)return false;
+		if(!$account || !$channel)return false;
 		$ret = $this->db('promotion.subscribe')->detail($account, $channel);
 
 		if($ret && $field){
@@ -307,7 +307,6 @@ class Subscribe extends _Dal {
 	//读取订阅消息列表
 	function getMessageList($account, $channel, $cond=array(), $limit=10){
 
-		if(!$account || !$channel)return false;
 		return $this->db('promotion.subscribe_message')->getList($account, $channel, $cond, $limit);
 	}
 

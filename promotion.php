@@ -904,7 +904,15 @@ class Promotion extends _Dal {
 	function getPromoWeight($sp, $goods_id){
 
 		if(!$sp || !$goods_id)return;
-		return $this->db('promotion.queue_promo2cat')->field('weight', array('sp'=>$sp, 'goods_id'=>$goods_id));
+
+		$key = 'promotion:weight:sp:'.$sp.'goods_id:'.$goods_id;
+		$cache = D('cache')->get($key);
+		if($cache)return D('cache')->ret($cache);
+
+		$weight = $this->db('promotion.queue_promo2cat')->field('weight', array('sp'=>$sp, 'goods_id'=>$goods_id));
+		D('cache')->set($key, $weight, HOUR, true);
+
+		return $weight;
 	}
 }
 ?>

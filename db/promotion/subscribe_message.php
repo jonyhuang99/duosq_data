@@ -17,9 +17,10 @@ class SubscribeMessage extends _Db {
 	//获取消息列表，提供给APP/微信使用，或者获取待推送列表，可以不指定账户渠道
 	function getList($account='', $channel='', $cond=array(), $limit=10){
 
-		$cond['account'] = $account;
-		$cond['channel'] = $channel;
+		if(!isset($cond['account']) && $account)$cond['account'] = $account;
+		if(!isset($cond['channel']) && $channel)$cond['channel'] = $channel;
 		$cond = arrayClean($cond);
+
 		$ret = parent::findAll($cond, '', 'id DESC', $limit);
 		$ret = clearTableName($ret);
 		return $ret;
