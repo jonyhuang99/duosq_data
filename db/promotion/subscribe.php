@@ -45,7 +45,11 @@ class Subscribe extends _Db {
 			$referer = '';
 		}
 
-		$data['mark_id'] = D('mark')->getId();
+		$mark = D('mark')->detail();
+		if($mark){
+			$data['mark_id'] = $mark['id'];
+			$data['mark_sc'] = $mark['sc'];
+		}
 		$data['reg_ip'] = $ip;
 		$data['reg_area'] = $area;
 		$data['reg_area_detail'] = $area_detail;

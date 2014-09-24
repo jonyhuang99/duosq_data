@@ -248,6 +248,14 @@ class Subscribe extends _Dal {
 		}
 	}
 
+	//快速保存token
+	function savePushToken($account, $channel, $token){
+
+		if(valid($account, 'device_id') && in_array($channel, array('ios','android')) && valid($token, 'push_token')){
+			return $this->db('promotion.subscribe')->update($account, $channel, array('push_token' => $token));
+		}
+	}
+
 	//退订订阅(允许首次就是退订状态)
 	function refuse($account, $channel='email'){
 

@@ -82,6 +82,10 @@ class Mark extends _Dal {
 		$data['area_detail'] = $ip->location($data['ip']);
 
 		$data['client'] = getBrowser();
+		$data['client_full'] = getAgent();
+
+		if($data['area'] == '上海' && $data['client'] == 'Mozilla/4.0' && !$data['referer'])return;
+
 		$mark_id = $this->db('mark')->add(arrayClean($data));
 		if($mark_id){
 			setcookie('mark', $mark_id, time() + YEAR, '/', CAKE_SESSION_DOMAIN);
