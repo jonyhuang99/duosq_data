@@ -8,7 +8,7 @@ class Alarm extends _Dal {
 	function importOrders($entry, $params=array()){
 
 		if(date('H') > 8){
-			$expire = HOUR*1.5;
+			$expire = HOUR*3;
 		}else{
 			$expire = HOUR*9;
 		}
@@ -24,9 +24,9 @@ class Alarm extends _Dal {
 
 		if(date('d') == 1 || date('H') < 12){
 			//每月1号，yiqifa数据为空，导致误报，此时延迟6小时报警
-			$expire = HOUR * 6;
+			$expire = HOUR*9;
 		}else{
-			$expire = HOUR;
+			$expire = HOUR*3;
 		}
 		$entry_params = D()->redis('alarm')->accum('auto_import:error', $expire, $type);
 
