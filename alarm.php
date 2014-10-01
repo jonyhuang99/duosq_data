@@ -5,7 +5,7 @@ namespace DAL;
 class Alarm extends _Dal {
 
 	//自动导入订单报警
-	function importOrders($entry, $params=array()){
+	function importOrders($entry){
 
 		if(date('H') > 8){
 			$expire = HOUR*3;
@@ -15,7 +15,7 @@ class Alarm extends _Dal {
 		$entry_params = D()->redis('alarm')->accum('auto_import:order', $expire, $entry);
 
 		if($entry_params){
-			$this->_fire($entry_params, $params, 101);
+			$this->_fireEmail('订单跟单统计:正常', $entry_params);
 		}
 	}
 
@@ -31,7 +31,7 @@ class Alarm extends _Dal {
 		$entry_params = D()->redis('alarm')->accum('auto_import:error', $expire, $type);
 
 		if($entry_params){
-			$this->_fire($entry_params, array(), 102);
+			$this->_fireEmail('订单跟单统计:出错', $entry_params);
 		}
 	}
 
@@ -52,7 +52,7 @@ class Alarm extends _Dal {
 			}
 
 			$params['type'] = $type;
-			$this->_fire($entry_params, $params, 100);
+			$this->_fireSms($entry_params, $params, 100);
 		}
 	}
 
@@ -72,14 +72,14 @@ class Alarm extends _Dal {
 				return;
 			}
 
-			$this->_fire($entry_params, array(), 103);
+			$this->_fireSms($entry_params, array(), 103);
 		}
 	}
 
 	//多多key接近过期
 	function duoduo($expire){
 
-		$this->_fire(array('duoduo_key'=>'还剩'.$expire.'小时过期'), array(), 101);
+		$this->_fireEmail('duduo支付key有效期监控', array('duoduo_key'=>'还剩'.$expire.'小时过期'));
 	}
 
 	//特卖：自动导入返利网订单报警
@@ -122,8 +122,15 @@ class Alarm extends _Dal {
 		}
 	}
 
+	//监控daemon进程
+	function processMonitor($process){
+
+		if(!$process)return;
+		$this->_fireEmail('进程监控报警', array('进程不存在'=>join(',', $process)));
+	}
+
 	//发出监控报警
-	private function _fire($entry_params, $params, $sms_tpl=''){
+	private function _fireSms($entry_params, $params, $sms_tpl=''){
 
 		$content = array();
 		ksort($entry_params);
@@ -149,7 +156,8 @@ class Alarm extends _Dal {
 		}
 		$param['content'] = join(',', $content);
 		$param['time'] = date('H:i');
-		sendMail(C('comm', 'email_monitor'), $param, 'alarm');
+		$ret =sendMail(C('comm', 'monitor_email'), $param, 'alarm', $msg);
+
 	}
 }
 ?>

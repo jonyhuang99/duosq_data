@@ -289,7 +289,7 @@ class Subscribe extends _Dal {
 	}
 
 	//标识消息已经推送
-	function markMessagePushed($account, $channel, $message_id, $succ=true){
+	function markMessagePushed($account, $channel, $message_id, $succ=true, $err_msg=''){
 
 		if(!$account || !$channel || !$message_id)return;
 
@@ -302,7 +302,7 @@ class Subscribe extends _Dal {
 		}else{
 			$times_push_fail = $detail['times_push_fail'] + 1;
 			$this->db('promotion.subscribe')->update($account, $channel, array('times_push_fail'=>$times_push_fail, 'pushtime'=>date('Y-m-d H:i:s')));
-			$this->db('promotion.subscribe_message')->update($account, $channel, $message_id, array('status'=>\DB\SubscribeMessage::STATUS_FAIL, 'pushtime'=>date('Y-m-d H:i:s')));
+			$this->db('promotion.subscribe_message')->update($account, $channel, $message_id, array('status'=>\DB\SubscribeMessage::STATUS_FAIL, 'err_msg'=>$err_msg, 'pushtime'=>date('Y-m-d H:i:s')));
 		}
 	}
 
