@@ -9,6 +9,7 @@ class Lock extends _Redis {
 
 	const LOCK_QUAN_REWARD = 'quan_reward';
 	const LOCK_CASHGIFT_ADD = 'cashgift_add';
+	const LOCK_LOTTERY_ADD = 'lottery_add';
 	const LOCK_COUPON_ROB = 'coupon_rob';
 	const LOCK_COUPON_ROB_NUM = 'coupon_rob_num';
 	const LOCK_SIGN = 'sign';
@@ -69,6 +70,10 @@ class Lock extends _Redis {
 				break;
 			case self::LOCK_CASHGIFT_ADD:
 				$expire = 10;
+				break;
+			case self::LOCK_LOTTERY_ADD:
+				$id = $id.':day:'.date('d');
+				$expire = DAY;
 				break;
 			case self::LOCK_COUPON_ROB_NUM:
 				$id = $id.':day:'.date('d');

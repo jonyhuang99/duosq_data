@@ -84,8 +84,8 @@ class Protect extends _Dal {
 		}
 
 		//严格识别重复领取，命中则该用户无红包领取权，用户防范正常用户输入多个账号
-		$strict1 = $this->db('user')->find(array('id'=>"<> {$my_id}",'reg_ip'=>"like {$ip_c}%",'agent'=>$agent,'createdate'=>"> {$same_day}"));
-		$strict2 = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_area_detail'=>$area_detail,'agent'=>$agent,'createdate'=>"> {$same_hour}"));
+		$strict1 = $this->db('user')->find(array('id'=>"<> {$my_id}",'reg_ip'=>"like {$ip_c}%",'reg_client'=>$agent,'createdate'=>"> {$same_day}"));
+		$strict2 = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_area_detail'=>$area_detail,'reg_client'=>$agent,'createdate'=>"> {$same_hour}"));
 		if($strict1 || count($strict2)>$area_limit){
 			D('user')->markUserCashgiftInvalid($my_id);
 		}
@@ -116,7 +116,7 @@ class Protect extends _Dal {
 		//严格识别完成
 
 		if(strlen($agent) > 80 && stripos($agent, '21.0.1180.89')===false){
-			$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'agent'=>"{$agent}",'createtime'=>"> {$same_agent}"));
+			$ret = $this->db('user')->findAll(array('id'=>"<> {$my_id}",'reg_client'=>"{$agent}",'createtime'=>"> {$same_agent}"));
 			$count_agent = fieldSet($ret, 'id');
 			//进一步放行客户端
 			if(count($count_agent) < 6) $count_agent = array();

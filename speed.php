@@ -56,7 +56,7 @@ class Speed extends _Dal {
 		if($mode == 'set'){
 			return $this->redis('speed')->sincr('send_cashgift:black_list:ip:'.getIpByLevel('c'), DAY, 1);
 		}else{
-			return $this->redis('speed')->sget('send_cashgift:black_list:ip:'.$ip_c, DAY, 1);
+			return $this->redis('speed')->sget('send_cashgift:black_list:ip:'.getIpByLevel('c'), DAY, 1);
 		}
 	}
 
@@ -236,6 +236,18 @@ class Speed extends _Dal {
 		if(!$user_id)return false;
 		if(isAdmin('super'))return false;
 		return $this->redis('speed')->sincr('advtask:user:'.$user_id.':hour:'.date('H'), HOUR, 30);
+	}
+
+	/**
+	 * 每日抽奖速控
+	 * @return [bool] [是否超速]
+	 */
+	function lottery(){
+
+		$user_id = D('myuser')->getID();
+		if(!$user_id)return false;
+		if(isAdmin('super'))return false;
+		return $this->redis('speed')->sincr('lottery:user:'.$user_id, DAY, 10);
 	}
 }
 ?>

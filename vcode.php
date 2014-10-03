@@ -135,6 +135,7 @@ class Vcode extends _Dal {
 		return $this;
 	}
 
+	//显示验证码
 	function display(){
 
 		ob_start();
@@ -154,6 +155,12 @@ class Vcode extends _Dal {
 		// 记录session
 		$this->sess('vcode', md5(low($this->verify)));
 
+		return $this->verify;
+	}
+
+	//不显示验证码，只设置，并回传
+	function save(){
+		$this->sess('vcode', md5(low($this->verify)));
 		return $this->verify;
 	}
 }

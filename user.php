@@ -181,7 +181,12 @@ class user extends _Dal {
 		return $this->db('user')->update($user_id, array('has_order'=>$has_order+1));
 	}
 
-	//标识用户下过单
+	//标识用户支付宝
+	function markUserMsgValid($user_id){
+		return $this->db('user')->update($user_id, array('msg_valid'=>1));
+	}
+
+	//标识用户无获取红包权限
 	function markUserCashgiftInvalid($user_id){
 		return $this->db('user')->update($user_id, array('can_get_cashgift'=>0));
 	}

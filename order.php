@@ -298,6 +298,7 @@ class Order extends _Dal {
 		$new_cashgift_type = array();
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_LUCK;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_TASK;
+		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_LOTTERY;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_10;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_20;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_50;
@@ -330,6 +331,7 @@ class Order extends _Dal {
 				$cashtype = self::CASHTYPE_CASH;
 				break;
 			case \DB\OrderCashgift::GIFTTYPE_LUCK:
+			case \DB\OrderCashgift::GIFTTYPE_LOTTERY:
 			case \DB\OrderCashgift::GIFTTYPE_TASK:
 				$cashtype = self::CASHTYPE_JFB;
 				$status = self::STATUS_PASS;
@@ -340,7 +342,7 @@ class Order extends _Dal {
 				break;
 		}
 
-		if($amount && ($gifttype == \DB\OrderCashgift::GIFTTYPE_LUCK || $gifttype == \DB\OrderCashgift::GIFTTYPE_TASK)){
+		if($amount && ($gifttype == \DB\OrderCashgift::GIFTTYPE_LUCK || $gifttype == \DB\OrderCashgift::GIFTTYPE_TASK || $gifttype == \DB\OrderCashgift::GIFTTYPE_LOTTERY)){
 
 			$review_reason = array();
 

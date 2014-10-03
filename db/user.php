@@ -41,7 +41,15 @@ class User extends _Db {
 			}
 		}
 
-		return parent::add(array('status'=>$status, 'alipay'=>$alipay, 'mark_id'=>$mark_id, 'sc_risk'=>$sc_risk, 'reg_ip'=>$ip, 'reg_area'=>$area, 'reg_area_detail'=>$area_detail, 'reg_client'=>$client, 'reg_referer'=>$referer, 'utmo'=>$utmo));
+		$mark = D('mark')->detail();
+		if($mark){
+			$mark_id = $mark['id'];
+			$mark_sc = $mark['sc'];
+		}
+
+		$sc_risk = D('mark')->getScRisk();
+
+		return parent::add(array('status'=>$status, 'alipay'=>$alipay, 'mark_id'=>$mark_id, 'mark_sc'=>$mark_sc, 'sc_risk'=>$sc_risk, 'reg_ip'=>$ip, 'reg_area'=>$area, 'reg_area_detail'=>$area_detail, 'reg_client'=>$client, 'reg_referer'=>$referer, 'utmo'=>$utmo));
 	}
 
 	//更新用户数据
