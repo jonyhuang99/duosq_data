@@ -45,6 +45,9 @@ class User extends _Db {
 		if($mark){
 			$mark_id = $mark['id'];
 			$mark_sc = $mark['sc'];
+		}else{
+			$mark_id = 0;
+			$mark_sc = '';
 		}
 
 		$sc_risk = D('mark')->getScRisk();

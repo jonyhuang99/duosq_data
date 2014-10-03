@@ -18,7 +18,7 @@ class Vcode extends _Dal {
 	protected $verifyType;
 
 	protected $limit_expire = 3600;
-	protected $limit_times = 1;
+	protected $limit_times = 3;
 
 	function __construct(){
 
@@ -77,7 +77,8 @@ class Vcode extends _Dal {
 		imagefilledrectangle( $image, 0, 0, $this->width, $this->height, $col);
 		$this->image = $image;
 
-		$dict = 'ABCDEFGHKLNMPQRSTUVWXYZ23456789';
+		//$dict = 'ABCDEFGHKLNMPQRSTUVWXYZ23456789';
+		$dict = '23456789';
 		$dictlen = strlen($dict);
 		$image = $this->image;
 		$verify = '';

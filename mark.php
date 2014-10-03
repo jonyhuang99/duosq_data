@@ -34,20 +34,7 @@ class Mark extends _Dal {
 	 */
 	function getScRisk(){
 
-		$info = $this->detail();
-		$sc_risk = 0;
-		$source_conf = C('comm', 'source');
-
-		if($info){
-			$sc_risk = myIsset($source_conf[$info['sc']]['risk'], 0);
-		}
-
-		//标识邀请好友
-		if($sc_risk == 0 && isset($_COOKIE['parent_id']) && deID($_COOKIE['parent_id'])){
-			$sc_risk = $source_conf['invite']['risk'];
-		}
-
-		return $sc_risk;
+		return 0;
 	}
 
 	/**

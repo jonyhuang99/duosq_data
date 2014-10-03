@@ -46,12 +46,13 @@ class Myuser extends _Dal {
 				}
 				$this->db()->commit();
 			}else{
+				$err = '系统失败，请稍后尝试，或联系客服！';
 				$this->db()->rollback();
 			}
 		}
 
 		if(!$ret){
-			$err = '系统登陆错误，请稍后尝试，或联系客服！';
+			if(!$err)$err = '系统登陆错误，请稍后尝试，或联系客服！';
 		}
 		return $ret;
 	}
