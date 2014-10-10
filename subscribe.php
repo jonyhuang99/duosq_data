@@ -35,6 +35,13 @@ class Subscribe extends _Dal {
 		return $ret;
 	}
 
+	//更新用户订阅信息
+	function update($account, $channel, $data){
+
+		if(!$account || !$channel || !$data)return;
+		return $this->db('promotion.subscribe')->update($account, $channel, $data);
+	}
+
 	//读取订阅设置
 	function getSetting($account, $channel='email'){
 
@@ -216,12 +223,12 @@ class Subscribe extends _Dal {
 	//从订阅会话保存配置到数据库
 	function sessSave($sess_id, $account, $channel='email'){
 
-		if(!$sess_id || !$account)return;
+		if(!$sess_id || !$account || !$channel)return;
 
 		//可能没有配置
 		$setting = $this->redis('subscribe')->get($sess_id);
 		if(!$setting)$setting = array();
-		$exist = $this->db('promotion.subscribe')->detail($account, $channel);
+		$exist = $this->detail($account, $channel);
 
 		$setting['updatetime'] = date('Y-m-d H:i:s');
 		$setting['status'] = \DB\Subscribe::STATUS_NORMAL;
@@ -237,7 +244,7 @@ class Subscribe extends _Dal {
 				}
 			}
 
-			$ret = $this->db('promotion.subscribe')->update($account, $channel, $setting);
+			$ret = $this->update($account, $channel, $setting);
 		}else{
 			$ret = $this->db('promotion.subscribe')->add($account, $channel, $setting);
 		}
@@ -251,20 +258,39 @@ class Subscribe extends _Dal {
 	//快速保存token
 	function savePushToken($account, $channel, $token){
 
+		if(!$account || !$channel || !$token)return;
+
 		if(valid($account, 'device_id') && in_array($channel, array('ios','android')) && valid($token, 'push_token')){
-			return $this->db('promotion.subscribe')->update($account, $channel, array('push_token' => $token));
+			return $this->update($account, $channel, array('push_token' => $token));
 		}
 	}
 
 	//退订订阅(允许首次就是退订状态)
 	function refuse($account, $channel='email'){
 
-		if(!$this->db('promotion.subscribe')->detail($account)){
+		if(!$account || !$channel)return;
+
+		if(!$this->detail($account, $channel)){
 			//$ret = $this->db('promotion.subscribe')->add($account, $channel, array('status'=>\DB\Subscribe::STATUS_STOP, 'updatetime'=>date('Y-m-d H:i:s')));
 		}else{
-			$ret = $this->db('promotion.subscribe')->update($account, $channel, array('status'=>\DB\Subscribe::STATUS_STOP, 'updatetime'=>date('Y-m-d H:i:s')));
+			$ret = $this->update($account, $channel, array('status'=>\DB\Subscribe::STATUS_STOP, 'updatetime'=>date('Y-m-d H:i:s')));
 		}
 		return true;
+	}
+
+	//保存订阅号关联的支付宝
+	function saveAlipay($account, $channel, $alipay){
+
+		if(!$account || !$channel || !$alipay)return;
+		$ret = $this->update($account, $channel, array('alipay'=>$alipay));
+		return $ret;
+	}
+
+	//保存订阅号关联的支付宝
+	function getAlipay($account, $channel='email'){
+
+		if(!$account || !$channel)return;
+		return $this->detail($account, $channel, 'alipay');
 	}
 
 	//标识已经接收到了通知，$message_ids为批量时，times_open也只累加1次
@@ -279,9 +305,9 @@ class Subscribe extends _Dal {
 			}
 		}
 
-		$times_open = $this->db('promotion.subscribe')->detail($account, $channel, 'times_open');
+		$times_open = $this->detail($account, $channel, 'times_open');
 		$times_open += 1;
-		$this->db('promotion.subscribe')->update($account, $channel, array('times_open'=>$times_open));
+		$this->update($account, $channel, array('times_open'=>$times_open));
 
 		//标识用户打开了信息，进入队列计算notify_num推送更新后的消息数
 		$this->sendAppOpenMsg($account, $channel);
@@ -297,11 +323,11 @@ class Subscribe extends _Dal {
 
 		if($succ){
 			$times_push_succ = $detail['times_push_succ'] + 1;
-			$this->db('promotion.subscribe')->update($account, $channel, array('times_push_succ'=>$times_push_succ, 'pushtime'=>date('Y-m-d H:i:s')));
+			$this->update($account, $channel, array('times_push_succ'=>$times_push_succ, 'pushtime'=>date('Y-m-d H:i:s')));
 			$this->db('promotion.subscribe_message')->update($account, $channel, $message_id, array('status'=>\DB\SubscribeMessage::STATUS_SUCC, 'pushtime'=>date('Y-m-d H:i:s')));
 		}else{
 			$times_push_fail = $detail['times_push_fail'] + 1;
-			$this->db('promotion.subscribe')->update($account, $channel, array('times_push_fail'=>$times_push_fail, 'pushtime'=>date('Y-m-d H:i:s')));
+			$this->update($account, $channel, array('times_push_fail'=>$times_push_fail, 'pushtime'=>date('Y-m-d H:i:s')));
 			$this->db('promotion.subscribe_message')->update($account, $channel, $message_id, array('status'=>\DB\SubscribeMessage::STATUS_FAIL, 'err_msg'=>$err_msg, 'pushtime'=>date('Y-m-d H:i:s')));
 		}
 	}
@@ -335,16 +361,16 @@ class Subscribe extends _Dal {
 		return count($lines);
 	}
 
-	//获取用户已被发送过的特卖(2个月内)
-	function getMemberPushedPromo($account, $channel, $limit_month=2){
+	//获取用户已被发送过的特卖(周期内)
+	function getMemberPushedPromo($account, $channel){
 
 		if(!$account || !$channel)return false;
 
-		$key = 'subscribe:pushed_promo:channel:'.$channel.':account:'.$account.':limit_month:'.$limit_month;
-		$cache = D('cache')->get($key);
-		if($cache)return D('cache')->ret($cache);
+		//$key = 'subscribe:pushed_promo:channel:'.$channel.':account:'.$account;
+		//$cache = D('cache')->get($key);
+		//if($cache)return D('cache')->ret($cache);
 
-		$lists = $this->getMessageList($account, $channel, $cond=array('createtime' => '> '.date('Y-m-d', time()-MONTH*$limit_month)));
+		$lists = $this->getMessageList($account, $channel, $cond=array('createtime' => '> '.date('Y-m-d', time()-DAY*C('comm', 'subscribe_push_space')*2)));
 
 		$promo = array();
 		if($lists){
@@ -356,7 +382,7 @@ class Subscribe extends _Dal {
 			}
 		}
 
-		D('cache')->set($key, $promo, DAY*C('comm', 'subscribe_push_space'), true);
+		//D('cache')->set($key, $promo, DAY*C('comm', 'subscribe_push_space'), true);
 		return $promo;
 	}
 

@@ -342,7 +342,7 @@ class Order extends _Dal {
 				break;
 		}
 
-		if($amount && ($gifttype == \DB\OrderCashgift::GIFTTYPE_LUCK || $gifttype == \DB\OrderCashgift::GIFTTYPE_TASK || $gifttype == \DB\OrderCashgift::GIFTTYPE_LOTTERY)){
+		if($amount && ($gifttype == \DB\OrderCashgift::GIFTTYPE_LUCK || $gifttype == \DB\OrderCashgift::GIFTTYPE_TASK)){
 
 			$review_reason = array();
 

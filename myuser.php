@@ -79,14 +79,21 @@ class Myuser extends _Dal {
 			return;
 		}
 
+		if($this->getAlipayValid() != \DAL\User::ALIPAY_VALID_ERROR){
+			$err = '当前状态不允许修改支付宝账号！';
+			return;
+		}
+
 		$ret = array();
 		if($user_id = $this->db('user')->getIdByAlipay($alipay)){
-			$err = '您新支付宝已存在，请换一个支付宝!';
-			return;
+			//$err = '您新输的支付宝已存在，请换一个!';
+			//return;
+			//直接登录旧用户
+			return $this->login($user_id);
 		}else{
 			$this->db()->begin();
 
-			if($ret = $this->db('user')->update($this->getId(), array('alipay'=>$alipay))){
+			if($ret = $this->db('user')->update($this->getId(), array('alipay'=>$alipay, 'alipay_valid'=>\DAL\User::ALIPAY_VALID_NONE))){
 				$this->db()->commit();
 				$this->relogin();
 			}else{
@@ -141,7 +148,12 @@ class Myuser extends _Dal {
 
 	//获取用户支付宝验证信息
 	function getAlipayValid(){
-		return D('user')->detail($this->getId(), 'alipay_valid');
+		return D('user')->detail($this->getId(), 'alipay_valid', false);
+	}
+
+	//获取用户接收信息验证
+	function getMsgValid(){
+		return D('user')->detail($this->getId(), 'msg_valid');
 	}
 
 	//获取用户当前等级
@@ -210,7 +222,7 @@ class Myuser extends _Dal {
 	//判断用户是否允许赠送新人红包
 	function canGetCashgift(){
 		if(!$this->isLogined())return;
-		return D('user')->detail($this->getId(), 'can_get_cashgift');
+		return D('user')->detail($this->getId(), 'can_get_cashgift', false);
 	}
 
 	//判断用户是否黑名单

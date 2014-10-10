@@ -86,7 +86,7 @@ class Speed extends _Dal {
 		if($limit_type == 'alipay_pre'){
 			if(!$phrase)return false;
 			$phrase_pre = substr($phrase, 0, 4);
-			$limit = 5;
+			$limit = 20;
 			$ret = $this->redis('speed')->sincr('send_cashgift:alipay_pre:'.$phrase_pre, HOUR*12, $limit);
 			if($ret){
 				return $phrase_pre;
@@ -104,7 +104,7 @@ class Speed extends _Dal {
 			}
 
 			$area_detail = getAreaByIp('', 'detail');
-			$limit = 4;
+			$limit = 20;
 			$ret = $this->redis('speed')->sincr('send_cashgift:area:'.$area_detail.':agent:'.md5($agent), HOUR*4, $limit);
 			if($ret){
 				return array('area_detail'=>$area_detail, 'agent'=>$agent);
@@ -247,7 +247,7 @@ class Speed extends _Dal {
 		$user_id = D('myuser')->getID();
 		if(!$user_id)return false;
 		if(isAdmin('super'))return false;
-		return $this->redis('speed')->sincr('lottery:user:'.$user_id, DAY, 10);
+		return $this->redis('speed')->sincr('lottery:user:'.$user_id, HOUR*12, 5);
 	}
 }
 ?>
