@@ -109,10 +109,15 @@ class Taobao extends _Api {
 	}
 
 	//TODO用户搜索时，使用daemon模式获取淘点金跳转链接，默认渲染到taobao跳转页面，提高兼容性
-	function getItemDetailByServer($iid){
+	function getItemDetailByServer($iid, $sp='', $goods_id=''){
 
 		if(!$iid)return;
-		$rf=urlencode(MY_HOMEPAGE_URL.'/go/taobao?param='.$iid.'&tc=index');
+		if($sp && $goods_id){
+			$rf=MY_WWW_URL.'/item-'.$sp.'-'.$goods_id;
+		}else{
+			$rf=urlencode(MY_WWW_URL.'/go/taobao?param='.$iid.'&tc=index');
+		}
+
 		$pid=C('keys', 'taobao_mm');
 
 		$json=json_encode(array());
@@ -150,8 +155,8 @@ class Taobao extends _Api {
 			else{
 				$goods['has_fanli']=0;
 			}
-			//$goods['item_click_url']=$a['data']['items'][0]['ds_item_click'];
-			//$goods['shop_click_url']=$a['data']['items'][0]['ds_shop_click'];
+			$goods['item_click_url']=$a['data']['items'][0]['ds_item_click'];
+			$goods['shop_click_url']=$a['data']['items'][0]['ds_shop_click'];
 		}
 		return $goods;
 	}

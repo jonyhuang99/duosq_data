@@ -29,7 +29,7 @@ class Item extends _Dal {
 
 		if (!isset($detail['errcode'])) {
 
-			if($detail['is_tmall'])$is_tmall=1;
+			if(isset($detail['is_tmall']) && $detail['is_tmall'])$is_tmall=1;
 			//修正有返利，但不允许返利的淘宝商品
 			if($sp=='taobao' && !$is_tmall && $detail['has_fanli']){
 				if(!$this->api('taobao')->isRebateAuth($param)){
