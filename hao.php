@@ -108,15 +108,15 @@ class Hao extends _Dal {
 		if(!$user_id)return;
 
 		if($sp){
-			if($id = $this->db('hao')->field('id', array('user_id'=>$user_id))){
-				return $this->db('hao')->update($id, array('design'=>serialize($sp)));
+			if($this->db('hao')->field('id', array('user_id'=>$user_id))){
+				return $this->db('hao')->update($user_id, array('design'=>serialize($sp)));
 			}else{
 				return $this->db('hao')->add(array('user_id'=>$user_id, 'design'=>serialize($sp)));
 			}
 		}else{
 
-			if($id = $this->db('hao')->field('id', array('user_id'=>$user_id))){
-				return $this->db('hao')->update($id, array('design'=>''));
+			if($this->db('hao')->field('id', array('user_id'=>$user_id))){
+				return $this->db('hao')->update($user_id, array('design'=>''));
 			}else{
 				return $this->db('hao')->add(array('user_id'=>$user_id, 'design'=>''));
 			}
