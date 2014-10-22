@@ -6,7 +6,7 @@ namespace DAL;
 class Weight extends _Dal {
 
 	//默认算法
-	var $default_exp = 'e140709';
+	var $default_exp = 'e141017';
 
 	function getExp(){
 		return $this->default_exp;
@@ -54,11 +54,11 @@ class Weight extends _Dal {
 	}
 
 	/**
-	 * 非京东B2C权重调高，8折商品与tmall 3折商品权重一样
+	 * 非重点B2C权重调高，8折商品与tmall 3折商品权重一样，【废除】
 	 * 越新降价的商品权重越大，8折降价商品高于2天前4折商品
 	 * 销量越高权重越大，最高周销量可停留3天
 	 */
-	function e140709($promo_detail, &$exp_detail){
+	function e141017($promo_detail, &$exp_detail){
 
 		$sp = $promo_detail['sp'];
 		$goods_id = $promo_detail['goods_id'];
@@ -67,9 +67,9 @@ class Weight extends _Dal {
 		$tmp_detail = array();
 
 		//B2C权重
-		if($sp!='taobao' && $sp!='tmall' && $sp!='jd'){
-			$weight[] = 1;
-			$tmp_detail['sp_weight'] = "{$sp}=>1";
+		if(!iSp($sp)){
+			//$weight[] = 1;
+			//$tmp_detail['sp_weight'] = "{$sp}=>1";
 		}
 
 		//折扣权重
@@ -100,13 +100,13 @@ class Weight extends _Dal {
 		//销量权重
 		$week_sales = $this->redis('promotion')->getSaleCount($sp, $goods_id);
 		if(!iSp($sp)){
-			if($week_sales <= 20){
+			if($week_sales <= 30){
 				$weight[] = 2;
 				$tmp_detail['week_saled'] = "{$week_sales}=>2";
-			}else if($week_sales > 20 && $week_sales <= 50){
+			}else if($week_sales > 30 && $week_sales <= 70){
 				$weight[] = 4;
 				$tmp_detail['week_saled'] = "{$week_sales}=>4";
-			}else if($week_sales > 50 && $week_sales <= 100){
+			}else if($week_sales > 70 && $week_sales <= 150){
 				$weight[] = 6;
 				$tmp_detail['week_saled'] = "{$week_sales}=>6";
 			}else if($week_sales > 150){

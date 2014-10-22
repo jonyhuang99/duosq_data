@@ -16,6 +16,12 @@ class Brand extends _Db {
 			$this->validationErrors['cat'] = 1;
 			return;
 		}
+
+		if(!@$data['name'] && !@$data['name_en']){
+			$this->validationErrors['name'] = 1;
+			return;
+		}
+
 		if($this->find(array('name'=>$data['name'],'name_en'=>$data['name_en'],'cat'=>$data['cat']))){
 			$this->validationErrors['exist'] = 1;
 			return;
