@@ -7,7 +7,7 @@ class Cache extends _Dal {
 	//获取缓存
 	function get($key){
 
-		if(CACHE_DATA && !DEBUG && !@$_POST['DISABLE_DATA_CACHE'])
+		if(CACHE_DATA && !@$_POST['DISABLE_DATA_CACHE'])
 			return $this->redis('cache')->getArray($key);
 		else
 			return null;
@@ -26,6 +26,13 @@ class Cache extends _Dal {
 			if($data === 0)$data = '__zero__';
 			return $this->redis('cache')->setArray($key, $data, $expire);
 		}
+	}
+
+	//自增类缓存，支持有效期延续
+	function incr($key, $expire=3600){
+		$ret = $this->redis('cache')->incr($key);
+		$this->redis('cache')->expire($key, $expire);
+		return $ret;
 	}
 
 	//获取文本缓存

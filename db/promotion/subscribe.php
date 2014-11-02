@@ -39,7 +39,7 @@ class Subscribe extends _Db {
 		$area = $ip2location->province($ip);
 		$area_detail = $ip2location->location($ip);
 
-		if($_COOKIE['referer'] && strpos($_COOKIE['referer'], 'duosq.com')===false){
+		if(@$_COOKIE['referer'] && strpos($_COOKIE['referer'], 'duosq.com')===false){
 			$referer = $_COOKIE['referer'];
 		}else{
 			$referer = '';

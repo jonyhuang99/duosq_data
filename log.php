@@ -187,8 +187,9 @@ class Log extends _Dal {
 	 */
 	function click($tag){
 
-		if(!$tag || !D('myuser')->isLogined())return;
-		return $this->db('log_click')->add(array('tag'=>$tag, 'user_id'=>D('myuser')->getId()));
+		if(!$tag)return;
+		$user_id = D('myuser')->getId()?D('myuser')->getId():0;
+		return $this->db('log_click')->add(array('tag'=>$tag, 'user_id'=>$user_id));
 	}
 
 	/**

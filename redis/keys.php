@@ -95,7 +95,6 @@ class Keys extends _Redis {
 				$cache_cat_all = $rules_all;
 				return $cache_cat_all;
 			}
-
 		}
 	}
 

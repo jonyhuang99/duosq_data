@@ -73,7 +73,7 @@ class Weight extends _Dal {
 		}
 
 		//折扣权重
-		$rate = rate_diff($promo_detail['price_now'], $promo_detail['price_avg']);
+		$rate = rateDiff($promo_detail['price_now'], $promo_detail['price_avg']);
 		if($rate > 70){
 			$weight[] = 5;
 			$tmp_detail['discount'] = "{$rate}%=>5";

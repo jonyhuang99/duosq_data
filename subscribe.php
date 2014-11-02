@@ -27,6 +27,7 @@ class Subscribe extends _Dal {
 	function detail($account, $channel='email', $field=''){
 
 		if(!$account || !$channel)return false;
+
 		$ret = $this->db('promotion.subscribe')->detail($account, $channel);
 
 		if($ret && $field){
@@ -47,7 +48,7 @@ class Subscribe extends _Dal {
 
 		if(!$account)return false;
 		$ret = $this->detail($account, $channel);
-		if(!$ret)return false;
+		if(!$ret)return array();
 
 		//清掉和配置无关的字段
 		foreach($ret as $option => $val){
@@ -68,22 +69,14 @@ class Subscribe extends _Dal {
 			$ret['setting_brand'] = array();
 		}
 
-		if($ret['setting_subcat']){
-			$ret['setting_subcat'] = explode(',', $ret['setting_subcat']);
-		}else{
-			$ret['setting_subcat'] = array();
-		}
+		$arr_setting = array('setting_ablumcat', 'setting_subcat', 'setting_midcat', 'setting_clothes_color', 'setting_clothes_style_girl', 'setting_clothes_style_boy', 'setting_clothes_size_girl', 'setting_clothes_size_boy', 'setting_shoes_size_girl', 'setting_shoes_size_boy');
 
-		if($ret['setting_midcat']){
-			$ret['setting_midcat'] = explode(',', $ret['setting_midcat']);
-		}else{
-			$ret['setting_midcat'] = array();
-		}
-
-		if($ret['setting_clothes_color']){
-			$ret['setting_clothes_color'] = explode(',', $ret['setting_clothes_color']);
-		}else{
-			$ret['setting_clothes_color'] = array();
+		foreach ($arr_setting as $s) {
+			if($ret[$s]){
+				$ret[$s] = explode(',', $ret[$s]);
+			}else{
+				$ret[$s] = array();
+			}
 		}
 
 		return $ret;
@@ -94,28 +87,14 @@ class Subscribe extends _Dal {
 
 		if(!$this->sessCheck($sess_id))return false;
 
-		if(isset($setting['setting_brand']) && $setting['setting_brand']){
-			$setting['setting_brand'] = join(',', $setting['setting_brand']);
-		}else{
-			$setting['setting_brand'] = '';
-		}
+		$arr_setting = array('setting_brand', 'setting_ablumcat', 'setting_subcat', 'setting_midcat', 'setting_clothes_color', 'setting_clothes_style_girl', 'setting_clothes_style_boy', 'setting_clothes_size_girl', 'setting_clothes_size_boy', 'setting_shoes_size_girl', 'setting_shoes_size_boy');
 
-		if(isset($setting['setting_subcat']) && $setting['setting_subcat']){
-			$setting['setting_subcat'] = join(',', $setting['setting_subcat']);
-		}else{
-			$setting['setting_subcat'] = '';
-		}
-
-		if(isset($setting['setting_midcat']) && $setting['setting_midcat']){
-			$setting['setting_midcat'] = join(',', $setting['setting_midcat']);
-		}else{
-			$setting['setting_midcat'] = '';
-		}
-
-		if(isset($setting['setting_clothes_color']) && $setting['setting_clothes_color']){
-			$setting['setting_clothes_color'] = join(',', $setting['setting_clothes_color']);
-		}else{
-			$setting['setting_clothes_color'] = '';
+		foreach ($arr_setting as $s) {
+			if(isset($setting[$s]) && $setting[$s]){
+				$setting[$s] = join(',', $setting[$s]);
+			}else{
+				$setting[$s] = '';
+			}
 		}
 
 		foreach($setting as $key => $value){
@@ -137,66 +116,45 @@ class Subscribe extends _Dal {
 			$l++;
 		}
 
-		switch ($option) {
-			case 'setting_subcat':
-			case 'setting_midcat':
-			case 'setting_brand':
-			case 'setting_clothes_color':
-
-				if($option == 'setting_brand' || $option == 'setting_clothes_color'){
-					$value = intval($value);
-					if(!$value)return false;
-				}
-
-				if($option == 'setting_subcat'){
-					if(!D('promotion')->subcat2cat($value))return false;
-				}
-
-				if($option == 'setting_midcat'){
-					if(!D('promotion')->midcat2cat($value))return false;
-				}
-
-				$sess_setting_str = $this->redis('subscribe')->get($sess_id, $option);
-				$sess_setting = array();
-				if($sess_setting_str){
-					$tmp = explode(',', $sess_setting_str);
-					foreach($tmp as $s){
-						$sess_setting[$s] = 1;
-					}
-				}else{
-					$sess_setting = array();
-				}
-				if($action == 'add'){
-					$sess_setting[$value] = 1;
-				}else{
-					unset($sess_setting[$value]);
-				}
-				$sess_setting = join(',', array_keys($sess_setting));
-				break;
-
-			case 'setting_clothes_size_girl':
-			case 'setting_clothes_size_boy':
-
-				if(!in_array($value, array('s','m','l','xl','xxl')))return false;
-				if($action == 'add'){
-					$sess_setting = $value;
-				}else{
-					$sess_setting = '';
-				}
-				break;
-
-			case 'setting_shoes_size_girl':
-			case 'setting_shoes_size_boy':
-
-				$value = intval($value);
-				if(!$value)return false;
-				if($action == 'add'){
-					$sess_setting = $value;
-				}else{
-					$sess_setting = '';
-				}
-				break;
+		if($option == 'setting_brand' || $option == 'setting_clothes_color'){
+			$value = intval($value);
+			if(!$value)return false;
 		}
+
+		if($option == 'setting_ablumcat'){
+			$ablumcat_option = C('options', 'subscribe_setting_ablumcat');
+			if(!$ablumcat_option[$value])return false;
+		}
+
+		if($option == 'setting_subcat'){
+			if(!D('promotion')->subcat2cat($value))return false;
+		}
+
+		if($option == 'setting_midcat'){
+			if(!D('promotion')->midcat2cat($value))return false;
+		}
+
+		if($option == 'setting_clothes_size_girl' || $option == 'setting_clothes_size_boy' || $option == 'setting_shoes_size_girl' || $option == 'setting_shoes_size_boy'){
+			$setting_option = C('options', 'subscribe_'.$option);
+			if(!isset($setting_option[$value]))return false;
+		}
+
+		$sess_setting_str = $this->redis('subscribe')->get($sess_id, $option);
+		$sess_setting = array();
+		if($sess_setting_str){
+			$tmp = explode(',', $sess_setting_str);
+			foreach($tmp as $s){
+				$sess_setting[$s] = 1;
+			}
+		}else{
+			$sess_setting = array();
+		}
+		if($action == 'add'){
+			$sess_setting[$value] = 1;
+		}else{
+			unset($sess_setting[$value]);
+		}
+		$sess_setting = join(',', array_keys($sess_setting));
 
 		$ret = $this->redis('subscribe')->set($sess_id, $option, $sess_setting);
 		$this->redis('lock')->unlock(\Redis\Lock::LOCK_SUBSCRIBE_OPTION, $sess_id);
@@ -232,10 +190,11 @@ class Subscribe extends _Dal {
 
 		$setting['updatetime'] = date('Y-m-d H:i:s');
 		$setting['status'] = \DB\Subscribe::STATUS_NORMAL;
+		//每次都同步新的push_token
 		if(isset($_GET['push_token']))$setting['push_token'] = $_GET['push_token'];
 
 		if($exist){
-			//用空来覆盖旧配置
+			//用空来覆盖旧配置，用于删除配置
 			foreach ($exist as $key => $value) {
 				if(strpos($key, 'setting')!==false){
 					if(!isset($setting[$key]) || !$setting[$key]){
@@ -253,6 +212,66 @@ class Subscribe extends _Dal {
 			$this->redis('subscribe')->clean($sess_id);
 			return true;
 		}
+	}
+
+	//APP新模式，无需点击提交按钮，直接点即保存
+	function settingUpdate($account, $channel, $option, $value=null, $action='add'){
+
+		if(!$account || !$channel || !$option)return false;
+
+		if($option == 'setting_ablumcat'){
+			$ablumcat_option = C('options', 'subscribe_setting_ablumcat');
+			if(!isset($ablumcat_option[$value]))return false;
+		}
+
+		if($option == 'setting_clothes_size_girl' || $option == 'setting_clothes_size_boy' || $option == 'setting_shoes_size_girl' || $option == 'setting_shoes_size_boy'){
+			$setting_option = C('options', 'subscribe_'.$option);
+			if(!isset($setting_option[$value]))return false;
+		}
+
+		$exist = $this->detail($account, $channel);
+		if($exist){
+			$old_value = array();
+			if($exist && $exist[$option]){
+				$old_value = array_flip(explode(',', $exist[$option]));
+			}
+
+			if($action == 'add'){
+				$old_value[$value] = 1;
+			}else{
+				unset($old_value[$value]);
+				if(!count($old_value))$old_value = array();
+			}
+
+			$new_value = join(',', array_keys($old_value));
+			if(!$new_value)$new_value = '';
+
+			$ret = $this->update($account, $channel, array($option=>$new_value));
+
+		}else if($action == 'add'){
+
+			$setting = array();
+			if(isset($_GET['push_token']))$setting['push_token'] = $_GET['push_token'];
+			$setting['updatetime'] = date('Y-m-d H:i:s');
+			$setting['status'] = \DB\Subscribe::STATUS_NORMAL;
+			if($value)$setting[$option] = $value;
+			$ret = $this->db('promotion.subscribe')->add($account, $channel, $setting);
+
+		}else{
+			$ret = true;
+		}
+
+		return $ret;
+	}
+
+	//自动创建新用户设置
+	function settingAutoCreated($device_id, $platform){
+
+		$all_ablumcat = array_keys(C('options', 'subscribe_setting_ablumcat'));
+		foreach($all_ablumcat as $value){
+			$this->settingUpdate($device_id, $platform, 'setting_ablumcat', $value);
+		}
+		return true;
 	}
 
 	//快速保存token

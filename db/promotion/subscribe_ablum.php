@@ -7,8 +7,12 @@ class SubscribeAblum extends _Db {
 	var $name = 'SubscribeAblum';
 	var $useDbConfig = 'promotion';
 
+	//专辑状态定义
+	const STATUS_NORMAL = 1; //正常
+	const STATUS_INVALID = 0; //无效
+
 	var $validate = array(
-							'midcat'=>VALID_NOT_EMPTY,
+							//'category'=>VALID_NOT_EMPTY,
 							'title'=>VALID_NOT_EMPTY,
 							'price'=>VALID_NOT_EMPTY,
 							'cover_1'=>VALID_NOT_EMPTY,
@@ -26,6 +30,7 @@ class SubscribeAblum extends _Db {
 		$pass = $this->validForm($data);
 		if(!$pass)return;
 
+		$this->fixSearch($data);
 		return parent::add($data);
 	}
 
@@ -35,6 +40,7 @@ class SubscribeAblum extends _Db {
 		$pass = $this->validForm($data);
 		if(!$pass)return;
 
+		$this->fixSearch($data);
 		return parent::update($id, $data);
 	}
 
@@ -43,39 +49,53 @@ class SubscribeAblum extends _Db {
 
 		$pass = true;
 
-		$url_pass = false;
-		foreach(C('options', 'ablum_sp') as $sp=>$name){
-			if(stripos($data['url'], $sp.'.')!==false){
-				$url_pass = true;
+		//非表单提交不做校验
+		if(!isset($data['url'])){
+			$url_pass = true;
+		}else{
+			$url_pass = false;
+			foreach(C('options', 'ablum_sp') as $sp=>$name){
+				if(stripos($data['url'], $sp.'.')!==false){
+					$url_pass = true;
+				}
+			}
+
+			if(!$url_pass){
+				$this->validationErrors['url'] = 1;
+				$pass = false;
+			}
+
+			if(stripos($data['url'], 'tmall') && (!$data['url_sclick'] || !stripos($data['url_sclick'], 'click'))){
+				//$this->validationErrors['url_sclick'] = 1;
+				//$pass = false;
 			}
 		}
 
-		if(!$url_pass){
-			$this->validationErrors['url'] = 1;
-			$pass = false;
-		}
-
-		if(stripos($data['url'], 'tmall') && (!$data['url_sclick'] || !stripos($data['url_sclick'], 'click'))){
-			$this->validationErrors['url_sclick'] = 1;
-			$pass = false;
-		}
-
-		if(!preg_match('/^[0-9]+\-[0-9]+$/i', $data['price'])){
+		if(isset($data['price']) && !preg_match('/^[0-9]+\-[0-9]+$/i', $data['price'])){
 			$this->validationErrors['price'] = 1;
 			$pass = false;
 		}
 
-		if($data['expire_start'] && $data['expire_start']!='0000-00-00 00:00:00' && strtotime($data['expire_start']) < time()-MONTH){
+		if(isset($data['expire_start']) && $data['expire_start'] && $data['expire_start']!='0000-00-00 00:00:00' && strtotime($data['expire_start']) < time()-MONTH){
 			$this->validationErrors['expire'] = 1;
 			$pass = false;
 		}
 
-		if($data['expire_end'] && $data['expire_end']!='0000-00-00 00:00:00' && strtotime($data['expire_end']) < time()-MONTH){
+		if(isset($data['expire_end']) && $data['expire_end'] && $data['expire_end']!='0000-00-00 00:00:00' && strtotime($data['expire_end']) < time()-MONTH){
 			$this->validationErrors['expire'] = 1;
 			$pass = false;
 		}
 
 		return $pass;
+	}
+
+	//为支持数组字段增加逗号结尾
+	function fixSearch(&$data){
+		foreach($data as $field => &$value){
+			if(in_array($field, array('category','midcat','brand','tag_clothes_style_girl','tag_clothes_style_boy','tag_clothes_size_girl','tag_clothes_size_boy','tag_shoes_size_girl','tag_shoes_size_boy')) && $value){
+				$value = $value . ',';
+			}
+		}
 	}
 }
 ?>

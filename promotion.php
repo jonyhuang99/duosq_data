@@ -343,6 +343,7 @@ class Promotion extends _Dal {
 					if(is_array($rule)){
 						$match = true;
 						foreach ($rule as $m) {
+							if(!$m)continue;//避免空规则
 							if(stripos($name, $m)===false){
 								$match = false;
 							}
@@ -358,6 +359,11 @@ class Promotion extends _Dal {
 					}
 				}
 			}
+		}
+
+		//临时跟踪错误分类电烫斗
+		if(stripos(join('', $match_subcat), '电烫斗')!==false){
+			file_put_contents('/tmp/tmp_rule', "goods_id:{$goods_id}:".$all_rules."\n", 8);
 		}
 
 		//清除旧分类，如果手动进行过设置，后续应想办法进行锁定或者区分
@@ -558,7 +564,6 @@ class Promotion extends _Dal {
 		$promo = $this->promoDetail($sp, $goods_id);
 		if(!$promo){
 
-
 			$config = C('comm', 'promo_auto_pass');
 			//是否自动发布
 			if($config['discount']){
@@ -570,7 +575,8 @@ class Promotion extends _Dal {
 			$detail = $this->goodsDetail($sp, $goods_id);
 			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'cat'=>$detail['cat'], 'subcat'=>$detail['subcat'], 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'type'=>\DB\QueuePromo::TYPE_DISCOUNT));
 			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
-			$this->matchGoodsCat($sp, $goods_id);
+			$match_cats = $this->matchGoodsCat($sp, $goods_id);
+
 			D('brand')->matchAndUpdateBrand($sp, $goods_id);
 			//加入待审核列表
 			$this->db('promotion.review')->add(\DB\Review::TYPE_PROMO, array('sp'=>$sp, 'goods_id'=>$goods_id));
