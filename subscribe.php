@@ -330,15 +330,16 @@ class Subscribe extends _Dal {
 
 		if($channel == 'email' && $detail['task_id']){
 			$edm_detail = D('edm')->detail($detail['task_id']);
-			if($edm_detail){
+			//唯一统计
+			$key = 'counter:edm:open:task_id:'.$detail['task_id'].':account:'.$account;
+			if($edm_detail && !D('cache')->get($key)){
 				$edm_times_open = $edm_detail['times_open'];
 				$edm_times_open++;
-				D('edm')->update($detail['task_id'], array('times_open'=>$edm_times_open));
+				$ret = D('edm')->update($detail['task_id'], array('times_open'=>$edm_times_open));
+				if($ret)D('cache')->set($key, 1, MONTH, true);
 			}
 		}
 
-		//标识用户打开了信息，进入队列计算notify_num推送更新后的消息数
-		$this->sendAppOpenMsg($account, $channel);
 		return true;
 	}
 
@@ -346,12 +347,17 @@ class Subscribe extends _Dal {
 	function markMessageClicked($account, $channel, $message_id){
 
 		$detail = $this->db('promotion.subscribe_message')->detail($account, $channel, $message_id);
+
 		if($channel == 'email' && $detail['task_id']){
 			$edm_detail = D('edm')->detail($detail['task_id']);
-			if($edm_detail){
+
+			//唯一统计
+			$key = 'counter:edm:click:task_id:'.$detail['task_id'].':account:'.$account;
+			if($edm_detail && !D('cache')->get($key)){
 				$edm_times_click = $edm_detail['times_click'];
 				$edm_times_click++;
-				D('edm')->update($detail['task_id'], array('times_click'=>$edm_times_click));
+				$ret = D('edm')->update($detail['task_id'], array('times_click'=>$edm_times_click));
+				if($ret)D('cache')->set($key, 1, MONTH, true);
 			}
 		}
 	}
@@ -456,9 +462,7 @@ class Subscribe extends _Dal {
 		$this->db('promotion.subscribe_cand_push')->query("DELETE FROM duosq_promotion.subscribe_cand_push WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
 	}
 
-	/**
-	 * 发送用户打开了推送的消息
-	 */
+	//发送用户打开了推送的消息
 	function sendAppOpenMsg($account, $channel='email'){
 
 		if(!$account || !$channel)return;
@@ -466,9 +470,7 @@ class Subscribe extends _Dal {
 		return D()->redis('queue')->add(\REDIS\Queue::KEY_APP_NOTIFY_NUM, $channel.'::'.$account);
 	}
 
-	/**
-	 * 获取用户打开了推送的消息
-	 */
+	//获取用户打开了推送的消息
 	function getAppOpenMsg(){
 
 		$msg = D()->redis('queue')->bget(\REDIS\Queue::KEY_APP_NOTIFY_NUM);
@@ -507,6 +509,7 @@ class Subscribe extends _Dal {
 		return $this->db('promotion.subscribe_feedback')->add($data);
 	}
 
+	//获取等待推送的信息
 	function getWaitPushMessage($condition=array()){
 
 		$this->db('promotion.subscribe_message');
