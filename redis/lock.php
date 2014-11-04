@@ -14,6 +14,7 @@ class Lock extends _Redis {
 	const LOCK_COUPON_ROB_NUM = 'coupon_rob_num';
 	const LOCK_SIGN = 'sign';
 	const LOCK_SUBSCRIBE_OPTION = 'subscribe_option';
+	const LOCK_SUBSCRIBE_PUSH = 'subscribe_push';
 
 	/**
 	 * 获得一个业务锁
@@ -88,6 +89,9 @@ class Lock extends _Redis {
 				break;
 			case self::LOCK_SUBSCRIBE_OPTION:
 				$expire = 5;
+				break;
+			case self::LOCK_SUBSCRIBE_PUSH:
+				$expire = DAY*2;
 				break;
 			default:
 				$expire = 10;

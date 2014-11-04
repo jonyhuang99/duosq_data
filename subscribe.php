@@ -328,9 +328,32 @@ class Subscribe extends _Dal {
 		$times_open += 1;
 		$this->update($account, $channel, array('times_open'=>$times_open));
 
+		if($channel == 'email' && $detail['task_id']){
+			$edm_detail = D('edm')->detail($detail['task_id']);
+			if($edm_detail){
+				$edm_times_open = $edm_detail['times_open'];
+				$edm_times_open++;
+				D('edm')->update($detail['task_id'], array('times_open'=>$edm_times_open));
+			}
+		}
+
 		//标识用户打开了信息，进入队列计算notify_num推送更新后的消息数
 		$this->sendAppOpenMsg($account, $channel);
 		return true;
+	}
+
+	//标识通知已经点击
+	function markMessageClicked($account, $channel, $message_id){
+
+		$detail = $this->db('promotion.subscribe_message')->detail($account, $channel, $message_id);
+		if($channel == 'email' && $detail['task_id']){
+			$edm_detail = D('edm')->detail($detail['task_id']);
+			if($edm_detail){
+				$edm_times_click = $edm_detail['times_click'];
+				$edm_times_click++;
+				D('edm')->update($detail['task_id'], array('times_click'=>$edm_times_click));
+			}
+		}
 	}
 
 	//标识消息已经推送
@@ -354,13 +377,16 @@ class Subscribe extends _Dal {
 	//获取待推送消息
 	function getWaitPushMessageList($channel='email', $limit=100){
 
-		return $this->db('promotion.subscribe_message')->getList('','', array('status'=>\DB\SubscribeMessage::STATUS_WAIT, 'channel'=>$channel), $limit);
+		return $this->db('promotion.subscribe_message')->getList(array('status'=>\DB\SubscribeMessage::STATUS_WAIT, 'channel'=>$channel), $limit);
 	}
 
 	//读取订阅消息列表
 	function getMessageList($account, $channel, $cond=array(), $limit=10){
 
-		return $this->db('promotion.subscribe_message')->getList($account, $channel, $cond, $limit);
+		if(!$account || !$channel)return;
+		$cond['account'] = $account;
+		$cond['channel'] = $channel;
+		return $this->db('promotion.subscribe_message')->getList($cond, $limit);
 	}
 
 	//获取订阅消息详情
@@ -380,44 +406,10 @@ class Subscribe extends _Dal {
 		return count($lines);
 	}
 
-	//获取用户已被发送过的特卖(周期内)
-	function getMemberPushedPromo($account, $channel){
-
-		if(!$account || !$channel)return false;
-
-		//$key = 'subscribe:pushed_promo:channel:'.$channel.':account:'.$account;
-		//$cache = D('cache')->get($key);
-		//if($cache)return D('cache')->ret($cache);
-
-		$lists = $this->getMessageList($account, $channel, $cond=array('createtime' => '> '.date('Y-m-d', time()-DAY*C('comm', 'subscribe_push_space')*2)));
-
-		$promo = array();
-		if($lists){
-			foreach ($lists as $list) {
-				$message = unserialize($list['message']);
-				foreach ($message as $p) {
-					$promo[$p['sp'].'_'.$p['goods_id']] = $p;
-				}
-			}
-		}
-
-		//D('cache')->set($key, $promo, DAY*C('comm', 'subscribe_push_space'), true);
-		return $promo;
-	}
-
 	//获取今日等待推送特卖的用户数
-	function getNeedPushMemberNum(){
+	function getNeedPushMemberNum($candition=array()){
 
-		return D('subscribe')->db('promotion.subscribe')->findCount(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1)), 'createtime'=>'<= '.date('Y-m-d 00:00:00')));
-	}
-
-	//清空推送候选数据
-	function initPushCandidate(){
-
-		$this->db('promotion.subscribe_cand_push')->query("truncate table duosq_promotion.subscribe_cand_push");
-		$this->db('promotion.subscribe_cand')->query("UPDATE duosq_promotion.subscribe_cand SET mark = 0");
-		$this->db('promotion.subscribe_cand')->query("DELETE FROM duosq_promotion.subscribe_cand WHERE createdate < '".date('Y-m-d', time()-MONTH*2)."'");
-		return true;
+		return D('subscribe')->db('promotion.subscribe')->findCount(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1)), 'createtime'=>'<= '.date('Y-m-d 00:00:00'))+$candition);
 	}
 
 	//获取待推送的候选特卖
@@ -429,10 +421,10 @@ class Subscribe extends _Dal {
 	}
 
 	//获取待推送会员
-	function getWaitPushCandidateMembers($limit=1000, $page=1){
+	function getWaitPushCandidateMembers($limit=1000, $page=1, $candition=array()){
 
 
-		$ret = $this->db('promotion.subscribe')->findAll(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1)), 'createtime'=>'<= '.date('Y-m-d 00:00:00')), 'channel,account', 'id ASC', $limit, $page);
+		$ret = $this->db('promotion.subscribe')->findAll(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1)), 'createtime'=>'<= '.date('Y-m-d 00:00:00'))+$candition, 'account,channel', 'id ASC', $limit, $page);
 		return clearTableName($ret);
 	}
 
@@ -441,13 +433,6 @@ class Subscribe extends _Dal {
 
 		if(!$sp ||!$goods_id ||!$data)return;
 		return D('promotion')->db('promotion.subscribe_cand')->update($sp, $goods_id, $data);
-	}
-
-	//标识特卖为待推送状态
-	function markCandidatePromoWaitPush($sp, $goods_id){
-
-		if(!$sp || !$goods_id)return;
-		$this->db('promotion.subscribe_cand')->update($sp, $goods_id, array('mark'=>1));
 	}
 
 	//获取指定会员待推送候选特卖
@@ -469,13 +454,6 @@ class Subscribe extends _Dal {
 
 		if(!$sp || !$goods_id)return;
 		$this->db('promotion.subscribe_cand_push')->query("DELETE FROM duosq_promotion.subscribe_cand_push WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
-	}
-
-	//清除指定指定的待推送候选特卖
-	function deletePushCandidatePromoNotInGoodsID($account, $channel='email', $goods_ids){
-
-		if(!$account || !$channel || !$goods_ids)return;
-		$this->db('promotion.subscribe_cand_push')->query("DELETE FROM duosq_promotion.subscribe_cand_push WHERE channel='{$channel}' AND account='{$account}' AND goods_id NOT IN(".join(',', $goods_ids).")");
 	}
 
 	/**
@@ -526,8 +504,14 @@ class Subscribe extends _Dal {
 	function addFeedback($data, $account='', $channel=''){
 
 		if(!$data)return;
-
 		return $this->db('promotion.subscribe_feedback')->add($data);
+	}
+
+	function getWaitPushMessage($condition=array()){
+
+		$this->db('promotion.subscribe_message');
+		$condition['status'] = array(\DB\SubscribeMessage::STATUS_WAIT, \DB\SubscribeMessage::STATUS_FAIL);
+		return $this->db('promotion.subscribe_message')->getList($condition);
 	}
 }
 ?>

@@ -35,11 +35,12 @@ class Ablum extends _Dal {
 		$condition = arrayClean($condition);
 		$condition_build = array();
 
-		if($condition['category'] && count($condition['category']) == count(C('options', 'subscribe_setting_ablumcat'))){
-			unset($condition['category']);
+		if(isset($condition['setting_ablumcat']) && $condition['setting_ablumcat'] && count($condition['setting_ablumcat']) == count(C('options', 'subscribe_setting_ablumcat'))){
+			unset($condition['setting_ablumcat']);
 		}
 		foreach($condition as $field => $value){
 			if(!$value)continue;
+
 			switch ($field) {
 				case 'id':
 					$condition_build[] = "id {$value}";
@@ -47,13 +48,13 @@ class Ablum extends _Dal {
 				case 'title':
 					$condition_build[] = "{$field} like '%{$value}%'";
 					break;
-				case 'category':
-				case 'tag_clothes_style_girl':
-				case 'tag_clothes_style_boy':
-				case 'tag_clothes_size_girl':
-				case 'tag_clothes_size_boy':
-				case 'tag_shoes_size_girl':
-				case 'tag_shoes_size_boy':
+				case 'setting_ablumcat':
+				case 'setting_clothes_style_girl':
+				case 'setting_clothes_style_boy':
+				case 'setting_clothes_size_girl':
+				case 'setting_clothes_size_boy':
+				case 'setting_shoes_size_girl':
+				case 'setting_shoes_size_boy':
 					$condition_build[] = "{$field} like '%" . join(",%' or {$field} like '%", $value) . ",%' or {$field} = ''";
 					break;
 				default:
@@ -98,7 +99,7 @@ class Ablum extends _Dal {
 			$detail = $this->db('promotion.subscribe_ablum')->find(array('id'=>$id));
 			$detail = clearTableName($detail);
 			if(!$detail)return;
-			$serial_fields = array('category', 'brand', 'tag_clothes_style_girl', 'tag_clothes_style_boy', 'tag_clothes_size_girl', 'tag_shoes_size_girl', 'tag_clothes_size_boy', 'tag_shoes_size_boy');
+			$serial_fields = array('setting_ablumcat', 'setting_brand', 'setting_clothes_style_girl', 'setting_clothes_style_boy', 'setting_clothes_size_girl', 'setting_shoes_size_girl', 'setting_clothes_size_boy', 'setting_shoes_size_boy');
 			foreach($serial_fields as $f){
 				if($detail[$f])
 					$detail[$f] = arrayClean(explode(',', $detail[$f]));
@@ -201,8 +202,6 @@ class Ablum extends _Dal {
 			}
 		}
 
-		//过滤掉隐藏的
-
 		if($ret_ablums_ids){
 			$ret = array();
 			foreach($ret_ablums_ids as $ablum_id){
@@ -222,14 +221,16 @@ class Ablum extends _Dal {
 		$setting = D('subscribe')->getSetting($account, $channel);
 		if(!$setting)return array();
 
-		$condition = array('status'=>1);
-		$condition['category'] = $setting['setting_ablumcat'];
-		$condition['tag_clothes_style_girl'] = $setting['setting_clothes_style_girl'];
-		$condition['tag_clothes_style_boy'] = $setting['setting_clothes_style_boy'];
-		$condition['tag_clothes_size_girl'] = $setting['setting_clothes_size_girl'];
-		$condition['tag_clothes_size_boy'] = $setting['setting_clothes_size_boy'];
-		$condition['tag_shoes_size_girl'] = $setting['setting_shoes_size_girl'];
-		$condition['tag_shoes_size_boy'] = $setting['setting_shoes_size_boy'];
+		$condition = array();
+		$condition['status'] = 1;
+		$condition['setting_ablumcat'] = $setting['setting_ablumcat'];
+		$condition['setting_clothes_style_girl'] = $setting['setting_clothes_style_girl'];
+		$condition['setting_clothes_style_boy'] = $setting['setting_clothes_style_boy'];
+		$condition['setting_clothes_size_girl'] = $setting['setting_clothes_size_girl'];
+		$condition['setting_clothes_size_boy'] = $setting['setting_clothes_size_boy'];
+		$condition['setting_shoes_size_girl'] = $setting['setting_shoes_size_girl'];
+		$condition['setting_shoes_size_boy'] = $setting['setting_shoes_size_boy'];
+
 		return $condition;
 	}
 }

@@ -12,7 +12,7 @@ class SubscribeAblum extends _Db {
 	const STATUS_INVALID = 0; //无效
 
 	var $validate = array(
-							//'category'=>VALID_NOT_EMPTY,
+							//'setting_ablumcat'=>VALID_NOT_EMPTY,
 							'title'=>VALID_NOT_EMPTY,
 							'price'=>VALID_NOT_EMPTY,
 							'cover_1'=>VALID_NOT_EMPTY,
@@ -92,7 +92,7 @@ class SubscribeAblum extends _Db {
 	//为支持数组字段增加逗号结尾
 	function fixSearch(&$data){
 		foreach($data as $field => &$value){
-			if(in_array($field, array('category','midcat','brand','tag_clothes_style_girl','tag_clothes_style_boy','tag_clothes_size_girl','tag_clothes_size_boy','tag_shoes_size_girl','tag_shoes_size_boy')) && $value){
+			if(in_array($field, array('setting_ablumcat','setting_midcat','setting_brand','setting_clothes_style_girl','setting_clothes_style_boy','setting_clothes_size_girl','setting_clothes_size_boy','setting_shoes_size_girl','setting_shoes_size_boy')) && $value){
 				$value = $value . ',';
 			}
 		}

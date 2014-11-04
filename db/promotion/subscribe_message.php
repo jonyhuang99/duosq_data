@@ -14,11 +14,9 @@ class SubscribeMessage extends _Db {
 	const STATUS_SKIP = 3; //彻底失败(不再尝试)
 	const STATUS_OPENED = 4; //成功打开
 
-	//获取消息列表，提供给APP/微信使用，或者获取待推送列表，可以不指定账户渠道
-	function getList($account='', $channel='', $cond=array(), $limit=10){
+	//获取消息列表，提供给APP/微信使用，或者获取待推送列表
+	function getList($cond=array(), $limit=10){
 
-		if(!isset($cond['account']) && $account)$cond['account'] = $account;
-		if(!isset($cond['channel']) && $channel)$cond['channel'] = $channel;
 		$cond = arrayClean($cond);
 
 		$ret = parent::findAll($cond, '', 'id DESC', $limit);
@@ -38,13 +36,14 @@ class SubscribeMessage extends _Db {
 	}
 
 	//增加推送消息
-	function add($account, $channel='email', $title, $message){
+	function add($account, $channel='email', $title, $message, $task_id){
 
-		if(!$account || !$channel || !$title ||!$message)return false;
+		if(!$account || !$channel || !$title ||!$message ||!$task_id)return false;
 
 		$data['account'] = $account;
 		$data['channel'] = $channel;
 		$data['title'] = $title;
+		$data['task_id'] = $task_id;
 		$data['message'] = is_array($message)?serialize($message):$message;
 		return parent::add($data);
 	}
