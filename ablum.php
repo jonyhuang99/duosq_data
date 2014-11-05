@@ -38,6 +38,27 @@ class Ablum extends _Dal {
 		if(isset($condition['setting_ablumcat']) && $condition['setting_ablumcat'] && count($condition['setting_ablumcat']) == count(C('options', 'subscribe_setting_ablumcat'))){
 			unset($condition['setting_ablumcat']);
 		}
+
+		//ablumcat关联个性设置
+		//没有1 置空 setting_clothes_style_girl & setting_clothes_size_girl
+		//没有2 置空 setting_shoes_size_girl
+		//没有5 置空 setting_clothes_style_boy & setting_clothes_size_boy
+		//没有6 置空 setting_shoes_size_boy
+		if(!isset($condition['setting_ablumcat']) || !in_array(1, $condition['setting_ablumcat'])){
+			unset($condition['setting_clothes_style_girl']);
+			unset($condition['setting_clothes_size_girl']);
+		}
+		if(!isset($condition['setting_ablumcat']) || !in_array(2, $condition['setting_ablumcat'])){
+			unset($condition['setting_shoes_size_girl']);
+		}
+		if(!isset($condition['setting_ablumcat']) || !in_array(5, $condition['setting_ablumcat'])){
+			unset($condition['setting_clothes_style_boy']);
+			unset($condition['setting_clothes_size_boy']);
+		}
+		if(!isset($condition['setting_ablumcat']) || !in_array(6, $condition['setting_ablumcat'])){
+			unset($condition['setting_shoes_size_boy']);
+		}
+
 		foreach($condition as $field => $value){
 			if(!$value)continue;
 
@@ -186,7 +207,7 @@ class Ablum extends _Dal {
 
 		if(!$account || !$channel)return;
 
-		$display_ablums_max_id = $_GET['display_ablums_max_id'];
+		$display_ablums_min_id = $_GET['display_ablums_min_id'];
 
 		$readed_ablums = $this->redis('ablum')->getReaded($account, $channel);
 		rsort($readed_ablums);
@@ -194,7 +215,7 @@ class Ablum extends _Dal {
 			$i = 0;
 			$ret_ablums_ids = array();
 			foreach ($readed_ablums as $ablum_id) {
-				if($ablum_id < $display_ablums_max_id){
+				if($ablum_id < $display_ablums_min_id){
 					if($i>3)break;
 					$ret_ablums_ids[] = $ablum_id;
 					$i++;
