@@ -105,5 +105,23 @@ class Edm extends _Dal {
 		else
 			return $detail;
 	}
+
+	//标识已向用户发过的EDM
+	function markSentId($account, $channel, $edm_id){
+		if(!$account|| !$channel || !$edm_id)return;
+		return $this->redis('edm')->markSentId($account, $channel, $edm_id);
+	}
+
+	//获取已向用户发过的EDM
+	function getSentId($account, $channel){
+		if(!$account|| !$channel)return;
+		return $this->redis('edm')->getSentId($account, $channel);
+	}
+
+	//去除已向用户发过的EDM标识
+	function delSentId($account, $channel, $edm_id){
+		if(!$account|| !$channel || !$edm_id)return;
+		return $this->redis('edm')->delSentId($account, $channel, $edm_id);
+	}
 }
 ?>

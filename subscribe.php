@@ -44,10 +44,15 @@ class Subscribe extends _Dal {
 	}
 
 	//读取订阅设置
-	function getSetting($account, $channel='email'){
+	function getSetting($account, $channel='email', $detail=false){
 
 		if(!$account)return false;
-		$ret = $this->detail($account, $channel);
+		if($detail){
+			$ret = $detail;
+		}else{
+			$ret = $this->detail($account, $channel);
+		}
+
 		if(!$ret)return array();
 
 		//清掉和配置无关的字段
@@ -73,7 +78,7 @@ class Subscribe extends _Dal {
 
 		foreach ($arr_setting as $s) {
 			if($ret[$s]){
-				$ret[$s] = explode(',', $ret[$s]);
+				$ret[$s] = explode(',', trim($ret[$s], ','));
 			}else{
 				$ret[$s] = array();
 			}
@@ -430,7 +435,7 @@ class Subscribe extends _Dal {
 	function getWaitPushCandidateMembers($limit=1000, $page=1, $candition=array()){
 
 
-		$ret = $this->db('promotion.subscribe')->findAll(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1)), 'createtime'=>'<= '.date('Y-m-d 00:00:00'))+$candition, 'account,channel', 'id ASC', $limit, $page);
+		$ret = $this->db('promotion.subscribe')->findAll(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1)), 'createtime'=>'<= '.date('Y-m-d 00:00:00'))+$candition, '', 'id ASC', $limit, $page);
 		return clearTableName($ret);
 	}
 
