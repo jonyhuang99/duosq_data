@@ -15,6 +15,7 @@ class Lock extends _Redis {
 	const LOCK_SIGN = 'sign';
 	const LOCK_SUBSCRIBE_OPTION = 'subscribe_option';
 	const LOCK_SUBSCRIBE_PUSH = 'subscribe_push';
+	const LOCK_EMAIL_MONITOR = 'email_monitor';
 
 	/**
 	 * 获得一个业务锁
@@ -92,6 +93,9 @@ class Lock extends _Redis {
 				break;
 			case self::LOCK_SUBSCRIBE_PUSH:
 				$expire = DAY*2;
+				break;
+			case self::LOCK_EMAIL_MONITOR:
+				$expire = HOUR*6;
 				break;
 			default:
 				$expire = 10;

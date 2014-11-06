@@ -14,10 +14,10 @@ class Speed extends _Dal {
 		if(!$emails)return false;
 
 		$rule = array(
-			'qq.com'=>array('second'=>1,'minute'=>100,'hour'=>3000),
+			'qq.com'=>array('second'=>2,'minute'=>100,'hour'=>3000),
 			'163.com'=>array('second'=>2,'minute'=>100,'hour'=>3000),
 			'126.com'=>array('second'=>2,'minute'=>100,'hour'=>3000),
-			'gmail.com'=>array('second'=>2,'minute'=>100,'hour'=>5000),
+			'gmail.com'=>array('second'=>1,'minute'=>100,'hour'=>5000),
 			'hotmail.com'=>array('second'=>2,'minute'=>100,'hour'=>5000),
 			'live.com'=>array('second'=>2,'minute'=>100,'hour'=>5000),
 			'yahoo.com.cn'=>array('second'=>2,'minute'=>100,'hour'=>5000),
@@ -25,8 +25,8 @@ class Speed extends _Dal {
 			'sina.com'=>array('second'=>2,'minute'=>100,'hour'=>5000),
 			'sohu.com'=>array('second'=>2,'minute'=>100,'hour'=>5000),
 			'139.com'=>array('second'=>2,'minute'=>100,'hour'=>5000),
-			'yeah.net'=>array('second'=>2,'minute'=>100,'hour'=>5000),
-			'other'=>array('second'=>4,'minute'=>200,'hour'=>12000)
+			'yeah.net'=>array('second'=>1,'minute'=>100,'hour'=>5000),
+			'other'=>array('second'=>2,'minute'=>200,'hour'=>12000)
 		);
 
 		foreach($emails as $email){

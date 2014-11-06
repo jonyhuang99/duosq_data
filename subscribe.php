@@ -519,7 +519,7 @@ class Subscribe extends _Dal {
 
 		$this->db('promotion.subscribe_message');
 		$condition['status'] = array(\DB\SubscribeMessage::STATUS_WAIT, \DB\SubscribeMessage::STATUS_FAIL);
-		return $this->db('promotion.subscribe_message')->getList($condition);
+		return $this->db('promotion.subscribe_message')->getList($condition, 500);
 	}
 }
 ?>
