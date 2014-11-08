@@ -49,7 +49,7 @@ class Go extends _Dal {
 	function getDriver($sp){
 		if(!$sp)return;
 
-		if($sp == 'tmall'||$sp == 'ju')$sp = 'taobao';
+		if(taobaoSp($sp))$sp = 'taobao';
 
 		static $loaded = array();
 		if(isset($loaded[$sp]))return $loaded[$sp];

@@ -53,11 +53,12 @@ class Fanli extends _Api {
 
 		$key = 'api:fanli:goodsDetail:day:'.date('d').':'.md5($url);
 		$cache = D('cache')->get($key);
-		if($cache){
+		if($cache&&0){
 			//l("[succ][api][goodsDetail][from cache][{$url}]");
 			return D('cache')->ret($cache);
 		}
 		$api = 'http://www.budou.com/index.php?m=Ajax&a=checkurl&canginput=1&code=F913422A-3853-245F-9BFF-D27E30'.rand(100000,999999).'&r=0.901604669'.rand(1000,9999).'&url='.urlencode($url).'&callback=jQuery18309776429124176502_140204'.rand(100000, 999999);
+
 		I('curl');
 		$curl = new \CURL();
 		$ret = $curl->post($api, array());

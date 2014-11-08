@@ -718,7 +718,7 @@ class Promotion extends _Dal {
 
 		$key = 'promo:get_list:cond:'.md5(serialize($cat_condition)).':show:'.$show.':page:'.intval(@$_GET['page']);
 		$cache = D('cache')->get($key);
-		if($cache && $use_cache){
+		if($cache){
 			$pn->controller->set('page_count', D('cache')->ret(D('cache')->get($key.':page_count')));
 			return D('cache')->ret($cache);
 		}
