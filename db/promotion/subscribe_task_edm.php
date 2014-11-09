@@ -10,6 +10,9 @@ class SubscribeTaskEdm extends _Db {
 	//专辑状态定义
 	const STATUS_NORMAL = 1; //正常
 	const STATUS_INVALID = 0; //无效
+	const TARGET_SUBSCRIBE_NORMAL = 1; //针对subscribe按期接受的订户
+	const TARGET_SUBSCRIBE_GLOBAL = 2; //针对subscribe所有订户
+	const TARGET_USER_GLOBAL = 3; //针对非订阅所有订户
 
 	var $validate = array(
 							'subject'=>VALID_NOT_EMPTY,

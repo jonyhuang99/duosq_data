@@ -417,12 +417,6 @@ class Subscribe extends _Dal {
 		return count($lines);
 	}
 
-	//获取今日等待推送特卖的用户数
-	function getNeedPushMemberNum($candition=array()){
-
-		return D('subscribe')->db('promotion.subscribe')->findCount(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1)), 'createtime'=>'<= '.date('Y-m-d 00:00:00'))+$candition);
-	}
-
 	//获取待推送的候选特卖
 	function getCandidatePromo(){
 
@@ -431,11 +425,33 @@ class Subscribe extends _Dal {
 		return clearTableName($promo_candidator);
 	}
 
-	//获取待推送会员
+	//获取今日等待推送特卖的订户数
+	function getNeedPushMemberNum($candition=array()){
+
+		return D('subscribe')->db('promotion.subscribe')->findCount(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1)), 'createtime'=>'<= '.date('Y-m-d 00:00:00'))+$candition);
+	}
+
+	//获取待推送订户
 	function getWaitPushCandidateMembers($limit=1000, $page=1, $candition=array()){
 
-
 		$ret = $this->db('promotion.subscribe')->findAll(array('status'=>\DB\Subscribe::STATUS_NORMAL, 'pushtime'=>'<= '.date('Y-m-d', strtotime(date('Y-m-d'))-DAY*(C('comm', 'subscribe_push_space')-1)), 'createtime'=>'<= '.date('Y-m-d 00:00:00'))+$candition, '', 'id ASC', $limit, $page);
+		return clearTableName($ret);
+	}
+
+	//获取所有订户数
+	function getAllMemberNum($candition=array()){
+
+		D('subscribe')->db('promotion.subscribe');
+		if(!isset($candition['status']))$candition['status'] = \DB\Subscribe::STATUS_NORMAL;
+		return D('subscribe')->db('promotion.subscribe')->findCount($candition);
+	}
+
+	//获取所有订户
+	function getAllCandidateMembers($limit=1000, $page=1, $candition=array()){
+
+		D('subscribe')->db('promotion.subscribe');
+		if(!isset($candition['status']))$candition['status'] = \DB\Subscribe::STATUS_NORMAL;
+		$ret = $this->db('promotion.subscribe')->findAll($candition, '', 'id ASC', $limit, $page);
 		return clearTableName($ret);
 	}
 
@@ -451,13 +467,6 @@ class Subscribe extends _Dal {
 
 		$ret = $this->db('promotion.subscribe_cand_push')->findAll(array('account'=>$account, 'channel'=>$channel), '', 'hit_weight DESC, promo_weight DESC', $limit);
 		return clearTableName($ret);
-	}
-
-	//清除指定用户的待推送候选特卖
-	function deletePushCandidatePromoByAccount($account, $channel='email'){
-
-		if(!$account || !$channel)return;
-		$this->db('promotion.subscribe_cand_push')->query("DELETE FROM duosq_promotion.subscribe_cand_push WHERE channel='{$channel}' AND account='{$account}'");
 	}
 
 	//清除指定指定的待推送候选特卖

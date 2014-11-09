@@ -31,7 +31,7 @@ class Ablum extends _Dal {
 	 */
 	function getList($pn, $condition=array(), $show = 5, $dir='DESC') {
 
-		if(!$condition)$condition['status'] = 1;
+		if(!isset($condition['status']))$condition['status'] = 1;
 		$condition = arrayClean($condition);
 		$condition_build = array();
 

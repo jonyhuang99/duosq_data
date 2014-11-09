@@ -93,13 +93,6 @@ class Notify extends _Dal {
 		}
 	}
 
-	//获取特卖订阅知会任务
-	function getSubscribePushJob($sendtype){
-
-		if(!$sendtype)return;
-		return $this->redis('notify')->getJob(self::NOTIFYTYPE_SUBSCRIBE, $sendtype);
-	}
-
 	//增加知会任务
 	private function _addJob($o_id, $notifytype){
 

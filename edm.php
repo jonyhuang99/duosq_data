@@ -26,6 +26,8 @@ class Edm extends _Dal {
 	 */
 	function getList($pn, $condition=array(), $show = 5, $dir='DESC') {
 
+		$this->db('promotion.subscribe_task_edm');
+		if(!isset($condition['status']))$condition['status'] = \DB\SubscribeTaskEdm::STATUS_NORMAL;
 		$condition = arrayClean($condition);
 		$condition_build = array();
 
@@ -37,7 +39,7 @@ class Edm extends _Dal {
 
 			switch ($field) {
 				case 'id':
-					$condition_build[] = "id {$value}";
+					$condition_build[] = "{$field} {$value}";
 					break;
 				case 'title':
 					$condition_build[] = "{$field} like '%{$value}%'";
@@ -52,7 +54,11 @@ class Edm extends _Dal {
 					$condition_build[] = "{$field} like '%" . join(",%' or {$field} like '%", $value) . ",%' or {$field} = ''";
 					break;
 				default:
-					$condition_build[] = "{$field}='{$value}'";
+					if(is_array($value)){
+						$condition_build[] = "{$field} IN('".join("','", $value)."')";
+					}else{
+						$condition_build[] = "{$field}='{$value}'";
+					}
 					break;
 			}
 		}

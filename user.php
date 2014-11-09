@@ -33,6 +33,19 @@ class user extends _Dal {
 		}
 	}
 
+	//获取所有用户数
+	function getAllMemberNum($candition=array()){
+
+		return $this->db('user')->findCount($candition);
+	}
+
+	//获取所有用户
+	function getAllMembers($limit=1000, $page=1, $candition=array()){
+
+		$ret = $this->db('user')->findAll($candition, '', 'id ASC', $limit, $page);
+		return clearTableName($ret);
+	}
+
 	//搜索用户
 	function search($condition, $limit=10){
 
