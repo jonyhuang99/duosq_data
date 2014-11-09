@@ -26,7 +26,6 @@ class Edm extends _Dal {
 	 */
 	function getList($pn, $condition=array(), $show = 5, $dir='DESC') {
 
-		if(!$condition)$condition['status'] = 1;
 		$condition = arrayClean($condition);
 		$condition_build = array();
 
@@ -57,7 +56,8 @@ class Edm extends _Dal {
 					break;
 			}
 		}
-		$condition = '(' . join(") and (", $condition_build) . ')';
+		if($condition_build)
+			$condition = '(' . join(") and (", $condition_build) . ')';
 
 		if($pn){
 			//page = 0 返回总页数
