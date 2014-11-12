@@ -162,6 +162,7 @@ class Subscribe extends _Dal {
 		$sess_setting = join(',', array_keys($sess_setting));
 
 		$ret = $this->redis('subscribe')->set($sess_id, $option, $sess_setting);
+
 		$this->redis('lock')->unlock(\Redis\Lock::LOCK_SUBSCRIBE_OPTION, $sess_id);
 
 		//setting_subcat && setting_midcat 条件互斥

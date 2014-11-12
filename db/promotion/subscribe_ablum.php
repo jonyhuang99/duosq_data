@@ -14,6 +14,7 @@ class SubscribeAblum extends _Db {
 	var $validate = array(
 							//'setting_ablumcat'=>VALID_NOT_EMPTY,
 							'title'=>VALID_NOT_EMPTY,
+							'setting_brand'=>VALID_NOT_EMPTY,
 							'price'=>VALID_NOT_EMPTY,
 							'cover_1'=>VALID_NOT_EMPTY,
 							'cover_2'=>VALID_NOT_EMPTY,
@@ -81,7 +82,7 @@ class SubscribeAblum extends _Db {
 			$pass = false;
 		}
 
-		if(isset($data['expire_end']) && $data['expire_end'] && $data['expire_end']!='0000-00-00 00:00:00' && strtotime($data['expire_end']) < time()-MONTH){
+		if(isset($data['expire_end']) && $data['expire_end'] && ($data['expire_end']=='0000-00-00 00:00:00' || !$data['expire_end'])){
 			$this->validationErrors['expire'] = 1;
 			$pass = false;
 		}

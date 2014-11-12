@@ -37,5 +37,12 @@ class Ablum extends _Redis {
 		$key = 'readed:account:'.$account.':channel:'.$channel;
 		return $this->hget($key, $ablum_id);
 	}
+
+	//清除已读记录
+	function clearReaded($account, $channel){
+		if(!$account || !$channel)return;
+		$key = 'readed:account:'.$account.':channel:'.$channel;
+		return $this->del($key);
+	}
 }
 ?>

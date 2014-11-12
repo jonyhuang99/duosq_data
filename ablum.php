@@ -114,7 +114,7 @@ class Ablum extends _Dal {
 		if(!$id)return;
 		$key = 'ablum:detail:'.$id;
 		$cache = D('cache')->get($key);
-		if($cache){
+		if($cache && 0){
 			$detail = D('cache')->ret($cache);
 		}else{
 			$detail = $this->db('promotion.subscribe_ablum')->find(array('id'=>$id));
@@ -151,15 +151,19 @@ class Ablum extends _Dal {
 
 			$imgsize = $this->db('files')->field('imgsize', array('filepath'=>$detail['cover_1']));
 			if($imgsize){
-				list($width, $heigh) = explode('x', $imgsize);
-				if($width/$heigh <= 1.28){
-					//显示more模式
-					$detail['more'] = true;
-				}else{
-					$detail['more'] = false;
-				}
+				list($detail['cover_width'], $detail['cover_height']) = explode('x', $imgsize);
 			}
 
+			foreach($detail['setting_brand'] as $brand_id){
+				$brand_names[] = D('brand')->getName($brand_id, false);
+			}
+
+			if($detail['cover_width']/$detail['cover_height'] <= 1.28){
+				$detail['more'] = true;
+			}
+
+			$brand_names = join(',', $brand_names);
+			$detail['brand_names'] = $brand_names;
 			D('cache')->set($key, $detail, MINUTE*10, true);
 		}
 
@@ -184,10 +188,10 @@ class Ablum extends _Dal {
 		}
 
 		if($is_new){
-			$lists = $this->getList(null, $condition, 4); //查找更多
+			$lists = $this->getList(null, $condition, 3); //查找更多
 			shuffle($lists);
 		}else{
-			$lists = $this->getList(null, $condition, 6); //首次加载
+			$lists = $this->getList(null, $condition, 3); //首次加载
 		}
 
 		if($lists){
