@@ -129,6 +129,13 @@ class Alarm extends _Dal {
 		$this->_fireEmail('进程监控报警', array('进程不存在'=>join(',', $process)));
 	}
 
+	//监控9块9导入
+	function import51fanli9($category){
+
+		if(!$category)return;
+		$this->_fireEmail('导入返利网9块9', array('分类匹配不存在'=>$category));
+	}
+
 	//发出监控报警
 	private function _fireSms($entry_params, $params, $sms_tpl=''){
 
@@ -156,8 +163,7 @@ class Alarm extends _Dal {
 		}
 		$param['content'] = join(',', $content);
 		$param['time'] = date('H:i');
-		$ret =sendMail(C('comm', 'monitor_email'), $param, 'sys_alarm', $msg);
-
+		$ret = sendMail(C('comm', 'monitor_email'), $param, 'sys_alarm', $msg);
 	}
 }
 ?>

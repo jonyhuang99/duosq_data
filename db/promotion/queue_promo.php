@@ -14,7 +14,7 @@ class QueuePromo extends _Db {
 
 	//特卖类型定义
 	const TYPE_DISCOUNT = 1;
-	const TYPE_HOT = 2;
+	const TYPE_9 = 2;
 	const TYPE_HUODONG = 3;
 
 

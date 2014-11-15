@@ -99,7 +99,7 @@ class Lock extends _Redis {
 				$expire = HOUR*6;
 				break;
 			case self::LOCK_SUBSCRIBE_CANG:
-				$expire = 2;
+				$expire = 1;
 				break;
 			default:
 				$expire = 10;

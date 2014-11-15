@@ -144,6 +144,7 @@ class Taobao extends _Api {
 			if($promotion_price > 0){
 				$goods['p_price'] = $promotion_price;
 			}
+			$goods['p_price_avg']=$a['data']['items'][0]['ds_reserve_price'];
 			$goods['p_title']=$a['data']['items'][0]['ds_title'];
 			$goods['p_seller']=$a['data']['items'][0]['ds_nick'];
 			$goods['p_pic_url']=$a['data']['items'][0]['ds_img']['src'];
@@ -153,7 +154,7 @@ class Taobao extends _Api {
 				$goods['is_tmall'] = 1;
 			}
 			else{
-				$goods['has_fanli']=0;
+				$goods['has_fanli']=$a['data']['items'][0]['ds_taoke'];
 			}
 			$goods['item_click_url']=$a['data']['items'][0]['ds_item_click'];
 			$goods['shop_click_url']=$a['data']['items'][0]['ds_shop_click'];
