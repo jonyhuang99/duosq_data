@@ -18,6 +18,7 @@ class ReviewPromo extends _Db {
 	const TYPE_PRICE_UP = 3;
 	const TYPE_PRICE_DOWN = 5;
 	const TYPE_OFF_SALE = 4;
+	const TYPE_UPDATE_PRICE = 6;
 
 	function add($sp, $goods_id, $type){
 

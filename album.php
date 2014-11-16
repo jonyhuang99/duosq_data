@@ -2,19 +2,19 @@
 //DAL:专辑模块
 namespace DAL;
 
-class Ablum extends _Dal {
+class Album extends _Dal {
 
 	//增加专辑
 	function add($data){
-		return $this->db('promotion.subscribe_ablum')->add($data);
+		return $this->db('promotion.subscribe_album')->add($data);
 	}
 
 	//更新专辑
 	function update($id, $data){
 
-		$ret = $this->db('promotion.subscribe_ablum')->update($id, $data);
+		$ret = $this->db('promotion.subscribe_album')->update($id, $data);
 		if($ret){
-			$key = 'ablum:detail:'.$id;
+			$key = 'album:detail:'.$id;
 			D('cache')->clean($key);
 		}
 
@@ -23,7 +23,7 @@ class Ablum extends _Dal {
 
 	/**
 	 * 获取专辑列表
-	 * @param  array   $condition 搜索条件(status, title, sp, ablumcat-arr, brand-arr, tag-arr)
+	 * @param  array   $condition 搜索条件(status, title, sp, albumcat-arr, brand-arr, tag-arr)
 	 * @param  object  $pn        分页组件对象
 	 * @param  integer $show      每页显示几条
 	 * @param  integer $maxPages  最大页数
@@ -35,32 +35,32 @@ class Ablum extends _Dal {
 		$condition = arrayClean($condition);
 		$condition_build = array();
 
-		if(isset($condition['setting_ablumcat']) && $condition['setting_ablumcat'] && count($condition['setting_ablumcat']) == count(C('options', 'subscribe_setting_ablumcat'))){
-			unset($condition['setting_ablumcat']);
+		if(isset($condition['setting_albumcat']) && $condition['setting_albumcat'] && count($condition['setting_albumcat']) == count(C('options', 'subscribe_setting_albumcat'))){
+			unset($condition['setting_albumcat']);
 		}
 
-		//ablumcat关联个性设置
+		//albumcat关联个性设置
 		//没有1 置空 setting_clothes_style_girl & setting_clothes_size_girl
 		//没有2 置空 setting_shoes_size_girl
 		//没有5 置空 setting_clothes_style_boy & setting_clothes_size_boy
 		//没有6 置空 setting_shoes_size_boy
-		if(!isset($condition['setting_ablumcat']) || !in_array(1, $condition['setting_ablumcat'])){
+		if(!isset($condition['setting_albumcat']) || !in_array(1, $condition['setting_albumcat'])){
 			unset($condition['setting_clothes_style_girl']);
 			unset($condition['setting_clothes_size_girl']);
 		}
-		if(!isset($condition['setting_ablumcat']) || !in_array(2, $condition['setting_ablumcat'])){
+		if(!isset($condition['setting_albumcat']) || !in_array(2, $condition['setting_albumcat'])){
 			unset($condition['setting_shoes_size_girl']);
 		}
-		if(!isset($condition['setting_ablumcat']) || !in_array(5, $condition['setting_ablumcat'])){
+		if(!isset($condition['setting_albumcat']) || !in_array(5, $condition['setting_albumcat'])){
 			unset($condition['setting_clothes_style_boy']);
 			unset($condition['setting_clothes_size_boy']);
 		}
-		if(!isset($condition['setting_ablumcat']) || !in_array(6, $condition['setting_ablumcat'])){
+		if(!isset($condition['setting_albumcat']) || !in_array(6, $condition['setting_albumcat'])){
 			unset($condition['setting_shoes_size_boy']);
 		}
 
 		foreach($condition as $field => $value){
-			if(!$value)continue;
+			if(!$value && @$value!==0)continue;
 
 			switch ($field) {
 				case 'id':
@@ -69,7 +69,7 @@ class Ablum extends _Dal {
 				case 'title':
 					$condition_build[] = "{$field} like '%{$value}%'";
 					break;
-				case 'setting_ablumcat':
+				case 'setting_albumcat':
 				case 'setting_clothes_style_girl':
 				case 'setting_clothes_style_boy':
 				case 'setting_clothes_size_girl':
@@ -79,10 +79,15 @@ class Ablum extends _Dal {
 					$condition_build[] = "{$field} like '%" . join(",%' or {$field} like '%", $value) . ",%' or {$field} = ''";
 					break;
 				default:
-					$condition_build[] = "{$field}='{$value}'";
+					if(is_array($value)){
+						$condition_build[] = "{$field} IN ('".join("','", $value)."')";
+					}else{
+						$condition_build[] = "{$field}='{$value}'";
+					}
 					break;
 			}
 		}
+
 		$condition = '(' . join(") and (", $condition_build) . ')';
 
 		if($pn){
@@ -92,11 +97,11 @@ class Ablum extends _Dal {
 			$pn->direction = $dir;
 			$pn->maxPages = 20;
 
-			list($order, $limit, $page) = $pn->init($condition, array('modelClass' => $this->db('promotion.subscribe_ablum')));
+			list($order, $limit, $page) = $pn->init($condition, array('modelClass' => $this->db('promotion.subscribe_album')));
 			if(@$_GET['page']>$pn->paging['pageCount'])return array();
-			$result = $this->db('promotion.subscribe_ablum')->findAll($condition, 'id', $order, $limit, $page);
+			$result = $this->db('promotion.subscribe_album')->findAll($condition, 'id', $order, $limit, $page);
 		}else{
-			$result = $this->db('promotion.subscribe_ablum')->findAll($condition, 'id', 'id DESC', $show);
+			$result = $this->db('promotion.subscribe_album')->findAll($condition, 'id', 'id DESC', $show);
 		}
 
 		$result = clearTableName($result);
@@ -112,15 +117,15 @@ class Ablum extends _Dal {
 	function detail($id, $field=''){
 
 		if(!$id)return;
-		$key = 'ablum:detail:'.$id;
+		$key = 'album:detail:'.$id;
 		$cache = D('cache')->get($key);
 		if($cache && 0){
 			$detail = D('cache')->ret($cache);
 		}else{
-			$detail = $this->db('promotion.subscribe_ablum')->find(array('id'=>$id));
+			$detail = $this->db('promotion.subscribe_album')->find(array('id'=>$id));
 			$detail = clearTableName($detail);
 			if(!$detail)return;
-			$serial_fields = array('setting_ablumcat', 'setting_brand', 'setting_clothes_style_girl', 'setting_clothes_style_boy', 'setting_clothes_size_girl', 'setting_shoes_size_girl', 'setting_clothes_size_boy', 'setting_shoes_size_boy');
+			$serial_fields = array('setting_albumcat', 'setting_brand', 'setting_clothes_style_girl', 'setting_clothes_style_boy', 'setting_clothes_size_girl', 'setting_shoes_size_girl', 'setting_clothes_size_boy', 'setting_shoes_size_boy');
 			foreach($serial_fields as $f){
 				if($detail[$f])
 					$detail[$f] = arrayClean(explode(',', $detail[$f]));
@@ -154,6 +159,7 @@ class Ablum extends _Dal {
 				list($detail['cover_width'], $detail['cover_height']) = explode('x', $imgsize);
 			}
 
+			$brand_names = array();
 			foreach($detail['setting_brand'] as $brand_id){
 				$brand_names[] = D('brand')->getName($brand_id, false);
 			}
@@ -162,8 +168,13 @@ class Ablum extends _Dal {
 				$detail['more'] = true;
 			}
 
-			$brand_names = join(',', $brand_names);
-			$detail['brand_names'] = $brand_names;
+			if($brand_names){
+				$brand_names = join(',', $brand_names);
+				$detail['brand_names'] = $brand_names;
+			}else{
+				$detail['brand_names'] = '';
+			}
+
 			D('cache')->set($key, $detail, MINUTE*10, true);
 		}
 
@@ -173,73 +184,86 @@ class Ablum extends _Dal {
 			return $detail;
 	}
 
+	//获取专题下的特卖商品
+	function getGoods($album_id){
+
+		if(!$album_id)return;
+		$ret = $this->db('promotion.queue_promo')->findAll(array('album_id'=>$album_id));
+		$list = array();
+		if($ret){
+			$ret = clearTableName($ret);
+			$list = D('promotion')->renderPromoDetail($ret);
+		}
+		return $list;
+	}
+
 	//获取最新专辑(APP一打开)，is_new区分是否用户下拉获取未读过的专辑
-	function getNewAblum($account, $channel, $is_new=false){
+	function getNewAlbum($account, $channel, $is_new=false){
 
 		if(!$account || !$channel)return;
 
 		//读取账号订阅setting
-		$condition = $this->getAblumCondition($account, $channel);
+		$condition = $this->getAlbumCondition($account, $channel);
 
 		if($is_new){
-			$readed_ids = $this->redis('ablum')->getReaded($account, $channel);
+			$readed_ids = $this->redis('album')->getReaded($account, $channel);
 			if($readed_ids)
 				$condition['id'] = "not in (".join(',', $readed_ids).")";
 		}
 
 		if($is_new){
-			$lists = $this->getList(null, $condition, 3); //查找更多
+			$lists = $this->getList(null, $condition, 5); //查找更多
 			shuffle($lists);
 		}else{
-			$lists = $this->getList(null, $condition, 3); //首次加载
+			$lists = $this->getList(null, $condition, 5); //首次加载
 		}
 
 		if($lists){
-			$ablum_ids = array();
+			$album_ids = array();
 			foreach($lists as $list){
-				$ablum_ids[] = $list['id'];
+				$album_ids[] = $list['id'];
 			}
 
-			$this->redis('ablum')->markReaded($account, $channel, $ablum_ids);
+			$this->redis('album')->markReaded($account, $channel, $album_ids);
 		}
 
 		return $lists;
 	}
 
 	//获取向下专辑(APP下边界触发)
-	function getOldAblum($account, $channel){
+	function getOldAlbum($account, $channel){
 
 		if(!$account || !$channel)return;
 
-		$display_ablums_min_id = $_GET['display_ablums_min_id'];
+		$display_albums_min_id = $_GET['display_albums_min_id'];
 
-		$readed_ablums = $this->redis('ablum')->getReaded($account, $channel);
-		rsort($readed_ablums);
-		if($readed_ablums){
+		$readed_albums = $this->redis('album')->getReaded($account, $channel);
+		rsort($readed_albums);
+		if($readed_albums){
 			$i = 0;
-			$ret_ablums_ids = array();
-			foreach ($readed_ablums as $ablum_id) {
-				if($ablum_id < $display_ablums_min_id){
+			$ret_albums_ids = array();
+			foreach ($readed_albums as $album_id) {
+				if($album_id < $display_albums_min_id){
 					if($i>3)break;
-					$ret_ablums_ids[] = $ablum_id;
+					$ret_albums_ids[] = $album_id;
 					$i++;
 				}
 			}
 		}
 
-		if($ret_ablums_ids){
+		if($ret_albums_ids){
 			$ret = array();
-			foreach($ret_ablums_ids as $ablum_id){
-				$ret[] = $this->detail($ablum_id);
+			foreach($ret_albums_ids as $album_id){
+				$ret[] = $this->detail($album_id);
 			}
 			return $ret;
 		}else{
-			return $this->getNewAblum($account, $channel, true);
+			return $this->getNewAlbum($account, $channel, true);
 		}
 	}
 
 	//根据订阅设置获取检索条件
-	function getAblumCondition($account, $channel){
+	function getAlbumCondition($account, $channel){
 
 		if(!$account || !$channel)return;
 
@@ -248,7 +272,7 @@ class Ablum extends _Dal {
 
 		$condition = array();
 		$condition['status'] = 1;
-		$condition['setting_ablumcat'] = $setting['setting_ablumcat'];
+		$condition['setting_albumcat'] = $setting['setting_albumcat'];
 		$condition['setting_clothes_style_girl'] = $setting['setting_clothes_style_girl'];
 		$condition['setting_clothes_style_boy'] = $setting['setting_clothes_style_boy'];
 		$condition['setting_clothes_size_girl'] = $setting['setting_clothes_size_girl'];

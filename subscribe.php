@@ -74,7 +74,7 @@ class Subscribe extends _Dal {
 			$ret['setting_brand'] = array();
 		}
 
-		$arr_setting = array('setting_ablumcat', 'setting_subcat', 'setting_midcat', 'setting_clothes_color', 'setting_clothes_style_girl', 'setting_clothes_style_boy', 'setting_clothes_size_girl', 'setting_clothes_size_boy', 'setting_shoes_size_girl', 'setting_shoes_size_boy');
+		$arr_setting = array('setting_albumcat', 'setting_subcat', 'setting_midcat', 'setting_clothes_color', 'setting_clothes_style_girl', 'setting_clothes_style_boy', 'setting_clothes_size_girl', 'setting_clothes_size_boy', 'setting_shoes_size_girl', 'setting_shoes_size_boy');
 
 		foreach ($arr_setting as $s) {
 			if($ret[$s]){
@@ -92,7 +92,7 @@ class Subscribe extends _Dal {
 
 		if(!$this->sessCheck($sess_id))return false;
 
-		$arr_setting = array('setting_brand', 'setting_ablumcat', 'setting_subcat', 'setting_midcat', 'setting_clothes_color', 'setting_clothes_style_girl', 'setting_clothes_style_boy', 'setting_clothes_size_girl', 'setting_clothes_size_boy', 'setting_shoes_size_girl', 'setting_shoes_size_boy');
+		$arr_setting = array('setting_brand', 'setting_albumcat', 'setting_subcat', 'setting_midcat', 'setting_clothes_color', 'setting_clothes_style_girl', 'setting_clothes_style_boy', 'setting_clothes_size_girl', 'setting_clothes_size_boy', 'setting_shoes_size_girl', 'setting_shoes_size_boy');
 
 		foreach ($arr_setting as $s) {
 			if(isset($setting[$s]) && $setting[$s]){
@@ -126,9 +126,9 @@ class Subscribe extends _Dal {
 			if(!$value)return false;
 		}
 
-		if($option == 'setting_ablumcat'){
-			$ablumcat_option = C('options', 'subscribe_setting_ablumcat');
-			if(!$ablumcat_option[$value])return false;
+		if($option == 'setting_albumcat'){
+			$albumcat_option = C('options', 'subscribe_setting_albumcat');
+			if(!$albumcat_option[$value])return false;
 		}
 
 		if($option == 'setting_subcat'){
@@ -225,9 +225,9 @@ class Subscribe extends _Dal {
 
 		if(!$account || !$channel || !$option)return false;
 
-		if($option == 'setting_ablumcat'){
-			$ablumcat_option = C('options', 'subscribe_setting_ablumcat');
-			if(!isset($ablumcat_option[$value]))return false;
+		if($option == 'setting_albumcat'){
+			$albumcat_option = C('options', 'subscribe_setting_albumcat');
+			if(!isset($albumcat_option[$value]))return false;
 		}
 
 		if($option == 'setting_clothes_size_girl' || $option == 'setting_clothes_size_boy' || $option == 'setting_shoes_size_girl' || $option == 'setting_shoes_size_boy'){
@@ -273,9 +273,9 @@ class Subscribe extends _Dal {
 	//自动创建新用户设置
 	function settingAutoCreated($device_id, $platform){
 
-		$all_ablumcat = array_keys(C('options', 'subscribe_setting_ablumcat'));
-		foreach($all_ablumcat as $value){
-			$this->settingUpdate($device_id, $platform, 'setting_ablumcat', $value);
+		$all_albumcat = array_keys(C('options', 'subscribe_setting_albumcat'));
+		foreach($all_albumcat as $value){
+			$this->settingUpdate($device_id, $platform, 'setting_albumcat', $value);
 		}
 		return true;
 	}

@@ -598,18 +598,17 @@ class Promotion extends _Dal {
 	}
 
 	//标记该商品是活动商品(新增返回true)
-	function markPromoHuodong($sp, $goods_id, $price_avg, $price_now, $hd_content, $hd_begin='', $hd_expire=''){
+	function markPromoHuodong($sp, $goods_id, $price_avg, $price_now, $album_id, $hd_begin='', $hd_expire=''){
 
-		if(!$sp || !$goods_id || !$price_avg || !$price_now)return;
+		if(!$sp || !$goods_id || !$price_avg || !$price_now || !$album_id)return;
 		if(!$this->promoDetail($sp, $goods_id)){
 
 			$status = \DB\QueuePromo::STATUS_NORMAL;
 			$detail = $this->goodsDetail($sp, $goods_id);
-			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'hd_content'=>$hd_content, 'hd_begin'=>$hd_begin, 'hd_expire'=>$hd_begin, 'type'=>\DB\QueuePromo::TYPE_HUODONG));
+			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'album_id'=>$album_id, 'hd_begin'=>$hd_begin, 'hd_expire'=>$hd_begin, 'type'=>\DB\QueuePromo::TYPE_HUODONG));
 			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
 			$this->matchGoodsCat($sp, $goods_id);
 
-			D('brand')->matchAndUpdateBrand($sp, $goods_id);
 			//加入待审核列表
 			$this->db('promotion.review')->add(\DB\Review::TYPE_PROMO, array('sp'=>$sp, 'goods_id'=>$goods_id));
 			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
@@ -836,6 +835,7 @@ class Promotion extends _Dal {
 			$tmp['name'] = $goods_detail['name'];
 			$tmp['pic_url'] = $goods_detail['pic_url'];
 			$tmp['cat'] = $goods_detail['cat'];
+			$tmp['saled'] = $goods_detail['saled'];
 			$tmp['url_tpl'] = $goods_detail['url_tpl'];
 			$tmp['url_id'] = $goods_detail['url_id'];
 			$new_ret[] = $tmp;

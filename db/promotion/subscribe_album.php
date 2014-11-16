@@ -2,22 +2,23 @@
 //专辑数据
 namespace DB;
 
-class SubscribeAblum extends _Db {
+class SubscribeAlbum extends _Db {
 
-	var $name = 'SubscribeAblum';
+	var $name = 'SubscribeAlbum';
 	var $useDbConfig = 'promotion';
 
 	//专辑状态定义
 	const STATUS_NORMAL = 1; //正常
 	const STATUS_INVALID = 0; //无效
+	const STATUS_WAIT_REVIEW = 2; //待审
 
 	var $validate = array(
-							//'setting_ablumcat'=>VALID_NOT_EMPTY,
+							//'setting_albumcat'=>VALID_NOT_EMPTY,
+							'url'=>VALID_NOT_EMPTY,
 							'title'=>VALID_NOT_EMPTY,
-							'setting_brand'=>VALID_NOT_EMPTY,
+							//'setting_brand'=>VALID_NOT_EMPTY,
 							'price'=>VALID_NOT_EMPTY,
 							'cover_1'=>VALID_NOT_EMPTY,
-							'cover_2'=>VALID_NOT_EMPTY,
 						);
 
 	//新增专辑，返回专辑ID
@@ -54,17 +55,6 @@ class SubscribeAblum extends _Db {
 		if(!isset($data['url'])){
 			$url_pass = true;
 		}else{
-			$url_pass = false;
-			foreach(C('options', 'ablum_sp') as $sp=>$name){
-				if(stripos($data['url'], $sp.'.')!==false){
-					$url_pass = true;
-				}
-			}
-
-			if(!$url_pass){
-				$this->validationErrors['url'] = 1;
-				$pass = false;
-			}
 
 			if(stripos($data['url'], 'tmall') && (!$data['url_sclick'] || !stripos($data['url_sclick'], 'click'))){
 				//$this->validationErrors['url_sclick'] = 1;
@@ -93,7 +83,7 @@ class SubscribeAblum extends _Db {
 	//为支持数组字段增加逗号结尾
 	function fixSearch(&$data){
 		foreach($data as $field => &$value){
-			if(in_array($field, array('setting_ablumcat','setting_midcat','setting_brand','setting_clothes_style_girl','setting_clothes_style_boy','setting_clothes_size_girl','setting_clothes_size_boy','setting_shoes_size_girl','setting_shoes_size_boy')) && $value){
+			if(in_array($field, array('setting_albumcat','setting_midcat','setting_brand','setting_clothes_style_girl','setting_clothes_style_boy','setting_clothes_size_girl','setting_clothes_size_boy','setting_shoes_size_girl','setting_shoes_size_boy')) && $value){
 				$value = $value . ',';
 			}
 		}

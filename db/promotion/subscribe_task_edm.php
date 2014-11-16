@@ -52,7 +52,7 @@ class SubscribeTaskEdm extends _Db {
 	//为支持数组字段增加逗号结尾
 	function fixSearch(&$data){
 		foreach($data as $field => &$value){
-			if(in_array($field, array('setting_ablumcat','setting_midcat','setting_brand','setting_clothes_style_girl','setting_clothes_style_boy','setting_clothes_size_girl','setting_clothes_size_boy','setting_shoes_size_girl','setting_shoes_size_boy')) && $value){
+			if(in_array($field, array('setting_albumcat','setting_midcat','setting_brand','setting_clothes_style_girl','setting_clothes_style_boy','setting_clothes_size_girl','setting_clothes_size_boy','setting_shoes_size_girl','setting_shoes_size_boy')) && $value){
 				$value = $value . ',';
 			}
 		}

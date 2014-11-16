@@ -2,18 +2,18 @@
 //知会任务数据存储底层
 namespace REDIS;
 
-class Ablum extends _Redis {
+class Album extends _Redis {
 
-	var $namespace = 'ablum';
+	var $namespace = 'album';
 
 	//标记该专辑本次session已读
-	function markReaded($account, $channel, $ablum_ids){
+	function markReaded($account, $channel, $album_ids){
 
-		if(!$account || !$channel || !$ablum_ids)return;
+		if(!$account || !$channel || !$album_ids)return;
 		$key = 'readed:account:'.$account.':channel:'.$channel;
 
-		foreach($ablum_ids as $ablum_id){
-			$this->hset($key, $ablum_id, 1);
+		foreach($album_ids as $album_id){
+			$this->hset($key, $album_id, 1);
 		}
 
 		$this->expire($key, DAY*3);
@@ -31,11 +31,11 @@ class Ablum extends _Redis {
 	}
 
 	//确认专辑是否本次session已读
-	function checkReaded($account, $channel, $ablum_id){
+	function checkReaded($account, $channel, $album_id){
 
-		if(!$account || !$channel || !$ablum_id)return;
+		if(!$account || !$channel || !$album_id)return;
 		$key = 'readed:account:'.$account.':channel:'.$channel;
-		return $this->hget($key, $ablum_id);
+		return $this->hget($key, $album_id);
 	}
 
 	//清除已读记录

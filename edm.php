@@ -31,11 +31,11 @@ class Edm extends _Dal {
 		$condition = arrayClean($condition);
 		$condition_build = array();
 
-		if(isset($condition['setting_ablumcat']) && $condition['setting_ablumcat'] && count($condition['setting_ablumcat']) == count(C('options', 'subscribe_setting_ablumcat'))){
-			unset($condition['setting_ablumcat']);
+		if(isset($condition['setting_albumcat']) && $condition['setting_albumcat'] && count($condition['setting_albumcat']) == count(C('options', 'subscribe_setting_albumcat'))){
+			unset($condition['setting_albumcat']);
 		}
 		foreach($condition as $field => $value){
-			if(!$value)continue;
+			if(!$value && @$value!==0)continue;
 
 			switch ($field) {
 				case 'id':
@@ -44,7 +44,7 @@ class Edm extends _Dal {
 				case 'title':
 					$condition_build[] = "{$field} like '%{$value}%'";
 					break;
-				case 'setting_ablumcat':
+				case 'setting_albumcat':
 				case 'setting_clothes_style_girl':
 				case 'setting_clothes_style_boy':
 				case 'setting_clothes_size_girl':
@@ -95,7 +95,7 @@ class Edm extends _Dal {
 		$detail = $this->db('promotion.subscribe_task_edm')->find(array('id'=>$id));
 		$detail = clearTableName($detail);
 
-		$serial_fields = array('setting_ablumcat', 'setting_clothes_style_girl', 'setting_clothes_style_boy', 'setting_clothes_size_girl', 'setting_shoes_size_girl', 'setting_clothes_size_boy', 'setting_shoes_size_boy');
+		$serial_fields = array('setting_albumcat', 'setting_clothes_style_girl', 'setting_clothes_style_boy', 'setting_clothes_size_girl', 'setting_shoes_size_girl', 'setting_clothes_size_boy', 'setting_shoes_size_boy');
 
 		foreach($serial_fields as $f){
 			if($detail[$f])

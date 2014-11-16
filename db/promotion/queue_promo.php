@@ -17,7 +17,6 @@ class QueuePromo extends _Db {
 	const TYPE_9 = 2;
 	const TYPE_HUODONG = 3;
 
-
 	//新增促销信息分类数据
 	function add($data){
 		if(!$data['sp'] || !$data['goods_id'])return;
