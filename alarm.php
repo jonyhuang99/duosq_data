@@ -136,6 +136,13 @@ class Alarm extends _Dal {
 		$this->_fireEmail('导入返利网9块9', array('分类匹配不存在'=>$category));
 	}
 
+	//监控今日头条导入
+	function importJinritoutiao($err_msg){
+
+		if(!$err_msg)return;
+		$this->_fireEmail('导入今日头条', array('发送错误'=>$err_msg));
+	}
+
 	//发出监控报警
 	private function _fireSms($entry_params, $params, $sms_tpl=''){
 

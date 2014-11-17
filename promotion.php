@@ -498,6 +498,7 @@ class Promotion extends _Dal {
 
 			$data = array_merge($data, $fix_field);
 			$goods_id = $this->db('promotion.goods')->add($data['sp'], arrayClean($data));
+
 			if($goods_id){
 				$this->redis('promotion')->goodsCounter($data['sp']);
 			}
@@ -795,7 +796,7 @@ class Promotion extends _Dal {
 
 		$result = $this->renderPromoDetail($result);
 		if($result)$result = array_slice($result, 0, $show+3);
-		D('cache')->set($key, $result, MINUTE*2, true);
+		D('cache')->set($key, $result, MINUTE*10);
 
 		return $result;
 	}
