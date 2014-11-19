@@ -439,7 +439,7 @@ class Promotion extends _Dal {
 				}
 			}
 
-			$this->db('promotion.queue_promo2cat')->query("DELETE FROM queue_promo2cat WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
+			$this->deletePromo2cat($sp, $goods_id);
 
 			foreach($subcats as $subcat){
 				$this->db('promotion.queue_promo2cat')->add(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2cat($subcat),'subcat'=>$subcat,'type'=>$promo['type'],'createtime'=>$promo['createtime']));
@@ -449,6 +449,13 @@ class Promotion extends _Dal {
 		}
 
 		return $ret;
+	}
+
+	//删除分类索引
+	function deletePromo2cat($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		return $this->db('promotion.queue_promo2cat')->query("DELETE FROM queue_promo2cat WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
 	}
 
 	//清空商品分类
