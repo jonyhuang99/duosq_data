@@ -8,8 +8,8 @@ class Queue extends _Redis {
 	protected $dsn_type = 'database';
 
 	static $QUEUE_DATA = array();
-
 	const KEY_BALANCE = 'fund'; //资产变更队列
+	const KEY_GOODS_DEEP_INFO_FETCHED = 'goods_deep_info_fetched'; //商品详情入库
 	const KEY_APP_NOTIFY_NUM = 'app_notify_num'; //应用消息数队列
 
 	/**

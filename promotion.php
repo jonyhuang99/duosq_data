@@ -936,5 +936,58 @@ class Promotion extends _Dal {
 
 		return $weight;
 	}
+
+	//从接口更新商品长名称、评论、简介
+	function updateGoodsDeepInfo($sp, $goods_id, $num_iid){
+
+		if(!$sp || !$goods_id || !$num_iid)return;
+		//加锁，每天同个商品更新1次
+		if(!D()->redis('lock')->getlock(\Redis\Lock::LOCK_GET_TAOBAO_ITEM_DEEP_INFO, $num_iid))return;
+
+		if(taobaoSp($sp)){
+			$info = $this->api('taobao')->getItemAllDetail($num_iid);
+			if($info){
+				$new = array('name_long'=>$info['p_title'], 'shop_id'=>$info['shop_id'], 'intro'=>$info['intro'], 'comment'=>$info['comment']);
+				$this->updateGoods($sp, $goods_id, $new);
+				if($info['intro'])$this->sendGoodsDeepInfoFetchedMsg($sp, $goods_id);
+				return $new;
+			}
+		}
+	}
+
+	/**
+	 * 发送淘宝商品详情入库消息
+	 * @param  int    $sp    商城号
+	 * @param  [type] $goods_id    商品编号
+	 * @return bool               是否发送成功
+	 */
+	function sendGoodsDeepInfoFetchedMsg($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		return D()->redis('queue')->add(\REDIS\Queue::KEY_GOODS_DEEP_INFO_FETCHED, $sp.':'.$goods_id);
+	}
+
+	/**
+	 * 获取淘宝商品详情入库消息
+	 * @return string              资产流水ID
+	 */
+	function getGoodsDeepInfoFetchedMsg(){
+
+		$msg = D()->redis('queue')->bget(\REDIS\Queue::KEY_GOODS_DEEP_INFO_FETCHED);
+		if(!$msg)return;
+		list($sp, $goods_id) = explode(':', $msg);
+		return array('sp'=>$sp, 'goods_id'=>$goods_id);
+	}
+
+	/**
+	 * 完成淘宝商品详情入库消息触发的任务
+	 * @param  int    $sp    商城号
+	 * @param  [type] $goods_id    商品编号
+	 */
+	function doneGoodsDeepInfoFetchedMsg($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		return D()->redis('queue')->done(\REDIS\Queue::KEY_GOODS_DEEP_INFO_FETCHED, $sp.':'.$goods_id);
+	}
 }
 ?>

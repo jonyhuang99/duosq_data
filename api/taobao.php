@@ -208,5 +208,46 @@ class Taobao extends _Api {
 		}
 		return;
 	}
+
+	//获取商品全部详情
+	function getItemAllDetail($num_iid=''){
+
+		if(!$num_iid)return;
+		$server_detail = $this->getItemDetailByServer($num_iid);
+		if(!$server_detail)return;
+
+		$server_detail['intro']='';
+		$server_detail['comment']='';
+
+		I('curl');
+		$curl = new \CURL;
+		//读取商品详情
+		$goods_detail = $curl->get("http://hws.m.taobao.com/cache/mtop.wdetail.getItemDescx/4.1/?data=%7B%22item_num_id%22%3A%22{$num_iid}%22%7D", "http://h5.m.taobao.com/awp/core/detail.htm?id={$num_iid}");
+		if($goods_detail){
+			$goods_detail = json_decode($goods_detail, true);
+			if($goods_detail['data']['images']){
+				$server_detail['intro'] = serialize(array('images'=>$goods_detail['data']['images']));
+			}
+		}
+
+		//读取商品评论
+		$goods_comment_detail = $curl->get("http://rate.taobao.com/feedRateList.htm?callback=jsonp_reviews_list&userNumId={$server_detail['shop_id']}&auctionNumId={$num_iid}&siteID=7&currentPageNum=1&rateType=1&orderType=sort_weight&showContent=1&attribute=", "http://h5.m.taobao.com/awp/core/detail.htm?id={$num_iid}");
+
+		if($goods_comment_detail){
+			$goods_comment_detail = \g2u($goods_comment_detail, false);
+			$goods_comment_detail = r('jsonp_reviews_list(', '', $goods_comment_detail);
+			$goods_comment_detail = trim(trim($goods_comment_detail), ')');
+			$goods_comment_detail = json_decode($goods_comment_detail, true);
+			if($goods_comment_detail['comments']){
+				foreach ($goods_comment_detail['comments'] as $comment) {
+					$date = r(array('年','月','日'), '-', $comment['date']);
+					$tmp[strtotime($date).rand(10,99)] = array('date'=>$date, 'content'=>$comment['content'], 'photos'=>$comment['photos'], 'user'=>$comment['user']['nick']);
+				}
+				krsort($tmp);
+				if($tmp)$server_detail['comment'] = serialize($tmp);
+			}
+		}
+		return $server_detail;
+	}
 }
 ?>

@@ -51,6 +51,18 @@ class Notify extends _Dal {
 		}
 	}
 
+	//添加特卖订阅知会任务
+	function addSubscribePushJob($account, $channel, $msg_id){
+
+		if(!$account || !$channel || !$msg_id)return;
+		$ret = $this->redis('notify')->addJob(self::NOTIFYTYPE_SUBSCRIBE, $channel, $account, $msg_id);
+		if($ret){
+			return $channel;
+		}else{
+			return false;
+		}
+	}
+
 	//获取所有订单到账号知会任务
 	function getOrderBackJobs($sendtype){
 
@@ -77,20 +89,6 @@ class Notify extends _Dal {
 
 		if(!$sendtype)return;
 		return $this->redis('notify')->getJob(self::NOTIFYTYPE_QUAN_REWARD_CREATED, $sendtype);
-	}
-
-	//添加特卖订阅知会任务
-	function addSubscribePushJob($account, $channel, $msg_id){
-
-		if(!$account || !$channel || !$msg_id)return;
-
-		$ret = $this->redis('notify')->addJob(self::NOTIFYTYPE_SUBSCRIBE, $channel, $account, $msg_id);
-
-		if($ret){
-			return $channel;
-		}else{
-			return false;
-		}
 	}
 
 	//增加知会任务

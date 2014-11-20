@@ -17,6 +17,7 @@ class Lock extends _Redis {
 	const LOCK_SUBSCRIBE_PUSH = 'subscribe_push';
 	const LOCK_EMAIL_MONITOR = 'email_monitor';
 	const LOCK_SUBSCRIBE_CANG = 'subscribe_cang';
+	const LOCK_GET_TAOBAO_ITEM_DEEP_INFO = 'api_taobao_deep_info';
 
 	/**
 	 * 获得一个业务锁
@@ -100,6 +101,9 @@ class Lock extends _Redis {
 				break;
 			case self::LOCK_SUBSCRIBE_CANG:
 				$expire = 1;
+				break;
+			case self::LOCK_GET_TAOBAO_ITEM_DEEP_INFO:
+				$expire = DAY;
 				break;
 			default:
 				$expire = 10;
