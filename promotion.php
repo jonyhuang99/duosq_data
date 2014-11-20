@@ -817,12 +817,16 @@ class Promotion extends _Dal {
 		$this->db('promotion.queue_promo');
 		foreach ($result as $ret) {
 
-			$promo_detail = $this->promoDetail($ret['sp'], $ret['goods_id']);
-			//过滤需隐藏的特卖
-			if(!$promo_detail || $promo_detail['status'] != \DB\QueuePromo::STATUS_NORMAL)continue;
-
 			$goods_detail = $this->goodsDetail($ret['sp'], $ret['goods_id']);
 			if(!$goods_detail)continue;
+
+			$promo_detail = $this->promoDetail($ret['sp'], $ret['goods_id']);
+			//过滤需隐藏的特卖
+			if(!$promo_detail || $promo_detail['status'] != \DB\QueuePromo::STATUS_NORMAL){
+				$goods_detail['goods_id'] = $goods_detail['id'];
+				$new_ret[] = $goods_detail;
+				continue;
+			}
 
 			$tmp = $promo_detail;
 

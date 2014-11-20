@@ -12,11 +12,11 @@ class SubscribeCang extends _Db {
 	const STATUS_INVALID = 0; //无效
 
 	//修改候选数据
-	function update($account, $channel, $album_id, $data){
+	function update($account, $channel, $type, $id, $data){
 
-		if(!$account || !$channel || !$album_id)return false;
+		if(!$account || !$channel || !$type || !$id)return false;
 
-		$detail = $this->detail($account, $channel, $album_id);
+		$detail = $this->detail($account, $channel, $type, $id);
 		if(!$detail)return false;
 
 		$ret = parent::update($detail['id'], $data);
@@ -24,20 +24,28 @@ class SubscribeCang extends _Db {
 	}
 
 	//新增候选数据
-	function add($account, $channel, $album_id){
+	function add($account, $channel, $type, $id){
 
-		if(!$account || !$channel || !$album_id)return false;
-		$id = $this->detail($account, $channel, $album_id);
-		if($id)return false;
+		if(!$account || !$channel || !$type || !$id)return false;
+		$detail = $this->detail($account, $channel, $type, $id);
+		if($detail)return false;
 
-		$ret = parent::add(array('account'=>$account, 'channel'=>$channel, 'album_id'=>$album_id));
+		if($type == 'album')
+			$ret = parent::add(array('account'=>$account, 'channel'=>$channel, 'type'=>$type, 'album_id'=>$id));
+		elseif($type == 'goods')
+			$ret = parent::add(array('account'=>$account, 'channel'=>$channel, 'type'=>$type, 'goods_id_str'=>$id));
+
 		return $ret;
 	}
 
 	//获取收藏详情
-	function detail($account, $channel, $album_id){
+	function detail($account, $channel, $type, $id){
 
-		$ret = $this->find(array('account'=>$account, 'channel'=>$channel, 'album_id'=>$album_id));
+		if($type == 'album'){
+			$ret = $this->find(array('account'=>$account, 'channel'=>$channel, 'type'=>$type, 'album_id'=>$id));
+		}elseif($type == 'goods'){
+			$ret = $this->find(array('account'=>$account, 'channel'=>$channel, 'type'=>$type, 'goods_id_str'=>$id));
+		}
 		return clearTableName($ret);
 	}
 }
