@@ -33,5 +33,13 @@ class QueuePromo extends _Db {
 
 		return parent::update($id, $data);
 	}
+
+	//清除特卖
+	function delete($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		$this->query("DELETE FROM duosq_promotion.queue_promo WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
+		return true;
+	}
 }
 ?>

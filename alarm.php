@@ -143,6 +143,13 @@ class Alarm extends _Dal {
 		$this->_fireEmail('导入今日头条', array('发送错误'=>$err_msg));
 	}
 
+	//监控zhe800导入
+	function importZhe800($err_msg){
+
+		if(!$err_msg)return;
+		$this->_fireEmail('导入折800', array('报告'=>$err_msg));
+	}
+
 	//发出监控报警
 	private function _fireSms($entry_params, $params, $sms_tpl=''){
 

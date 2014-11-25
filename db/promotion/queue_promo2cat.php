@@ -30,11 +30,15 @@ class QueuePromo2cat extends _Db {
 	}
 
 	//删除促销排序
-	function delete($sp, $goods_id){
+	function delete($sp, $goods_id, $subcat=''){
 
 		if(!$sp || !$goods_id)return;
 
-		$this->query("DELETE FROM duosq_promotion.queue_promo2cat WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
+		if($subcat){
+			$this->query("DELETE FROM duosq_promotion.queue_promo2cat WHERE sp = '{$sp}' AND goods_id = '{$goods_id}' AND subcat = '{$subcat}'");
+		}else{
+			$this->query("DELETE FROM duosq_promotion.queue_promo2cat WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
+		}
 	}
 }
 ?>

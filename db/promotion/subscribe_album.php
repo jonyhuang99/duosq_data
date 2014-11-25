@@ -17,7 +17,7 @@ class SubscribeAlbum extends _Db {
 							'url'=>VALID_NOT_EMPTY,
 							'title'=>VALID_NOT_EMPTY,
 							//'setting_brand'=>VALID_NOT_EMPTY,
-							'price'=>VALID_NOT_EMPTY,
+							//'price'=>VALID_NOT_EMPTY,
 							'cover_1'=>VALID_NOT_EMPTY,
 						);
 

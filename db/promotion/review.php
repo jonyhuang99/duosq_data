@@ -25,7 +25,7 @@ class Review extends _Db {
 			if($id)return;
 		}
 
-		return parent::add(array('sp'=>$data['sp'], 'goods_id'=>$data['goods_id']));
+		return parent::add(array('sp'=>$data['sp'], 'goods_id'=>$data['goods_id'], 'type'=>$type));
 	}
 }
 ?>

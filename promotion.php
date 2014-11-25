@@ -321,6 +321,7 @@ class Promotion extends _Dal {
 		if(!$detail || $detail['cat_review'])return;
 
 		$name = $detail['name'];
+
 		$all_rules = $this->getCatRules();
 		$match_subcat = array();
 
@@ -451,16 +452,24 @@ class Promotion extends _Dal {
 		return $ret;
 	}
 
-	//删除分类索引
-	function deletePromo2cat($sp, $goods_id){
+	//清空分类索引
+	function deletePromo2cat($sp, $goods_id, $subcat=''){
 
 		if(!$sp || !$goods_id)return;
-		return $this->db('promotion.queue_promo2cat')->query("DELETE FROM queue_promo2cat WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
+		$this->db('promotion.queue_promo2cat')->delete($sp, $goods_id, $subcat);
+	}
+
+	//删除特卖
+	function deletePromo($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		$this->db('promotion.queue_promo')->delete($sp, $goods_id);
 	}
 
 	//清空商品分类
 	function clearGoodsCat($sp, $goods_id){
 
+		if(!$sp || !$goods_id)return;
 		$ret = $this->db('promotion.goods')->update($sp, $goods_id, array('cat'=>'', 'subcat'=>''));
 		$this->db('promotion.queue_promo2cat')->delete($sp, $goods_id);
 		$this->db('promotion.queue_promo')->update($sp, $goods_id, array('cat_assign'=>0));
@@ -574,8 +583,8 @@ class Promotion extends _Dal {
 		return $this->updateGoods($sp, $goods_id, array('status'=>$status));
 	}
 
-	//标记该商品是降价商品(type 1:特卖 2:热卖)
-	function markPromoDiscount($sp, $goods_id, $price_avg, $price_now){
+	//标记该商品是降价商品
+	function markPromoDiscount($sp, $goods_id, $price_avg, $price_now, $hd_expire, &$hit_cat=false){
 
 		if(!$sp || !$goods_id || !$price_avg || !$price_now)return;
 		$promo = $this->promoDetail($sp, $goods_id);
@@ -583,25 +592,25 @@ class Promotion extends _Dal {
 
 			$status = \DB\QueuePromo::STATUS_NORMAL;
 			$detail = $this->goodsDetail($sp, $goods_id);
-			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'type'=>\DB\QueuePromo::TYPE_DISCOUNT));
+			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'hd_expire'=>$hd_expire, 'type'=>\DB\QueuePromo::TYPE_DISCOUNT));
 			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
 			$match_cats = $this->matchGoodsCat($sp, $goods_id);
 
-			D('brand')->matchAndUpdateBrand($sp, $goods_id);
-			//加入待审核列表
-			$this->db('promotion.review')->add(\DB\Review::TYPE_PROMO, array('sp'=>$sp, 'goods_id'=>$goods_id));
+			if($match_cats){
+				$hit_cat = $match_cats;
+			}else{
+				//加入待审核列表
+				$this->db('promotion.review')->add(\DB\Review::TYPE_PROMO, array('sp'=>$sp, 'goods_id'=>$goods_id));
+			}
+
 			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
 			D('search')->buildIndex($sp, $goods_id);
 			$this->redis('promotion')->promoCounter($sp, $goods_id);
 
-			//更新visit window，保持price_detect只追踪一段时间内的商品价格
-			$this->db('promotion.queue_visit')->visited($sp, $goods_id);
 			return true;
 		}else{
-			//如果价格更低，允许更新
-			if($price_now < $promo['price_now']){
-				$this->db('promotion.queue_promo')->update($sp, $goods_id, array('price_now'=>$price_now));
-			}
+			//已经导过不再更新分类
+			$hit_cat = array('existed');
 		}
 	}
 
@@ -627,7 +636,7 @@ class Promotion extends _Dal {
 	}
 
 	//标记该商品是9块9商品(新增返回true)
-	function markPromo9($sp, $goods_id, $price_avg, $price_now){
+	function markPromo9($sp, $goods_id, $price_avg, $price_now, &$hit_cat = false){
 
 		if(!$sp || !$goods_id || !$price_avg || !$price_now)return;
 
@@ -637,11 +646,19 @@ class Promotion extends _Dal {
 			$detail = $this->goodsDetail($sp, $goods_id);
 
 			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'type'=>\DB\QueuePromo::TYPE_9));
+			//只有匹配不到分类才进入审核
+			$match_cats = D('promotion')->matchGoodsCat($sp, $goods_id);
 
-			//加入待审核列表
-			$this->db('promotion.review')->add(\DB\Review::TYPE_9, array('sp'=>$sp, 'goods_id'=>$goods_id));
+			if(!$match_cats){
+				$this->db('promotion.review')->add(\DB\Review::TYPE_9, array('sp'=>$sp, 'goods_id'=>$goods_id));
+			}else{
+				$hit_cat = $match_cats;
+			}
 			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
 			D('search')->buildIndex($sp, $goods_id);
+		}else{
+			//已经导过不再更新分类
+			$hit_cat = array('existed');
 		}
 
 		return true;
@@ -679,13 +696,6 @@ class Promotion extends _Dal {
 		//计算无效状态
 		$invalid = false;
 		$goods_detail = $this->goodsDetail($sp, $goods_id);
-
-		//此处活动报价极有可能与探测价格不符，因此仅判断降价类型的特卖
-		if($promo['type'] == \DB\QueuePromo::TYPE_DISCOUNT){
-			if($goods_detail['price_now'] > $promo['price_now']){
-				$invalid = 'price_up';
-			}
-		}
 
 		//如果进行了强制修正，说明即使是活动，也有可能不准
 		if($fix_now_price = $this->getFixNowPrice($sp, $goods_id)){
@@ -845,7 +855,9 @@ class Promotion extends _Dal {
 			}
 			//融合商品信息
 			$tmp['name'] = $goods_detail['name'];
-			$tmp['pic_url'] = $goods_detail['pic_url'];
+			$tmp['name_short'] = $goods_detail['name_short'];
+			$tmp['pic_url'] = $goods_detail['pic_url_cover']?$goods_detail['pic_url_cover']:$goods_detail['pic_url'];
+			$tmp['pic_url_orig'] = $goods_detail['pic_url'];
 			$tmp['cat'] = $goods_detail['cat'];
 			$tmp['saled'] = $goods_detail['saled'];
 			$tmp['url_tpl'] = $goods_detail['url_tpl'];
@@ -951,7 +963,7 @@ class Promotion extends _Dal {
 		if(taobaoSp($sp)){
 			$info = $this->api('taobao')->getItemAllDetail($num_iid);
 			if($info){
-				$new = array('name_long'=>$info['p_title'], 'shop_id'=>$info['shop_id'], 'intro'=>$info['intro'], 'comment'=>$info['comment']);
+				$new = array('shop_id'=>$info['shop_id'], 'intro'=>$info['intro'], 'comment'=>$info['comment']);
 				$this->updateGoods($sp, $goods_id, $new);
 				if($info['intro'])$this->sendGoodsDeepInfoFetchedMsg($sp, $goods_id);
 				return $new;
