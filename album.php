@@ -152,6 +152,10 @@ class Album extends _Dal {
 				}else{
 					$detail['expire'] = '活动已结束';
 				}
+
+				if(strtotime($detail['expire_end']) - time() < MINUTE*10){
+					$detail['expire'] = '活动已结束';
+				}
 			}
 
 			$imgsize = $this->db('files')->field('imgsize', array('filepath'=>$detail['cover_1']));
