@@ -18,6 +18,7 @@ class Lock extends _Redis {
 	const LOCK_EMAIL_MONITOR = 'email_monitor';
 	const LOCK_SUBSCRIBE_CANG = 'subscribe_cang';
 	const LOCK_IMPORT_GOODS_ZHE800 = 'import_goods_zhe800';
+	const LOCK_IMPORT_GOODS_MEILISHUO = 'import_goods_meilishuo';
 	const LOCK_GET_TAOBAO_ITEM_DEEP_INFO = 'api_taobao_deep_info';
 
 	/**
@@ -107,7 +108,10 @@ class Lock extends _Redis {
 				$expire = DAY;
 				break;
 			case self::LOCK_IMPORT_GOODS_ZHE800:
-				$expire = DAY*7;
+				$expire = WEEK;
+				break;
+			case self::LOCK_IMPORT_GOODS_MEILISHUO:
+				$expire = MONTH;
 				break;
 			default:
 				$expire = 10;

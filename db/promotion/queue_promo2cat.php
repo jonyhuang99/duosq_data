@@ -1,5 +1,5 @@
 <?php
-//特卖队列分类操作基类
+//特卖分类操作基类
 namespace DB;
 
 class QueuePromo2cat extends _Db {
@@ -7,14 +7,14 @@ class QueuePromo2cat extends _Db {
 	var $name = 'QueuePromo2cat';
 	var $useDbConfig = 'promotion';
 
-	//新增促销信息分类数据
+	//新增特卖信息分类数据
 	function add($data){
 
 		if(!$data['sp'] || !$data['goods_id'])return;
 		return parent::add($data);
 	}
 
-	//更新促销信息分类数据
+	//更新特卖信息分类数据
 	function update($sp, $goods_id, $data){
 
 		if(!$sp || !$goods_id || !$data)return;
@@ -29,7 +29,7 @@ class QueuePromo2cat extends _Db {
 		return $ret;
 	}
 
-	//删除促销排序
+	//删除特卖排序
 	function delete($sp, $goods_id, $subcat=''){
 
 		if(!$sp || !$goods_id)return;

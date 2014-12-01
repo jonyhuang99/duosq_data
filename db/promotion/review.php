@@ -11,11 +11,12 @@ class Review extends _Db {
 	const STATUS_WAIT_REVIEW = 0;
 	const STATUS_DONE = 1;
 
-	const TYPE_PROMO = 1; //特卖：降价商品
+	const TYPE_PROMO = 1; //特卖商品
 	const TYPE_GOODS_COMMENT = 2; //商品评论
 	const TYPE_BRAND_COMMENT = 3; //品牌评论
 	const TYPE_ZHIDAO = 4; //品牌知道
-	const TYPE_9 = 5; //特卖：9块9商品
+	const TYPE_9 = 5; //9块9商品
+	const TYPE_GUANG = 6; //逛街商品
 
 	function add($type, $data){
 

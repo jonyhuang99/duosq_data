@@ -16,7 +16,7 @@ class Album extends _Redis {
 			$this->hset($key, $album_id, 1);
 		}
 
-		$this->expire($key, DAY*1);
+		$this->expire($key, HOUR*4);
 		return true;
 	}
 

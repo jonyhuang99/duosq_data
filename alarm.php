@@ -144,10 +144,17 @@ class Alarm extends _Dal {
 	}
 
 	//监控zhe800导入
-	function importZhe800($err_msg){
+	function importZhe800($msg){
 
-		if(!$err_msg)return;
-		$this->_fireEmail('导入折800', array('报告'=>$err_msg));
+		if(!$msg)return;
+		$this->_fireEmail('导入折800', array('报告'=>$msg));
+	}
+
+	//监控美丽说导入
+	function importMeilishuo($msg){
+
+		if(!$msg)return;
+		$this->_fireEmail('导入美丽说', array('报告'=>$msg));
 	}
 
 	//发出监控报警

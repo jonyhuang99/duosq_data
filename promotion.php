@@ -238,6 +238,47 @@ class Promotion extends _Dal {
 		return '';
 	}
 
+	//从子分类反查推荐的分类配置
+	function nvRenSubcat2recommend($subcat){
+
+		if(!$subcat)return;
+		$conf = $this->nvRenSubcat2conf($subcat);
+		if(!$conf)return;
+		unset($conf['nv_category']);
+
+		$recommend_conf = array();
+		foreach($conf as $nv_cat => $c){
+			if(isset($c['recommend'])){
+				$recommend_conf[$nv_cat] = $c;
+			}
+		}
+		return $recommend_conf;
+	}
+
+	//从子分类反查
+	function nvRenSubcat2conf($subcat, $tag=''){
+
+		if(!$subcat)return;
+		$config = C('comm', 'category_nv_ren_jie');
+		foreach($config as $nv_category => $conf){
+			foreach($conf as $nv_cat => $c){
+
+				if($c['subcat'] == $subcat){
+					if($tag){
+						if($c['tag'] == $tag){
+							$c['nv_category'] = $nv_category;
+							$c['nv_cat'] = $nv_cat;
+							return $c;
+						}
+					}else{
+						$conf['nv_category'] = $nv_category;
+						return $conf;
+					}
+				}
+			}
+		}
+	}
+
 	//获取商品分类匹配规则(全填读取指定子分类规则，任一不填返回所有分类匹配规则)
 	function getCatRules($cat='', $subcat=''){
 
@@ -268,6 +309,29 @@ class Promotion extends _Dal {
 		return true;
 	}
 
+	//获取商品子分类标签规则
+	function getSubcatTags($subcat=''){
+
+		static $config = array();
+		if(!$subcat)return;
+		if($config){
+			if(isset($config[$subcat]))
+				return $config[$subcat];
+			return array();
+		}
+		$all_tags = C('goods_subcat_tag');
+		$config = array();
+		foreach ($all_tags as $subcat_str => $tags) {
+			$subcats = explode('|', $subcat_str);
+			foreach ($subcats as $i_subcat) {
+				$config[$i_subcat] = $tags;
+			}
+		}
+
+		if(isset($config[$subcat]))return $config[$subcat];
+		return array();
+	}
+
 	//获取商品详情
 	function goodsDetail($sp, $goods_id){
 
@@ -281,10 +345,23 @@ class Promotion extends _Dal {
 		if($cache)return D('cache')->ret($cache);
 
 		$detail = $this->db('promotion.goods')->detail($sp, $goods_id);
+
 		if($detail){
 			$detail['url'] = $this->buildUrl($detail['url_tpl'], $detail['url_id']);
-			if($detail['cat'])$detail['cat'] = explode('|', $detail['cat']);
-			if($detail['subcat'])$detail['subcat'] = explode('|', $detail['subcat']);
+			if($detail['cat'])
+				$detail['cat'] = explode('|', $detail['cat']);
+			else
+				$detail['cat'] = array();
+
+			if($detail['tags'])
+				$detail['tags'] = explode('|', $detail['tags']);
+			else
+				$detail['tags'] = array();
+
+			if($detail['subcat'])
+				$detail['subcat'] = explode('|', $detail['subcat']);
+			else
+				$detail['subcat'] = array();
 		}else{
 			return false;
 		}
@@ -311,7 +388,7 @@ class Promotion extends _Dal {
 	}
 
 	//匹配并更新商品分类信息
-	function matchGoodsCat($sp, $goods_id, &$reviewed=''){
+	function matchGoodsCat($sp, $goods_id, $fix_name='', &$reviewed=''){
 
 		if(!$sp || !$goods_id)return;
 
@@ -320,7 +397,11 @@ class Promotion extends _Dal {
 		if($detail['cat_review'])$reviewed = true;
 		if(!$detail || $detail['cat_review'])return;
 
-		$name = $detail['name'];
+		if(!$fix_name){
+			$name = $detail['name'];
+		}else{
+			$name = $fix_name;
+		}
 
 		$all_rules = $this->getCatRules();
 		$match_subcat = array();
@@ -387,16 +468,6 @@ class Promotion extends _Dal {
 		}
 	}
 
-	//清除特卖商品信息缓存
-	function clearCache($sp, $goods_id){
-
-		if(!$sp || !$goods_id)return;
-		$key1 = 'goods:detail:sp:'.$sp.':goods_id:'.$goods_id;
-		$key2 = 'promo:detail:sp:'.$sp.':goods_id:'.$goods_id;
-		D('cache')->clean($key1);
-		D('cache')->clean($key2);
-	}
-
 	//更新商品分类
 	function updateGoodsCat($sp, $goods_id, $subcats){
 
@@ -415,7 +486,6 @@ class Promotion extends _Dal {
 			$cat_str = join('|', $cats);
 		}
 		$subcat_str = join('|', array_slice($subcats, 0, 10));
-
 		$ret = $this->updateGoods($sp, $goods_id, array('cat'=>$cat_str, 'subcat'=>$subcat_str));
 		if(!$ret)return false;
 
@@ -447,12 +517,163 @@ class Promotion extends _Dal {
 			}
 
 			$this->markPromoHasCat($sp, $goods_id);
+			$this->clearCache($sp, $goods_id);
 		}
 
 		return $ret;
 	}
 
-	//清空分类索引
+	//增加商品子分类
+	function addGoodsSubcat($sp, $goods_id, $subcat=''){
+
+		if(!$sp || !$goods_id || !$subcat)return;
+		$cat = $this->subcat2cat($subcat);
+		if(!$cat)return;
+
+		$promo = $this->promoDetail($sp, $goods_id);
+		$goods = $this->goodsDetail($sp, $goods_id);
+		array_unshift($goods['subcat'], $subcat);
+		array_unshift($goods['cat'], $cat);
+
+		$this->updateGoods($sp, $goods_id, array('cat'=>join('|', array_unique($goods['cat'])), 'subcat'=>join('|', array_unique($goods['subcat']))));
+
+		return $this->db('promotion.queue_promo2cat')->add(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$cat,'subcat'=>$subcat,'type'=>$promo['type'],'createtime'=>$promo['createtime']));;
+	}
+
+	//匹配并更新商品标签信息
+	function matchGoodsTag($sp, $goods_id, $fix_name=''){
+
+		if(!$sp || !$goods_id)return;
+
+		$detail = $this->goodsDetail($sp, $goods_id);
+
+		if(!$fix_name){
+			$name = $detail['name'];
+		}else{
+			$name = $fix_name;
+		}
+
+		if(!$detail['subcat'])return;
+
+		$match_tags = array();
+		foreach ($detail['subcat'] as $subcat) {
+			$all_tags = $this->getSubcatTags($subcat);
+			if(!$all_tags)continue;
+
+			foreach($all_tags as $tag){
+				if(stripos($tag, '&')){
+					$condition = explode('&', $tag);
+					$hit = true;
+					foreach($condition as $t){
+						if(stripos($name, $t)===false){
+							$hit = false;
+						}
+					}
+					if($hit)$match_tags[$subcat][] = r('&', '', $tag);
+
+				}elseif(stripos($name, $tag)!==false){
+					$match_tags[$subcat][] = $tag;
+				}
+			}
+			if(isset($match_tags[$subcat]))$match_tags[$subcat] = array_unique($match_tags[$subcat]);
+		}
+
+		if($match_tags){
+
+			$this->updatePromoTag($sp, $goods_id, $match_tags);
+			return $match_tags;
+		}else{
+			$this->deletePromo2tag($sp, $goods_id);
+		}
+	}
+
+	//更新特卖标签
+	function updatePromoTag($sp, $goods_id, $new_tags){
+
+		if(!$sp || !$goods_id || !$new_tags)return;
+
+		//同步promo标签
+		$promo = $this->promoDetail($sp, $goods_id);
+
+		if($promo){
+			$promo2tag = $this->db('promotion.queue_promo2tag')->get($sp, $goods_id);
+
+			if($promo2tag && count($promo2tag) == count($new_tags)){
+				$promo2tag_tag = array();
+				foreach($promo2tag as $subcat => $tags){
+					foreach($tags as $tag){
+						$promo2tag_tag[$subcat][$tag] = 1;
+					}
+				}
+
+				foreach($new_tags as $subcat => $tags){
+					foreach($tags as $tag){
+						if(isset($promo2tag_tag[$subcat][$tag])){
+							unset($promo2tag_tag[$subcat][$tag]);
+						}
+					}
+				}
+
+				foreach($promo2tag_tag as $subcat => $tags){
+					if(!$tags)unset($promo2tag_tag[$subcat]);
+				}
+
+				//无需删除标签
+				if(!count($promo2tag_tag)){
+					return true;
+				}
+			}
+
+			$this->deletePromo2tag($sp, $goods_id);
+
+			$all_tags = array();
+			foreach($new_tags as $subcat => $tags){
+				foreach($tags as $tag){
+					$all_tags[] = $tag;
+					$ret = $this->db('promotion.queue_promo2tag')->add(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2cat($subcat),'subcat'=>$subcat ,'tag'=>$tag,'type'=>$promo['type'],'createtime'=>$promo['createtime']));
+				}
+			}
+
+			$this->updateGoods($sp, $goods_id, array('tags'=>join('|', array_unique($all_tags))));
+			$this->clearCache($sp, $goods_id);
+		}
+
+		return $ret;
+	}
+
+	//增加特卖标签
+	function addGoodsTag($sp, $goods_id, $new_tags=array()){
+
+		if(!$sp || !$goods_id || !$new_tags)return;
+		$promo = $this->promoDetail($sp, $goods_id);
+		$goods = $this->goodsDetail($sp, $goods_id);
+
+		$old_tags = (array)$goods['tags'];
+
+		foreach($new_tags as $subcat => $tags){
+			foreach($tags as $tag){
+				$old_tags[] = $tag;
+			}
+		}
+
+		$this->updateGoods($sp, $goods_id, array('tags'=>join('|', array_unique($old_tags))));
+
+		foreach($new_tags as $subcat => $tags){
+			foreach($tags as $i_tag){
+				$ret = $this->db('promotion.queue_promo2tag')->add(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2cat($subcat),'subcat'=>$subcat ,'tag'=>$i_tag,'type'=>$promo['type'],'createtime'=>$promo['createtime']));
+			}
+		}
+		return $ret;
+	}
+
+	//清空特卖标签
+	function deletePromo2tag($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		$this->db('promotion.queue_promo2tag')->delete($sp, $goods_id);
+	}
+
+	//清空特卖分类索引
 	function deletePromo2cat($sp, $goods_id, $subcat=''){
 
 		if(!$sp || !$goods_id)return;
@@ -464,16 +685,28 @@ class Promotion extends _Dal {
 
 		if(!$sp || !$goods_id)return;
 		$this->db('promotion.queue_promo')->delete($sp, $goods_id);
+		$this->deletePromo2cat($sp, $goods_id);
+		$this->deletePromo2tag($sp, $goods_id);
 	}
 
-	//清空商品分类
+	//清空商品、特卖分类
 	function clearGoodsCat($sp, $goods_id){
 
 		if(!$sp || !$goods_id)return;
 		$ret = $this->db('promotion.goods')->update($sp, $goods_id, array('cat'=>'', 'subcat'=>''));
-		$this->db('promotion.queue_promo2cat')->delete($sp, $goods_id);
 		$this->db('promotion.queue_promo')->update($sp, $goods_id, array('cat_assign'=>0));
+		$this->deletePromo2cat($sp, $goods_id);
 		$this->clearCache($sp, $goods_id);
+	}
+
+	//清除特卖商品信息缓存
+	function clearCache($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		$key1 = 'goods:detail:sp:'.$sp.':goods_id:'.$goods_id;
+		$key2 = 'promo:detail:sp:'.$sp.':goods_id:'.$goods_id;
+		D('cache')->clean($key1);
+		D('cache')->clean($key2);
 	}
 
 	/**
@@ -503,9 +736,10 @@ class Promotion extends _Dal {
 				if(!$goods_detail)return false;
 				$data['name'] = $goods_detail['p_title'];
 				$data['price_now'] = $goods_detail['p_price'];
+				$data['price_max'] = $goods_detail['p_price_avg'];
 				$data['pic_url'] = $goods_detail['p_pic_url'];
 			}else{
-				$goods_detail = D('promotion')->goodsDetailByUrl($url);
+				$goods_detail = $this->goodsDetailByUrl($url);
 				if(!$goods_detail)return false;
 				$data['name'] = $goods_detail['name'];
 				$data['price_now'] = $goods_detail['price_now'];
@@ -527,7 +761,8 @@ class Promotion extends _Dal {
 			//标识商品被导入次数，用来发现新热点
 			$this->redis('promotion')->saleCounter($sp, $goods_id);
 			//更新了销量，触发重新计算促销商品权重
-			D('weight')->update($sp, $goods_id);
+			//暂时不再更新权重
+			//D('weight')->update($sp, $goods_id);
 
 			//更新商品周销量
 			if($hit){
@@ -622,7 +857,8 @@ class Promotion extends _Dal {
 
 			$status = \DB\QueuePromo::STATUS_NORMAL;
 			$detail = $this->goodsDetail($sp, $goods_id);
-			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'album_id'=>$album_id, 'hd_begin'=>$hd_begin, 'hd_expire'=>$hd_begin, 'type'=>\DB\QueuePromo::TYPE_HUODONG));
+
+			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'album_id'=>$album_id, 'hd_begin'=>$hd_begin, 'hd_expire'=>$hd_expire, 'type'=>\DB\QueuePromo::TYPE_HUODONG));
 			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
 			$this->matchGoodsCat($sp, $goods_id);
 
@@ -633,6 +869,36 @@ class Promotion extends _Dal {
 			if($ret)$this->redis('promotion')->promoCounter($sp, $goods_id);
 			return true;
 		}
+	}
+
+	//标记该商品是降价商品
+	function markPromoGuang($sp, $goods_id, $price_avg, $price_now, $fix_name='', $force_subcat='', $force_tag=''){
+
+		if(!$sp || !$goods_id || !$price_avg || !$price_now ||!$fix_name ||!$force_subcat)return;
+		$promo = $this->promoDetail($sp, $goods_id);
+		if(!$promo){
+
+			$status = \DB\QueuePromo::STATUS_NORMAL;
+			$detail = $this->goodsDetail($sp, $goods_id);
+			$ret = $this->db('promotion.queue_promo')->add(array('status'=>$status, 'sp'=>$sp, 'goods_id'=>$goods_id, 'price_avg'=>$price_avg, 'price_now'=>$price_now, 'type'=>\DB\QueuePromo::TYPE_GUANG));
+			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
+			$this->matchGoodsCat($sp, $goods_id, $fix_name);
+			if($force_subcat)$this->addGoodsSubcat($sp, $goods_id, $force_subcat);
+
+			$this->matchGoodsTag($sp, $goods_id);
+			if($force_tag)$this->addGoodsTag($sp, $goods_id, array($force_subcat=>array($force_tag)));
+
+			//加入待审核列表
+			//$this->db('promotion.review')->add(\DB\Review::TYPE_GUANG, array('sp'=>$sp, 'goods_id'=>$goods_id));
+
+			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
+			D('search')->buildIndex($sp, $goods_id);
+			$this->redis('promotion')->promoCounter($sp, $goods_id);
+
+			return true;
+		}
+
+		if($force_tag)$this->addGoodsTag($sp, $goods_id, array($force_subcat=>array($force_tag)));
 	}
 
 	//标记该商品是9块9商品(新增返回true)
@@ -810,6 +1076,66 @@ class Promotion extends _Dal {
 				}
 			}
 		}
+
+		$result = $this->renderPromoDetail($result);
+		if($result)$result = array_slice($result, 0, $show+3);
+		D('cache')->set($key, $result, MINUTE*10);
+
+		return $result;
+	}
+
+	/**
+	 * 获取标签商品列表
+	 * @param  [type]  $pn            [description]
+	 * @param  array   $cat_condition 分类搜索条件(cat/subcat)
+	 * @param  integer $show          [description]
+	 * @param  integer $maxPages      [description]
+	 * @return [type]                 [description]
+	 */
+	function getTagList($pn, $cat_condition=array(), $show = 3, $need_huodong=true) {
+
+		$key = 'promo:get_tag_list:cond:'.md5(serialize($cat_condition)).':show:'.$show.':page:'.intval(@$_GET['page']);
+		$cache = D('cache')->get($key);
+		if($cache){
+			return D('cache')->ret($cache);
+		}
+
+		$condition = arrayClean($cat_condition);
+		static $huodong_repeat=array();
+
+		//最多加载20页
+		if(isset($_GET['page']) && $_GET['page'] > C('comm', 'promo_cat_max_page'))
+			return false;
+
+		$condition_str = array();
+
+		foreach($condition as $field => $c){
+
+			if(is_array($c)){
+				$condition_str[] = "{$field} in ('" . join("','", $c) . "')";
+			}else {
+				$condition_str[] = "{$field} = '{$c}'";
+			}
+
+			if($field == 'tag'){
+
+				if(count($c) == 1){
+					$having = '';
+				}else{
+					//多个标签，必须都命中，使用having
+					$having = 'HAVING nu = '.count($c);
+				}
+			}
+		}
+
+		$condition_str = 'WHERE '.join(' AND ', $condition_str);
+		$page_start = $show * intval(@$_GET['page']);
+
+		$result = $this->db('promotion.queue_promo2cat')->query("SELECT count(*) nu, sp, goods_id, type FROM duosq_promotion.queue_promo2tag {$condition_str} GROUP BY sp,goods_id {$having} ORDER BY id DESC LIMIT {$page_start}, {$show}");
+		$result = clearTableName($result);
+		if(!$result)$result = array();
+
+		$this->db('promotion.queue_promo');
 
 		$result = $this->renderPromoDetail($result);
 		if($result)$result = array_slice($result, 0, $show+3);
