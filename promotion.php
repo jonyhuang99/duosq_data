@@ -353,15 +353,12 @@ class Promotion extends _Dal {
 			else
 				$detail['cat'] = array();
 
-			if($detail['tags'])
-				$detail['tags'] = explode('|', $detail['tags']);
-			else
-				$detail['tags'] = array();
-
 			if($detail['subcat'])
 				$detail['subcat'] = explode('|', $detail['subcat']);
 			else
 				$detail['subcat'] = array();
+
+			$detail['tags'] = $this->db('promotion.queue_promo2tag')->get($sp, $goods_id);
 		}else{
 			return false;
 		}
@@ -889,7 +886,7 @@ class Promotion extends _Dal {
 			if($force_tag)$this->addGoodsTag($sp, $goods_id, array($force_subcat=>array($force_tag)));
 
 			//加入待审核列表
-			//$this->db('promotion.review')->add(\DB\Review::TYPE_GUANG, array('sp'=>$sp, 'goods_id'=>$goods_id));
+			$this->db('promotion.review')->add(\DB\Review::TYPE_GUANG, array('sp'=>$sp, 'goods_id'=>$goods_id));
 
 			//加入搜索索引，快速覆盖新增特卖，rebuild_index脚本做全量更新，防止有商品上下线
 			D('search')->buildIndex($sp, $goods_id);
@@ -1117,12 +1114,11 @@ class Promotion extends _Dal {
 				$condition_str[] = "{$field} = '{$c}'";
 			}
 
+			$having = '';
 			if($field == 'tag'){
 
-				if(count($c) == 1){
-					$having = '';
-				}else{
-					//多个标签，必须都命中，使用having
+				//多个标签，必须都命中，使用having
+				if(count($c) > 1){
 					$having = 'HAVING nu = '.count($c);
 				}
 			}
@@ -1182,6 +1178,7 @@ class Promotion extends _Dal {
 			//融合商品信息
 			$tmp['name'] = $goods_detail['name'];
 			$tmp['name_short'] = $goods_detail['name_short'];
+			$tmp['tags'] = $goods_detail['tags'];
 			$tmp['pic_url'] = $goods_detail['pic_url_cover']?$goods_detail['pic_url_cover']:$goods_detail['pic_url'];
 			$tmp['pic_url_orig'] = $goods_detail['pic_url'];
 			$tmp['cat'] = $goods_detail['cat'];

@@ -42,9 +42,14 @@ class QueuePromo2tag extends _Db {
 	}
 
 	//取出特卖的标签
-	function get($sp, $goods_id){
+	function get($sp, $goods_id, $subcat=''){
 
-		$tag_data = $this->findAll(array('sp'=>$sp, 'goods_id'=>$goods_id));
+		if($subcat){
+			$tag_data = $this->findAll(array('sp'=>$sp, 'goods_id'=>$goods_id, 'subcat'=>$subcat));
+		}else{
+			$tag_data = $this->findAll(array('sp'=>$sp, 'goods_id'=>$goods_id));
+		}
+
 		if(!$tag_data)return array();
 
 		$tag_data = clearTableName($tag_data);
