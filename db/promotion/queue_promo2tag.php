@@ -41,6 +41,15 @@ class QueuePromo2tag extends _Db {
 		}
 	}
 
+	//删除非类别内的特卖排序
+	function deleteNotIn($sp, $goods_id, $not_in_subcat){
+
+		if(!$sp || !$goods_id || !$not_in_subcat)return;
+
+		$not_in = "NOT IN ('".join("','", $not_in_subcat)."')";
+		$this->query("DELETE FROM duosq_promotion.queue_promo2tag WHERE sp = '{$sp}' AND goods_id = '{$goods_id}' AND subcat {$not_in}");
+	}
+
 	//取出特卖的标签
 	function get($sp, $goods_id, $subcat=''){
 

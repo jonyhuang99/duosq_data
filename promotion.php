@@ -623,15 +623,13 @@ class Promotion extends _Dal {
 
 			$this->deletePromo2tag($sp, $goods_id);
 
-			$all_tags = array();
 			foreach($new_tags as $subcat => $tags){
 				foreach($tags as $tag){
-					$all_tags[] = $tag;
 					$ret = $this->db('promotion.queue_promo2tag')->add(array('sp'=>$sp,'goods_id'=>$goods_id,'cat'=>$this->subcat2cat($subcat),'subcat'=>$subcat ,'tag'=>$tag,'type'=>$promo['type'],'createtime'=>$promo['createtime']));
 				}
 			}
 
-			$this->updateGoods($sp, $goods_id, array('tags'=>join('|', array_unique($all_tags))));
+			$this->updateGoods($sp, $goods_id, array('tags'=>serialize($new_tags)));
 			$this->clearCache($sp, $goods_id);
 		}
 
@@ -649,11 +647,11 @@ class Promotion extends _Dal {
 
 		foreach($new_tags as $subcat => $tags){
 			foreach($tags as $tag){
-				$old_tags[] = $tag;
+				$old_tags[$subcat] = $tag;
 			}
 		}
 
-		$this->updateGoods($sp, $goods_id, array('tags'=>join('|', array_unique($old_tags))));
+		$this->updateGoods($sp, $goods_id, array('tags'=>serialize($old_tags)));
 
 		foreach($new_tags as $subcat => $tags){
 			foreach($tags as $i_tag){
@@ -675,6 +673,13 @@ class Promotion extends _Dal {
 
 		if(!$sp || !$goods_id)return;
 		$this->db('promotion.queue_promo2cat')->delete($sp, $goods_id, $subcat);
+	}
+
+	//清空子分类外的特卖分类索引
+	function deletePromo2catNotIn($sp, $goods_id, $subcat){
+
+		if(!$sp || !$goods_id || !$subcat)return;
+		$this->db('promotion.queue_promo2tag')->deleteNotIn($sp, $goods_id, $subcat);
 	}
 
 	//删除特卖
@@ -871,7 +876,7 @@ class Promotion extends _Dal {
 	//标记该商品是降价商品
 	function markPromoGuang($sp, $goods_id, $price_avg, $price_now, $fix_name='', $force_subcat='', $force_tag=''){
 
-		if(!$sp || !$goods_id || !$price_avg || !$price_now ||!$fix_name ||!$force_subcat)return;
+		if(!$sp || !$goods_id || !$price_avg || !$price_now ||!$fix_name)return;
 		$promo = $this->promoDetail($sp, $goods_id);
 		if(!$promo){
 
@@ -881,9 +886,6 @@ class Promotion extends _Dal {
 			//自动匹配分类，快速覆盖新增特卖，re_match脚本做全量更新同步分类规则变化
 			$this->matchGoodsCat($sp, $goods_id, $fix_name);
 			if($force_subcat)$this->addGoodsSubcat($sp, $goods_id, $force_subcat);
-
-			$this->matchGoodsTag($sp, $goods_id);
-			if($force_tag)$this->addGoodsTag($sp, $goods_id, array($force_subcat=>array($force_tag)));
 
 			//加入待审核列表
 			$this->db('promotion.review')->add(\DB\Review::TYPE_GUANG, array('sp'=>$sp, 'goods_id'=>$goods_id));
@@ -895,7 +897,8 @@ class Promotion extends _Dal {
 			return true;
 		}
 
-		if($force_tag)$this->addGoodsTag($sp, $goods_id, array($force_subcat=>array($force_tag)));
+		$this->matchGoodsTag($sp, $goods_id);
+		if($force_tag && $force_subcat)$this->addGoodsTag($sp, $goods_id, array($force_subcat=>array($force_tag)));
 	}
 
 	//标记该商品是9块9商品(新增返回true)
@@ -1127,7 +1130,7 @@ class Promotion extends _Dal {
 		$condition_str = 'WHERE '.join(' AND ', $condition_str);
 		$page_start = $show * intval(@$_GET['page']);
 
-		$result = $this->db('promotion.queue_promo2cat')->query("SELECT count(*) nu, sp, goods_id, type FROM duosq_promotion.queue_promo2tag {$condition_str} GROUP BY sp,goods_id {$having} ORDER BY id DESC LIMIT {$page_start}, {$show}");
+		$result = $this->db('promotion.queue_promo2cat')->query("SELECT count(*) nu, sp, goods_id, id, type FROM duosq_promotion.queue_promo2tag {$condition_str} GROUP BY sp,goods_id {$having} ORDER BY id DESC LIMIT {$page_start}, {$show}");
 		$result = clearTableName($result);
 		if(!$result)$result = array();
 
@@ -1308,7 +1311,7 @@ class Promotion extends _Dal {
 
 	/**
 	 * 获取淘宝商品详情入库消息
-	 * @return string              资产流水ID
+	 * @return array
 	 */
 	function getGoodsDeepInfoFetchedMsg(){
 
