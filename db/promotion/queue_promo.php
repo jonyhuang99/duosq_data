@@ -16,7 +16,7 @@ class QueuePromo extends _Db {
 	const TYPE_DISCOUNT = 1;//特卖商品
 	const TYPE_9 = 2;//9块9商品
 	const TYPE_HUODONG = 3;//限时活动
-	const TYPE_GUANG = 4;//逛街商品
+	const TYPE_JIE = 4;//逛街商品
 
 	//新增促销信息分类数据
 	function add($data){

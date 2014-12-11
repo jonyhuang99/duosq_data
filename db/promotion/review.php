@@ -16,7 +16,7 @@ class Review extends _Db {
 	const TYPE_BRAND_COMMENT = 3; //品牌评论
 	const TYPE_ZHIDAO = 4; //品牌知道
 	const TYPE_9 = 5; //9块9商品
-	const TYPE_GUANG = 6; //逛街商品
+	const TYPE_JIE = 6; //逛街商品
 
 	function add($type, $data){
 
@@ -27,6 +27,13 @@ class Review extends _Db {
 		}
 
 		return parent::add(array('sp'=>$data['sp'], 'goods_id'=>$data['goods_id'], 'type'=>$type));
+	}
+
+	//删除待审特卖
+	function delete($sp, $goods_id){
+
+		if(!$sp || !$goods_id)return;
+		return $this->query("DELETE FROM duosq_promotion.review WHERE sp = '{$sp}' AND goods_id = '{$goods_id}'");
 	}
 }
 ?>

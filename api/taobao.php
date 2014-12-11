@@ -249,5 +249,76 @@ class Taobao extends _Api {
 		}
 		return $server_detail;
 	}
+
+
+	/*
+	Array
+	(
+	    [cid] => 50019691
+	    [istk] => true
+	    [location] => Array
+	        (
+	            [city] => 重庆
+	            [state] => 重庆
+	        )
+
+	    [mall] => true
+	    [nick] => 邱旺食品专营店
+	    [num] => 11047
+	    [open_auction_iid] => AAH3SpHGABsL3tZwP3-lDh-Q
+	    [open_id] => 40382614257
+	    [pic_url] => http://img04.taobaocdn.com/bao/uploaded/i4/TB1WdLqFVXXXXcXXXXXXXXXXXXX_!!2-item_pic.png
+	    [post_fee] => 0.00
+	    [price] => 10.80
+	    [price_end_time] => 1439082789000
+	    [price_start_time] => 1406941989000
+	    [price_wap] => 10.80
+	    [price_wap_end_time] => 1439082789000
+	    [price_wap_start_time] => 1406941989000
+	    [promoted_service] => 2,4
+	    [reserve_price] => 19.80
+	    [title] => 渝美人豆干散装豆干500g重庆特产豆腐干独立小包装 零食品好巴适
+	    [tk_rate] => 250
+	)
+	 */
+	//使用百川接口获取商品详情，用于判断商品下架
+	function getItemTaeDetail($iid){
+
+		if(!$iid)return;
+		$key = 'taobao:tae:item:detail:'.$iid;
+		$cache = D('cache')->get($key);
+		if($cache)return D('cache')->ret($cache);
+
+		I('api/taobao/top/TopClient');
+		I('api/taobao/top/request/TaeItemConvertRequest.php');
+
+		//应用APP的appkey和appsecret
+		$appkey="23057292";
+		$appsecret="1aac28735976d1797259f9b828ba6813";
+		//实例化TopClient类，注意，这里的new TopClient没有括号()。
+		$topC = new \TopClient;
+		$topC->appkey = $appkey;
+		$topC->secretKey = $appsecret;
+
+		$req = new \TaeItemConvertRequest;
+		$req->setFields("num,title,price,promoted_service,nick,location,post_fee,cid,pic_url");
+		$req->setNumIid($iid);
+
+		//执行API请求并打印结果
+		$resp = $topC->execute($req);
+		if(!@$resp->code && @$resp->items){
+			$item_info = object2array($resp->items->x_item[0]);
+			D('cache')->set($key, $item_info, DAY, true);
+			return $item_info;
+		}
+	}
+
+	//商品是否淘客
+	function isTbk($iid){
+		$info = $this->getItemTaeDetail($iid);
+		if($info && $info['istk']=='true'){
+			return true;
+		}
+	}
 }
 ?>

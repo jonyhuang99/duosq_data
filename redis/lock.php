@@ -20,6 +20,8 @@ class Lock extends _Redis {
 	const LOCK_IMPORT_GOODS_ZHE800 = 'import_goods_zhe800';
 	const LOCK_IMPORT_GOODS_MEILISHUO = 'import_goods_meilishuo';
 	const LOCK_GET_TAOBAO_ITEM_DEEP_INFO = 'api_taobao_deep_info';
+	const LOCK_CLEAR_TAOBAO_ITEM_SMALL_IMG = 'clear_taobao_item_small_img';
+	const LOCK_CHECK_TAOBAO_ITEM_VALID = 'check_taobao_item_vaild';
 
 	/**
 	 * 获得一个业务锁
@@ -112,6 +114,12 @@ class Lock extends _Redis {
 				break;
 			case self::LOCK_IMPORT_GOODS_MEILISHUO:
 				$expire = MONTH;
+				break;
+			case self::LOCK_CHECK_TAOBAO_ITEM_VALID:
+				$expire = DAY;
+				break;
+			case self::LOCK_CLEAR_TAOBAO_ITEM_SMALL_IMG:
+				$expire = WEEK;
 				break;
 			default:
 				$expire = 10;
