@@ -244,7 +244,7 @@ class Taobao extends _Api {
 					$tmp[strtotime($date).rand(10,99)] = array('date'=>$date, 'content'=>$comment['content'], 'photos'=>$comment['photos'], 'user'=>$comment['user']['nick']);
 				}
 				krsort($tmp);
-				if($tmp)$server_detail['comment'] = serialize($tmp);
+				if($tmp)$server_detail['comment'] = serialize(array_values($tmp));
 			}
 		}
 		return $server_detail;

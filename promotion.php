@@ -1134,7 +1134,7 @@ class Promotion extends _Dal {
 		$condition_str = 'WHERE '.join(' AND ', $condition_str);
 		$page_start = $show * intval(@$_GET['page']);
 
-		$result = $this->db('promotion.queue_promo2cat')->query("SELECT count(*) nu, sp, goods_id, id, type FROM duosq_promotion.queue_promo2tag {$condition_str} GROUP BY sp,goods_id {$having} ORDER BY id DESC LIMIT {$page_start}, ".($show+3));
+		$result = $this->db('promotion.queue_promo2cat')->query("SELECT count(*) nu, sp, goods_id, id, type FROM duosq_promotion.queue_promo2tag {$condition_str} GROUP BY sp,goods_id {$having} ORDER BY id DESC LIMIT {$page_start}, ".($show+10));
 		$result = clearTableName($result);
 		if(!$result)$result = array();
 
