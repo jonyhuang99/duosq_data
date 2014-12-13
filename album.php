@@ -141,13 +141,13 @@ class Album extends _Dal {
 			if(!$detail['status'])$detail['expire'] = '活动已结束';
 			if(!isset($detail['expire']) && $detail['expire_start'] && $detail['expire_start'] != '0000-00-00 00:00:00'){
 				$diff = timeDiff(strtotime($detail['expire_start']));
-				if($diff != -1){
+				if($diff){
 					$detail['expire'] = '还有'.$diff.'开始';
 				}
 			}
 			if(!isset($detail['expire']) && $detail['expire_end'] && $detail['expire_end'] != '0000-00-00 00:00:00'){
 				$diff = timeDiff(strtotime($detail['expire_end']));
-				if($diff != -1){
+				if($diff){
 					$detail['expire'] = '剩余：'.$diff;
 				}else{
 					$detail['expire'] = '活动已结束';

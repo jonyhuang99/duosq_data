@@ -1096,7 +1096,7 @@ class Promotion extends _Dal {
 	 * @param  integer $maxPages      [description]
 	 * @return [type]                 [description]
 	 */
-	function getTagList($pn, $cat_condition=array(), $show = 3, $exact=true, $price_limit=180) {
+	function getTagList($pn, $cat_condition=array(), $show = 3, $exact=true, $price_limit=200) {
 
 		$key = 'promo:get_tag_list:cond:'.md5(serialize($cat_condition)).':show:'.$show.':page:'.intval(@$_GET['page']);
 		$cache = D('cache')->get($key);
@@ -1134,7 +1134,7 @@ class Promotion extends _Dal {
 		$condition_str = 'WHERE '.join(' AND ', $condition_str);
 		$page_start = $show * intval(@$_GET['page']);
 
-		$result = $this->db('promotion.queue_promo2cat')->query("SELECT count(*) nu, sp, goods_id, id, type FROM duosq_promotion.queue_promo2tag {$condition_str} GROUP BY sp,goods_id {$having} ORDER BY id DESC LIMIT {$page_start}, ".($show+10));
+		$result = $this->db('promotion.queue_promo2cat')->query("SELECT count(*) nu, sp, goods_id, id, type FROM duosq_promotion.queue_promo2tag {$condition_str} GROUP BY sp,goods_id {$having} ORDER BY id DESC LIMIT {$page_start}, {$show}");
 		$result = clearTableName($result);
 		if(!$result)$result = array();
 
