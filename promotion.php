@@ -363,9 +363,11 @@ class Promotion extends _Dal {
 			return false;
 		}
 
+		/*
 		if($fix_now_price = $this->getFixNowPrice($sp, $goods_id)){
 			$detail['price_now'] = $fix_now_price;
 		}
+		*/
 
 		$invalid = false;
 
@@ -1134,7 +1136,7 @@ class Promotion extends _Dal {
 		$condition_str = 'WHERE '.join(' AND ', $condition_str);
 		$page_start = $show * intval(@$_GET['page']);
 
-		$result = $this->db('promotion.queue_promo2cat')->query("SELECT count(*) nu, sp, goods_id, id, type FROM duosq_promotion.queue_promo2tag {$condition_str} GROUP BY sp,goods_id {$having} ORDER BY id DESC LIMIT {$page_start}, {$show}");
+		$result = $this->db('promotion.queue_promo2cat')->query("SELECT count(*) nu, sp, goods_id, id, type FROM duosq_promotion.queue_promo2tag {$condition_str} GROUP BY sp,goods_id {$having} ORDER BY tbk DESC, id DESC LIMIT {$page_start}, {$show}");
 		$result = clearTableName($result);
 		if(!$result)$result = array();
 

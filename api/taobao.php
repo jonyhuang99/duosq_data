@@ -282,7 +282,7 @@ class Taobao extends _Api {
 	)
 	 */
 	//使用百川接口获取商品详情，用于判断商品下架
-	function getItemTaeDetail($iid){
+	function getItemTaeDetail($iid, &$err=false){
 
 		if(!$iid)return;
 		$key = 'taobao:tae:item:detail:'.$iid;
@@ -306,16 +306,22 @@ class Taobao extends _Api {
 
 		//执行API请求并打印结果
 		$resp = $topC->execute($req);
-		if(!@$resp->code && @$resp->items){
-			$item_info = object2array($resp->items->x_item[0]);
-			D('cache')->set($key, $item_info, DAY, true);
-			return $item_info;
+		if(!@$resp->code){
+
+			if(@$resp->items){
+				$item_info = object2array($resp->items->x_item[0]);
+				D('cache')->set($key, $item_info, DAY, true);
+				return $item_info;
+			}
+			$err = false;
+		}else{
+			$err = true;
 		}
 	}
 
 	//商品是否淘客
-	function isTbk($iid){
-		$info = $this->getItemTaeDetail($iid);
+	function isTbk($iid, &$err=false){
+		$info = $this->getItemTaeDetail($iid, $err);
 		if($info && $info['istk']=='true'){
 			return true;
 		}

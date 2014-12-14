@@ -41,6 +41,12 @@ class QueuePromo2tag extends _Db {
 		}
 	}
 
+	//获取待判定是否淘客商品
+	function getTaokeWait($limit = 1000){
+		$goods = $this->findAll(array('tbk'=>0), 'DISTINCT sp,goods_id', '', $limit);
+		return clearTableName($goods);
+	}
+
 	//删除非类别内的特卖排序
 	function deleteNotIn($sp, $goods_id, $not_in_subcat){
 
