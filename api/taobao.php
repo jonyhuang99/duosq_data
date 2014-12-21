@@ -306,8 +306,8 @@ class Taobao extends _Api {
 
 		//执行API请求并打印结果
 		$resp = $topC->execute($req);
-		if(!@$resp->code){
 
+		if(!@$resp->code){
 			if(@$resp->items){
 				$item_info = object2array($resp->items->x_item[0]);
 				D('cache')->set($key, $item_info, DAY, true);
@@ -315,7 +315,7 @@ class Taobao extends _Api {
 			}
 			$err = false;
 		}else{
-			$err = true;
+			$err = object2array($resp);
 		}
 	}
 

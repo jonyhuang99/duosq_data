@@ -528,7 +528,7 @@ class Subscribe extends _Dal {
 	function getWaitPushMessage($condition=array()){
 
 		$this->db('promotion.subscribe_message');
-		$condition['status'] = array(\DB\SubscribeMessage::STATUS_WAIT, \DB\SubscribeMessage::STATUS_FAIL);
+		$condition['status'] = array(\DB\SubscribeMessage::STATUS_WAIT);
 		return $this->db('promotion.subscribe_message')->getList($condition, 500);
 	}
 }
