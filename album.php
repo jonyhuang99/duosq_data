@@ -216,10 +216,10 @@ class Album extends _Dal {
 		}
 
 		if($is_new){
-			$lists = $this->getList(null, $condition, 5); //查找更多
+			$lists = $this->getList(null, $condition, 6); //查找更多
 			shuffle($lists);
 		}else{
-			$lists = $this->getList(null, $condition, 5); //首次加载
+			$lists = $this->getList(null, $condition, 6); //首次加载
 		}
 
 		if($lists){
