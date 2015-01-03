@@ -545,10 +545,10 @@ class Order extends _Dal {
 	 * @param [type] $r_orderid [description]
 	 * @param [type] $buydate   [description]
 	 */
-	function addChUser($o_id, $user_id, $r_orderid, $r_id, $buydate){
+	function addChUser($o_id, $r_orderid, $r_id, $buydate){
 
-		if(!$o_id || !$user_id || !$r_orderid || !$r_id)return;
-		return $this->db('order_chuser')->add(array('o_id'=>$o_id, 'user_id'=>$user_id, 'r_orderid'=>$r_orderid, 'r_id'=>$r_id, 'buydate'=>$buydate));
+		if(!$o_id || !$r_orderid || !$r_id)return;
+		return $this->db('order_chuser')->add(array('o_id'=>$o_id, 'r_orderid'=>$r_orderid, 'r_id'=>$r_id, 'buydate'=>$buydate));
 	}
 
 	/**
@@ -564,25 +564,47 @@ class Order extends _Dal {
 		return $ret;
 	}
 
-	//匹配到指定用户后，删除待变更表信息
-	function delChUser($r_orderid){
+	/**
+	 * 封装增加用户待跟单订单号方法
+	 * @param [type] $user_id   [description]
+	 * @param [type] $taobao_no [description]
+	 */
+	function addWaitTrace($user_id, $r_orderid){
 
-		if(!$r_orderid)return;
-		$detail = $this->db('order_chuser')->find(array('r_orderid'=>$r_orderid));
-		$detail = clearTableName($detail);
-		$user_id = $detail['user_id'];
-		$r_id = $detail['r_id'];
-		$this->db('order_chuser')->query("DELETE FROM order_chuser WHERE r_orderid = '{$r_orderid}'");
-		$this->db('order_chuser')->query("DELETE FROM order_chuser WHERE r_id = '{$r_id}' AND user_id = '{$user_id}'");
-		return true;
+		if(!$user_id || !$r_orderid)return;
+		return D('order')->db('order_wait_trace')->add(array('user_id'=>$user_id, 'r_orderid'=>$r_orderid));
 	}
 
-	//用户明确指定订单不是自己的
-	function notChUser($r_id){
+	/**
+	 * 封装查找用户待跟单订单号方法
+	 * @param [type] $user_id   [description]
+	 * @param [type] $taobao_no [description]
+	 */
+	function getWaitTrace($user_id=null, $r_orderid=null, $limit = 5){
 
-		if(!$r_id)return;
-		$user_id = D('myuser')->getId();
-		return $this->db('order_chuser')->query("UPDATE order_chuser SET not_me=1 WHERE user_id='{$user_id}' AND r_id='{$r_id}'");
+		if($user_id){
+			if($r_orderid){
+				$ret = D('order')->db('order_wait_trace')->findAll(array('user_id'=>$user_id, 'r_orderid'=>$r_orderid));
+				return clearTableName($ret);
+			}else{
+				$ret = D('order')->db('order_wait_trace')->findAll(array('user_id'=>$user_id), '', '', 5);
+				return clearTableName($ret);
+			}
+		}else{
+			$ret = D('order')->db('order_wait_trace')->findAll(array('status'=>0));
+			return clearTableName($ret);
+		}
+	}
+
+	/**
+	 * 封装更新用户待跟单订单号方法
+	 * @param [type] $user_id   [description]
+	 * @param [type] $taobao_no [description]
+	 */
+	function updateWaitTrace($id, $status){
+
+		if(!$id || !$status)return;
+		return D('order')->db('order_wait_trace')->update($id, array('status'=>$status));
 	}
 
 	/**
@@ -591,7 +613,7 @@ class Order extends _Dal {
 	 * @param  bigint $user_id 用户ID
 	 * @return [type]          [description]
 	 */
-	function changeUser($o_id, $user_id){
+	function changeUser($o_id, $user_id, &$err=''){
 
 		if(!$o_id || !$user_id)return false;
 
@@ -600,7 +622,10 @@ class Order extends _Dal {
 		$sub = $main_detail['sub'];
 		$cashtype = $main_detail['cashtype'];
 
-		if(!in_array($sub, array('taobao', 'mall')))return false;
+		if(!in_array($sub, array('taobao', 'mall'))){
+			$err = 'err_sp';
+			return false;
+		}
 		$detail = $this->getSubDetail($sub, $o_id);
 
 		$old_user_id = $detail['user_id'];
@@ -610,8 +635,17 @@ class Order extends _Dal {
 		else
 			$sp = $detail['sp'];
 
-		if($old_user_id == $new_user_id)return false;
+		if($old_user_id == $new_user_id){
+			$err = 'same_user_id';
+			return false;
+		}
 		$has_pay = D('fund')->getOrderBalance($o_id, $cashtype)?1:0;
+
+		//检测订单1.1后的订单
+		if($detail['buydate'] == '0000-00-00' || strtotime($detail['buydate']) < strtotime('2014-12-31')){
+			$err = 'buydate_invalid';
+			return false;
+		}
 
 		$this->db()->begin();
 		try{
@@ -623,18 +657,34 @@ class Order extends _Dal {
 			}
 
 			//更新主、子订单用户ID
+			$ret = $this->db('order')->update($o_id, array('user_id'=>$new_user_id));
 			$ret = $this->updateSub($sub, $o_id, array('user_id'=>$new_user_id), true);
 			if(!$ret)throw new \Exception("sub user_id");
 
-			//如果订单已经结算，则再次进入审核
+			//如果订单已经结算，则再次进入审核，下次提交订单即增加资产
 			if($sub == 'taobao'){
 
 				if($detail['r_status'] == \DB\OrderTaobao::R_STATUS_COMPLETED){
 					$ret = $this->updateStatus($o_id, self::STATUS_WAIT_CONFIRM);
 					if(!$ret)throw new \Exception("main status");
-					$ret = $this->updateSub($sub, $o_id, array('status'=>\DB\OrderTaobao::STATUS_WAIT_CONFIRM), true);
+
+					$order_update = array();
+					$order_update['status'] = \DB\OrderTaobao::STATUS_WAIT_CONFIRM;
+
+					$ret = $this->updateSub($sub, $o_id, $order_update, true);
 					if(!$ret)throw new \Exception("sub status");
 				}
+
+				//加上用户等级修正，补充加上等级后的金额
+				if(D('user')->lvRate($user_id)){
+					$order_update = array();
+					$order_update['fanli_lv_rate'] = D('user')->lvRate($user_id);
+					if($order_update['fanli_lv_rate']){
+						$order_update['fanli'] = ceil($detail['r_yongjin'] * ($detail['fanli_rate']+$detail['fanli_rate']*$order_update['fanli_lv_rate']/100) /100);
+						$ret = $this->updateSub($sub, $o_id, $order_update, true);
+					}
+				}
+
 			}else{
 				if($detail['r_status'] == \DB\OrderMall::R_STATUS_COMPLETED){
 					$ret = $this->updateStatus($o_id, self::STATUS_WAIT_CONFIRM);
@@ -652,9 +702,15 @@ class Order extends _Dal {
 				if($old_taobao_no && in_array($taobao_no, $old_taobao_no)){
 					D('user')->deleteTaobaoNo($old_user_id, $taobao_no);
 				}
-				if(!D('user')->sys($new_user_id)){
-					$ret = D('user')->addTaobaoNo($new_user_id, $taobao_no);
-					if(!$ret)throw new \Exception("taobao no");
+
+				//计算用户taobao_no，并增加taobao_no
+				if(!D('user')->sys($user_id)){
+					D('user')->addTaobaoNo($user_id, $taobao_no);
+					//标识大于4人，加入黑名单需提供证据解锁
+					$user_taobao_no = D('user')->getTaobaoNo($user_id, true);
+					if(count($user_taobao_no) > 4){
+						D('user')->markBlack($user_id, \DAL\User::STATUS_BLACK_2, 'taobao_no');
+					}
 				}
 			}
 
@@ -667,8 +723,6 @@ class Order extends _Dal {
 		//增加订单用户变更日志
 		D('log')->orderChuser($o_id, $old_user_id, $new_user_id, $sp, $main_detail['amount'], $has_pay);
 
-		if(!D('user')->sys($user_id))
-			$this->delChUser($detail['r_orderid']);
 		$this->db()->commit();
 		return true;
 	}
@@ -847,6 +901,17 @@ class Order extends _Dal {
 		}
 
 		return $marked_list;
+	}
+
+	//获取/设置 最后跟单时间
+	function lastTraceTime($sub=null, $time=null){
+
+		if(!$sub)return;
+		if($time){
+			$this->redis('keys')->orderTrace($sub, $time);
+		}else{
+			$this->redis('keys')->orderTrace($sub);
+		}
 	}
 }
 ?>

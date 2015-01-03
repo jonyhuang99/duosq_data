@@ -134,9 +134,9 @@ class Speed extends _Dal {
 	function chUser($mode = 'set'){
 
 		if($mode == 'set'){
-			return $this->redis('speed')->sincr('ch_user:user_id:'.D('myuser')->getId(), DAY, 4);
+			return $this->redis('speed')->sincr('ch_user:user_id:'.D('myuser')->getId(), DAY, 50);
 		}else{
-			return $this->redis('speed')->sget('ch_user:user_id:'.D('myuser')->getId(), DAY, 4);
+			return $this->redis('speed')->sget('ch_user:user_id:'.D('myuser')->getId(), DAY, 50);
 		}
 	}
 
@@ -173,7 +173,7 @@ class Speed extends _Dal {
 	 */
 	function notifiedOrderBack($user_id){
 
-		return $this->redis('speed')->sincr('order_back_notify:user_id:'.$user_id.':day:'.date('d'), DAY, 1);
+		return $this->redis('speed')->sincr('order_back_notify:user_id:'.$user_id.':day:'.date('d'), DAY, 3);
 	}
 
 	/**

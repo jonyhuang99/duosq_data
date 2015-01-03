@@ -31,6 +31,20 @@ class Keys extends _Redis {
 	}
 
 	/**
+	 * 最后跟单时间
+	 * @return [type]             array()
+	 */
+	function orderTrace($sub='', $new_value=''){
+
+		if(!$sub)return;
+		if($new_value){
+			return $this->set('order:'.$sub.':trace:time', $new_value);
+		}else{
+			return $this->get('order:'.$sub.':trace:time');
+		}
+	}
+
+	/**
 	 * 商品分类匹配规则存取
 	 * @param  string $cat    分类
 	 * @param  string $subcat 子分类

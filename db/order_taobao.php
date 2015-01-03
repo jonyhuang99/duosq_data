@@ -83,36 +83,8 @@ class OrderTaobao extends _Db {
 			throw new \Exception("[order_taobao][error][o_id:{$o_id}][update][o_id not exist]");
 		}
 
-		//不允许更新额外返利比例历史
-		unset($new_field['fanli_lv_rate']);
-
-		//用户ID从系统号变化，当主订单状态未打款前，都可以修正
-		//TODO 与chuser统一
-		/*
-		if(isset($new_field['user_id']) && $new_field['user_id']!=$old_detail['user_id'] && ((!D('user')->sys($new_field['user_id']) && D('user')->sys($old_detail['user_id'])) || $force)){
-			//修正主订单用户ID
-			$main_status = D('order')->detail($o_id, 'status');
-			if($main_status != \DAL\Order::STATUS_PASS || $force){
-				$ret = D('order')->db('order')->updateUserid($o_id, $new_field['user_id']);
-				//删除旧的order_no关系
-				D('user')->deleteTaobaoNo($old_detail['user_id'], getTaobaoNo($old_detail['r_orderid']));
-				if(!D('user')->sys($new_field['user_id'])){
-					//给新用户发送通知订单到了
-					D('notify')->addOrderBackJob($o_id);
-				}
-			}else{
-				unset($new_field['user_id']);
-			}
-		}else if(isset($new_field['user_id'])){
-			unset($new_field['user_id']);
-		}
-		*/
-		unset($new_field['user_id']);//7.1不再跟单，新单强制为系统用户，旧单不允许改用户名
-
-		//返利变化，及时更改订单返利，订单审核过了就不能再变
-		//TODO实在是审核后在变化，需要走特殊通道调整
 		if(isset($new_field['fanli'])){
-			if($old_detail['fanli'] != $new_field['fanli'] && ($old_detail['status']!=self::STATUS_PASS && $old_detail['status']!=self::STATUS_INVALID)){
+			if($old_detail['fanli'] != $new_field['fanli'] && $old_detail['status']!=self::STATUS_INVALID){
 				D()->db('order')->updateFanli($o_id, $new_field['fanli']);
 
 				//如果订单已返利，则进行订单资产平衡
@@ -131,7 +103,7 @@ class OrderTaobao extends _Db {
 		}
 
 		//监控佣金比例发生变化
-		if($new_field['r_yongjin_rate'] > 0 && $old_detail['r_yongjin_rate'] != $new_field['r_yongjin_rate']){
+		if(@$new_field['r_yongjin_rate'] > 0 && $old_detail['r_yongjin_rate'] != $new_field['r_yongjin_rate']){
 			D('log')->action(1400, 1, array('data1'=>'taobao', 'data2'=>$o_id, 'data3'=>$old_detail['user_id'], 'data4'=>$old_detail['r_yongjin_rate'], 'data5'=>$new_field['r_yongjin_rate']));
 		}
 

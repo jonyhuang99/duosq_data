@@ -257,18 +257,15 @@ class user extends _Dal {
 		$level = $this->detail($user_id, 'level');
 		if($amount <= 10000){
 			$new = 1;
-		}else if($amount > 10000 && $amount <= 50000){
+		}else if($amount > 100000 && $amount <= 500000){
 			$new = 2;
-		}else if($amount > 50000 && $amount <= 100000){
+		}else if($amount > 500000){
 			$new = 3;
-		}else if($amount > 100000 && $amount <= 200000){
-			$new = 4;
-		}else if($amount > 200000){
-			$new = 5;
 		}
 
-		$this->db('user')->update($user_id, array('level'=>$new));
+		//不减小等级
 		if($new > $level){
+			$this->db('user')->update($user_id, array('level'=>$new));
 			return $new;
 		}
 	}

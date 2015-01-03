@@ -157,6 +157,13 @@ class Alarm extends _Dal {
 		$this->_fireEmail('导入美丽说', array('报告'=>$msg));
 	}
 
+	//会员提交淘宝跟单次数过多
+	function submitTaobaoTrace($msg){
+
+		if(!$msg)return;
+		$this->_fireEmail('提交淘宝跟单次数过多', array('报告'=>$msg));
+	}
+
 	//发出监控报警
 	private function _fireSms($entry_params, $params, $sms_tpl=''){
 

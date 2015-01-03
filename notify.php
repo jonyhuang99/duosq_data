@@ -51,7 +51,7 @@ class Notify extends _Dal {
 		}
 	}
 
-	//添加特卖订阅知会任务
+	//添加多省钱知会任务
 	function addSubscribePushJob($account, $channel, $msg_id){
 
 		if(!$account || !$channel || !$msg_id)return;
