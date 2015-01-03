@@ -37,9 +37,9 @@ class OrderTaobao extends _Dal {
 			}elseif($order['r_yongjin'] >= 1000){
 				$order['fanli_rate'] = $order['fanli_rate'] * (C('comm', 'fanli_taobao_10_rate'));
 			}
-		}
 
-		$order['fanli'] = ceil($order['r_yongjin'] * ($order['fanli_rate']+$order['fanli_rate']*$order['fanli_lv_rate']/100) /100);
+			$order['fanli'] = ceil($order['r_yongjin'] * ($order['fanli_rate'] /100));
+		}
 
 		return $order;
 	}
