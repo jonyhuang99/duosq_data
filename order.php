@@ -904,13 +904,15 @@ class Order extends _Dal {
 	}
 
 	//获取/设置 最后跟单时间
-	function lastTraceTime($sub=null, $time=null){
+	function lastTraceTime($sub, $time=null){
 
 		if(!$sub)return;
 		if($time){
-			$this->redis('keys')->orderTrace($sub, $time);
+			$last = $this->redis('keys')->orderTrace($sub);
+			if($time > $last)
+				$this->redis('keys')->orderTrace($sub, $time);
 		}else{
-			$this->redis('keys')->orderTrace($sub);
+			return $this->redis('keys')->orderTrace($sub);
 		}
 	}
 }

@@ -34,7 +34,7 @@ class Keys extends _Redis {
 	 * 最后跟单时间
 	 * @return [type]             array()
 	 */
-	function orderTrace($sub='', $new_value=''){
+	function orderTrace($sub, $new_value=''){
 
 		if(!$sub)return;
 		if($new_value){
