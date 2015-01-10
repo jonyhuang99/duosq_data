@@ -32,11 +32,12 @@ class OrderTaobao extends _Dal {
 			}
 		}else{
 			//fanli_rate需要根据佣金额度打折
-			if($order['r_yongjin'] >= 1500){
+			if($order['r_yongjin'] >= 3000){
 				$order['fanli_rate'] = C('comm', 'fanli_taobao_5_rate');
-			}elseif($order['r_yongjin'] >= 3000){
+			}elseif($order['r_yongjin'] >= 1500){
 				$order['fanli_rate'] = C('comm', 'fanli_taobao_10_rate');
 			}
+			$order['fanli_lv_rate'] = 0;
 		}
 
 		$order['fanli'] = ceil($order['r_yongjin'] * (($order['fanli_rate'] + rate($order['fanli_rate']*$order['fanli_lv_rate'])) /100));
