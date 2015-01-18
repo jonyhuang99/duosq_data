@@ -167,6 +167,16 @@ class Taobao extends _Api {
 		return $goods;
 	}
 
+	//通过百川获取价格
+	function getItemDetailByTae($iid){
+
+		if(!$iid)return;
+		$detail = file_get_contents('http://budou.wx.jaeapp.com/item.php?iid='.$iid);
+		if(!$detail)return;
+		$detail = json_decode($detail, true);
+		return $detail?$detail:null;
+	}
+
 	//访问淘宝suggest接口
 	function getSuggest($keyword, $limit = 10){
 
