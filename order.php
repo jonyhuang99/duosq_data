@@ -587,7 +587,7 @@ class Order extends _Dal {
 				$ret = D('order')->db('order_wait_trace')->findAll(array('user_id'=>$user_id, 'r_orderid'=>$r_orderid));
 				return clearTableName($ret);
 			}else{
-				$ret = D('order')->db('order_wait_trace')->findAll(array('user_id'=>$user_id), '', '', 5);
+				$ret = D('order')->db('order_wait_trace')->findAll(array('user_id'=>$user_id), '', 'id DESC', 5);
 				return clearTableName($ret);
 			}
 		}else{
