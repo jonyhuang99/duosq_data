@@ -580,14 +580,14 @@ class Order extends _Dal {
 	 * @param [type] $user_id   [description]
 	 * @param [type] $taobao_no [description]
 	 */
-	function getWaitTrace($user_id=null, $r_orderid=null, $limit = 5){
+	function getWaitTrace($user_id=null, $r_orderid=null, $limit = 10){
 
 		if($user_id){
 			if($r_orderid){
 				$ret = D('order')->db('order_wait_trace')->findAll(array('user_id'=>$user_id, 'r_orderid'=>$r_orderid));
 				return clearTableName($ret);
 			}else{
-				$ret = D('order')->db('order_wait_trace')->findAll(array('user_id'=>$user_id), '', 'id DESC', 5);
+				$ret = D('order')->db('order_wait_trace')->findAll(array('user_id'=>$user_id), '', 'id DESC', $limit);
 				return clearTableName($ret);
 			}
 		}else{

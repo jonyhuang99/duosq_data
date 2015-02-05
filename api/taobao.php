@@ -130,7 +130,6 @@ class Taobao extends _Api {
 		preg_match('/jsonp_callback_\d+\(\{"code":"([0-9a-z]+)"\}\)/',$a,$b);
 		if($b[1]!=''){
 			$url='http://g.click.taobao.com/display?cb=jsonp_callback_03655084007659234&pid='.$pid.'&wt=0&ti=7&tl=628x100&rd=1&ct=itemid%3D'.$iid.'&st=2&rf='.$rf.'&et='.$b[1].'&pgid='.$pgid.'&v=2.0';
-			echo $url;die();
 			$a = file_get_contents($url);
 			$a=preg_replace('/jsonp_callback_\d+\(/','',$a);
 			$json=preg_replace('/\)$/','',$a);
