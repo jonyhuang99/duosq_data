@@ -156,6 +156,11 @@ class Myuser extends _Dal {
 		return D('user')->detail($this->getId(), 'msg_valid');
 	}
 
+	//获取用户下单数
+	function getOrder(){
+		return D('user')->detail($this->getId(), 'has_order');
+	}
+
 	//获取用户当前等级
 	function getLevel(){
 		if(!$this->isLogined())return;
