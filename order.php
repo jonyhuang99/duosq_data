@@ -425,10 +425,17 @@ class Order extends _Dal {
 		}else{
 			$status = self::STATUS_WAIT_CONFIRM;
 		}
+
+		//判断用户是否现金白名单，如果是则使用现金
+		$cashtype = self::CASHTYPE_JFB;
+		if(D('user')->getForceCash($user_id)){
+			$cashtype = self::CASHTYPE_CASH;
+		}
+
 		if(@$sub_data['fanli']){//订单一开始提交已处于“已成交”状态
-			$ret = $this->add($user_id, $status, 'taobao', self::CASHTYPE_JFB, self::N_ADD, intval($sub_data['fanli']), $sub_data);
+			$ret = $this->add($user_id, $status, 'taobao', $cashtype, self::N_ADD, intval($sub_data['fanli']), $sub_data);
 		}else{
-			$ret = $this->add($user_id, $status, 'taobao', self::CASHTYPE_JFB, self::N_ZERO, intval($sub_data['fanli']), $sub_data);
+			$ret = $this->add($user_id, $status, 'taobao', $cashtype, self::N_ZERO, intval($sub_data['fanli']), $sub_data);
 		}
 
 		if($ret){

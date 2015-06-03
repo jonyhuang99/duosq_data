@@ -60,8 +60,16 @@ class user extends _Dal {
 
 	//支付宝到用户ID的转换
 	function Alipay2userid($alipay){
-		if($alipay)
-			return $this->db('user')->field('id', array('alipay'=>$alipay));
+
+		if(!$alipay)return;
+		return $this->db('user')->field('id', array('alipay'=>$alipay));
+	}
+
+	//获取用户是否强制现金结算
+	function getForceCash($user_id){
+		
+		if(!$user_id)return false;
+		return $this->detail($user_id, 'force_cash');
 	}
 
 	//获取用户昵称
