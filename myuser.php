@@ -213,6 +213,13 @@ class Myuser extends _Dal {
 		}
 	}
 
+	//设置用户强制现金支付标志位
+	function updateForceCash($force = 1){
+
+		if(!$this->isLogined())return;
+		return $this->db('user')->update($this->getId(), array('force_cash'=>$force));
+	}
+
 	//判断用户是否登录
 	function isLogined(){
 		return $this->sess('userinfo.islogined')?true:false;
