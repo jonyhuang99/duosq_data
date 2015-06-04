@@ -331,6 +331,13 @@ class Myuser extends _Dal {
 		$this->db('user')->update($this->getId(), array('lasttime'=>date('Y-m-d H:i:s')));
 	}
 
+	//获取最后登录时间
+	function getLasttime(){
+
+		if(!$this->isLogined())return;
+		return D('user')->detail($this->getId(), 'lasttime');
+	}
+
 	//设置会话订阅邮箱(加密)
 	function setSubscribeEmail($email){
 

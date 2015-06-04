@@ -730,6 +730,8 @@ class Order extends _Dal {
 
 		//增加订单用户变更日志
 		D('log')->orderChuser($o_id, $old_user_id, $new_user_id, $sp, $main_detail['amount'], $has_pay);
+		//标识用户下过订单
+		D('user')->markUserHasOrder($new_user_id);
 
 		$this->db()->commit();
 		return true;
