@@ -53,18 +53,45 @@ class Item extends _Dal {
 		}
 	}
 
+	//从Tae接口读取商品详情
+	function detailTae($iid){
+
+		if(!$iid)return;
+
+		$key = 'taobao:tae:item:detail:iid:'.$iid;
+		$cache = D('cache')->get($key);
+		if($cache){
+			return D('cache')->ret($cache);
+		}
+
+		$tae_detail = D()->api('taobao')->getItemDetailByTae($iid);
+		D('cache')->set($key, $tae_detail, MINUTE*10, true);
+
+		return $tae_detail;
+	}
+
 	//从缓存中判断商品是否天猫商品
 	function isTmall($wangwang){
 
 		if(!$wangwang)return;
-		$log_obj = $this->db('cache_api_item');
-		$cache = $log_obj->find(array('sp' => 'taobao', 'seller' => $wangwang, 'is_tmall'=>1));
-		$cache = clearTableName($cache);
+
+		$key = 'taobao:wangwang:'.md5($wangwang).'is_tmall';
+		$cache = D('cache')->get($key);
 		if($cache){
-			return $cache['is_tmall'];
-		}else{
-			return false;
+			return D('cache')->ret($cache);
 		}
+
+		$log_obj = $this->db('cache_api_item');
+		$hit = $log_obj->find(array('sp' => 'taobao', 'seller' => $wangwang, 'is_tmall'=>1));
+		$hit = clearTableName($hit);
+
+		if($hit){
+			$is_tmall = $cache['is_tmall']?1:0;
+		}else{
+			$is_tmall = 0;
+		}
+
+		D('cache')->set($key, $is_tmall, MINUTE*30, true);
 	}
 
 	//判断指定商品是不是天猫

@@ -7,7 +7,7 @@ class Cache extends _Dal {
 	//获取缓存
 	function get($key){
 
-		if(CACHE_DATA && !@$_REQUEST['DISABLE_DATA_CACHE'] && !isAdmin('super'))
+		if(CACHE_DATA && !@$_REQUEST['DISABLE_DATA_CACHE'])
 			return $this->redis('cache')->getArray($key);
 		else
 			return null;
