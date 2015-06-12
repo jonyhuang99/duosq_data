@@ -234,7 +234,13 @@ class Myuser extends _Dal {
 	//判断用户是否允许赠送新人红包
 	function canGetCashgift(){
 		if(!$this->isLogined())return;
-		return D('user')->detail($this->getId(), 'can_get_cashgift', false);
+		return D('user')->detail($this->getId(), 'can_get_cashgift');
+	}
+
+	//判断用户是否有过订单
+	function hasOrder(){
+		if(!$this->isLogined())return;
+		return D('user')->detail($this->getId(), 'has_order');
 	}
 
 	//判断用户是否黑名单
@@ -257,6 +263,23 @@ class Myuser extends _Dal {
 		}else{
 			$amount = $this->sess('newgift');
 			return $amount;
+		}
+	}
+
+	//存取随机计算的每日抽奖
+	function lottery($amount=0, $gifttype=1, $prize=0, $get=false){
+
+		if(!$get){
+			if($amount){
+				$this->sess('lottery', array('amount'=>$amount, 'gifttype'=>$gifttype, 'prize'=>$prize));
+			}else{
+				$data = $this->sess('lottery');
+				$this->sess('lottery', null);
+				return $data;
+			}
+		}else{
+			$data = $this->sess('lottery');
+			return $data;
 		}
 	}
 

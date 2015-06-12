@@ -20,6 +20,7 @@ class OrderCashgift extends _Db {
 	const GIFTTYPE_TASK = 2; //新人任务送集分宝
 	const GIFTTYPE_QUAN = 3; //省钱圈抢红包
 	const GIFTTYPE_LOTTERY = 4; //每日集分宝抽奖
+	const GIFTTYPE_LOTTERY_CASH = 10; //每日现金抽奖
 	const GIFTTYPE_COND_10 = 5; //条件现金红包10元
 	const GIFTTYPE_COND_20 = 6; //条件现金红包20元
 	const GIFTTYPE_COND_50 = 8; //条件现金红包50元

@@ -212,6 +212,11 @@ class user extends _Dal {
 		return $this->db('user')->update($user_id, array('can_get_cashgift'=>0));
 	}
 
+	//标识用户已领过大红包
+	function markUserCashgiftBig($user_id){
+		return $this->db('user')->update($user_id, array('can_get_cashgift'=>2));
+	}
+
 	//标识用户为黑名单
 	function markBlack($user_id, $status, $reason='reg_acttack'){
 		if(!$status)return;

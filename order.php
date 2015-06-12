@@ -295,10 +295,13 @@ class Order extends _Dal {
 
 		if(!$user_id)return;
 
+		D('order')->db('order_cashgift');
+
 		$new_cashgift_type = array();
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_LUCK;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_TASK;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_LOTTERY;
+		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_LOTTERY_CASH;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_10;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_20;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_50;
@@ -334,6 +337,10 @@ class Order extends _Dal {
 			case \DB\OrderCashgift::GIFTTYPE_LOTTERY:
 			case \DB\OrderCashgift::GIFTTYPE_TASK:
 				$cashtype = self::CASHTYPE_JFB;
+				$status = self::STATUS_PASS;
+				break;
+			case \DB\OrderCashgift::GIFTTYPE_LOTTERY_CASH:
+				$cashtype = self::CASHTYPE_CASH;
 				$status = self::STATUS_PASS;
 				break;
 			case \DB\OrderCashgift::GIFTTYPE_QUAN:
