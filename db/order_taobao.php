@@ -159,6 +159,10 @@ class OrderTaobao extends _Db {
 				throw new \Exception("[order_taobao][error][o_id:{$o_id}][m_order][update status]");
 			}
 
+			//加入待打款现金用户列表
+			if($m_order['n']>0 && $m_order['cashtype'] == \DAL\Order::CASHTYPE_CASH)
+				D('pay')->addWaitPaycash($m_order['user_id'], '购物返钱', $m_order['amount']);
+
 			//根据优惠券，翻倍返利，或者免单
 			$coupon_detail = D('coupon')->isUsed($o_id, 'detail');
 			if($coupon_detail){

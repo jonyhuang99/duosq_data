@@ -337,5 +337,60 @@ class Taobao extends _Api {
 			return true;
 		}
 	}
+
+	//获取返利订单
+	/*
+        (
+            [app_key] => 
+            [category_id] => 50158001
+            [category_name] => 网络店铺代金/优惠券
+            [commission] => 0.5
+            [commission_rate] => 0.5
+            [create_time] => 2015-06-24 23:55:42
+            [item_num] => 1
+            [item_title] => 官方商城 面值1元内部用
+            [num_iid] => 17757749849
+            [outer_code] => 123
+            [pay_price] => 1.0
+            [pay_time] => 2015-06-25 01:20:25
+            [real_pay_fee] => 1.0
+            [seller_nick] => bluecone
+            [shop_title] => 多省钱
+            [trade_id] => 1097149134021457
+        )
+	*/
+	function getOrders($start_time='', &$err=false) {
+
+		I('api/taobao/top/TopClient');
+		I('api/taobao/top/request/TaobaokeRebateReportGetRequest.php');
+		//实例化TopClient类
+		$client = new \TopClient;
+
+		$key = C('keys', 'taobao_api_appkey_main');
+		$client->appkey = $key[0]['key'];
+		$client->secretKey = $key[0]['secret'];
+		
+		$client->format = 'json';
+		$req = new \TaobaokeRebateReportGetRequest;
+		$req->setFields("app_key,outer_code,trade_id,pay_time,create_time,pay_price,num_iid,item_title,item_num,category_id,category_name,shop_title,commission_rate,commission,iid,seller_nick,real_pay_fee");
+		
+		if($start_time){
+			$req->setStartTime($start_time);
+		}else{
+			$req->setStartTime(date('Y-m-d H:i:s', time()-HOUR*2));
+		}
+		
+		$req->setPageNo(1);
+		$req->setSpan(600);
+		$resp = $client->execute($req);
+		
+		if(!@$resp->code && isset($resp->taobaoke_payments)){
+			$info = object2array($resp->taobaoke_payments->taobaoke_payment);
+			return $info;
+			$err = false;
+		}else{
+			$err = object2array($resp);
+		}
+	}
 }
 ?>
