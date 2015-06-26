@@ -220,6 +220,13 @@ class Myuser extends _Dal {
 		return $this->db('user')->update($this->getId(), array('force_cash'=>$force));
 	}
 
+	//判断用户是否已现金支付
+	function isForceCash(){
+
+		if(!$this->isLogined())return;
+		return $this->db('user')->detail($this->getId(), 'force_cash');
+	}
+
 	//判断用户是否登录
 	function isLogined(){
 		return $this->sess('userinfo.islogined')?true:false;
