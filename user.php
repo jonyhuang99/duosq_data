@@ -213,8 +213,11 @@ class user extends _Dal {
 	}
 
 	//标识用户已领过大红包
-	function markUserCashgiftBig($user_id){
-		return $this->db('user')->update($user_id, array('can_get_cashgift'=>2));
+	function incrUserCashgiftBig($user_id){
+
+		$count = $this->detail($user_id, 'can_get_cashgift') + 1;
+		if($count == 1) $count = 0;
+		return $this->db('user')->update($user_id, array('can_get_cashgift'=>$count));
 	}
 
 	//标识用户为黑名单
