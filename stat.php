@@ -21,5 +21,26 @@ class Stat extends _Dal {
 
 		return $this->redis('counter')->ipcount($tag, date('Ymd'));
 	}
+
+	//随机跳转计数
+	function canJumpRand($tag){
+
+		if(!$tag)return false;
+		$uid = D('myuser')->getId();
+		if($uid){
+			$tag = 'jump_rand:user_id:'.$uid.':tag:'.$tag;	
+		}else{
+			return false;
+		}
+		
+		$counter = $this->redis('counter')->sget($tag);
+		if($counter){
+			return false;
+		}else{
+			//一周内不重复跳
+			$this->redis('counter')->sincr($tag, WEEK);
+			return true;
+		}
+	}
 }
 ?>
