@@ -37,8 +37,8 @@ class Stat extends _Dal {
 		if($counter){
 			return false;
 		}else{
-			//一周内不重复跳
-			$this->redis('counter')->sincr($tag, WEEK);
+			//10天内不重复跳
+			$this->redis('counter')->sincr($tag, DAY*10);
 			return true;
 		}
 	}
