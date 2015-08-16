@@ -163,7 +163,7 @@ class Order extends _Dal {
 			return;
 		}
 
-		if($n && !$amount){ //允许插入平账订单
+		if($n && $amount <= 0){ //允许插入平账订单
 			return;
 		}
 

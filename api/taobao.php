@@ -372,7 +372,7 @@ class Taobao extends _Api {
 		
 		$client->format = 'json';
 		$req = new \TaobaokeRebateReportGetRequest;
-		$req->setFields("app_key,outer_code,trade_id,pay_time,create_time,pay_price,num_iid,item_title,item_num,category_id,category_name,shop_title,commission_rate,commission,iid,seller_nick,real_pay_fee");
+		$req->setFields("app_key,outer_code,trade_id,trade_parent_id,pay_time,create_time,pay_price,num_iid,item_title,item_num,category_id,category_name,shop_title,commission_rate,commission,iid,seller_nick,real_pay_fee");
 		
 		if($start_time){
 			$req->setStartTime($start_time);
@@ -381,12 +381,41 @@ class Taobao extends _Api {
 		}
 		
 		$req->setPageNo(1);
+		$req->setPageSize(100);
 		$req->setSpan(600);
 		$resp = $client->execute($req);
 		
 		if(!@$resp->code && isset($resp->taobaoke_payments)){
 			$info = object2array($resp->taobaoke_payments->taobaoke_payment);
 			return $info;
+			$err = false;
+		}else{
+			$err = object2array($resp);
+		}
+	}
+
+	//根据关键词，搜索淘客商品
+	function searchItem($keyword, &$err=false) {
+
+		I('api/taobao/top/TopClient');
+		I('api/taobao/top/request/TbkItemsGetRequest.php');
+		//实例化TopClient类
+		$client = new \TopClient;
+
+		$key = C('keys', 'taobao_api_appkey_main');
+		$client->appkey = $key[0]['key'];
+		$client->secretKey = $key[0]['secret'];
+		
+		$client->format = 'json';
+		$req = new \TbkItemsGetRequest;
+		$req->setFields("num_iid,title,pict_url,small_images,reserve_price,zk_final_price,user_type,provcity,item_url");
+		$req->setKeyword($keyword);
+		$req->setSort('total_sales_des');
+		$resp = $client->execute($req);
+		
+		if(!@$resp->code && isset($resp->tbk_items)){
+			$info = object2array($resp->tbk_items);
+			return $info['tbk_item'];
 			$err = false;
 		}else{
 			$err = object2array($resp);
