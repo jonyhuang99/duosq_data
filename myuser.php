@@ -224,7 +224,7 @@ class Myuser extends _Dal {
 	function isForceCash(){
 
 		if(!$this->isLogined())return;
-		return $this->db('user')->detail($this->getId(), 'force_cash');
+		return D('user')->detail($this->getId(), 'force_cash');
 	}
 
 	//判断用户是否登录
@@ -337,6 +337,31 @@ class Myuser extends _Dal {
 
 		if(!$this->isLogined())return;
 		return D('cashgift')->getSummary($this->getId(), $status);
+	}
+
+	//获取当前用户抽奖等级
+	function getLotteryLevel(){
+		
+		if(!$this->isLogined())return 1;
+
+		$shopping_balance = D('fund')->getShoppingBalance($this->getId());
+		if($shopping_balance < 10000){
+			$level = 1;
+		}else if($shopping_balance >= 10000 && $shopping_balance < 30000){
+			$level = 2;
+		}else if($shopping_balance >= 30000 && $shopping_balance < 60000){
+			$level = 3;
+		}else if($shopping_balance >= 60000 && $shopping_balance < 10000){
+			$level = 4;
+		}else if($shopping_balance >= 100000 && $shopping_balance < 150000){
+			$level = 5;
+		}else if($shopping_balance >= 150000 && $shopping_balance < 200000){
+			$level = 6;
+		}else if($shopping_balance >2000000){
+			$level = 7;
+		}
+
+		return $level;
 	}
 
 	//标记打开小金库的时间

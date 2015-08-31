@@ -21,6 +21,7 @@ class OrderCashgift extends _Db {
 	const GIFTTYPE_QUAN = 3; //省钱圈抢红包
 	const GIFTTYPE_LOTTERY = 4; //每日集分宝抽奖
 	const GIFTTYPE_LOTTERY_CASH = 10; //每日现金抽奖
+	const GIFTTYPE_YUNGOU_SIGN = 11; //每日云购签到
 	const GIFTTYPE_COND_10 = 5; //条件现金红包10元
 	const GIFTTYPE_COND_20 = 6; //条件现金红包20元
 	const GIFTTYPE_COND_50 = 8; //条件现金红包50元
@@ -130,7 +131,7 @@ class OrderCashgift extends _Db {
 
 			//加入待打款现金用户列表
 			$amount = D('order')->detail($o_id, 'amount');
-			if($m_order['n']>0)
+			if($m_order['n']>0 && $m_order['cashtype'] == \DAL\Order::CASHTYPE_CASH)
 				D('pay')->addWaitPaycash($m_order['user_id'], '现金红包', $amount);
 
 			return true;

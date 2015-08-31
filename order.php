@@ -11,6 +11,7 @@ class Order extends _Dal {
 
 	const CASHTYPE_JFB = 1; //资金类型：集分宝
 	const CASHTYPE_CASH = 2; //资金类型：现金
+	const CASHTYPE_BAO = 3; //资金类型：宝币
 
 	const N_ADD = 1; //增加资产
 	const N_REDUCE = -1; //减少资产
@@ -167,7 +168,7 @@ class Order extends _Dal {
 			return;
 		}
 
-		if($cashtype != self::CASHTYPE_JFB && $cashtype != self::CASHTYPE_CASH){
+		if($cashtype != self::CASHTYPE_JFB && $cashtype != self::CASHTYPE_CASH && $cashtype != self::CASHTYPE_BAO){
 			return;
 		}
 
@@ -300,6 +301,7 @@ class Order extends _Dal {
 		$new_cashgift_type = array();
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_LUCK;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_TASK;
+		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_YUNGOU_SIGN;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_LOTTERY;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_LOTTERY_CASH;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_10;
@@ -345,6 +347,10 @@ class Order extends _Dal {
 				break;
 			case \DB\OrderCashgift::GIFTTYPE_QUAN:
 				$cashtype = self::CASHTYPE_CASH;
+				$status = self::STATUS_PASS;
+				break;
+			case \DB\OrderCashgift::GIFTTYPE_YUNGOU_SIGN:
+				$cashtype = self::CASHTYPE_BAO;
 				$status = self::STATUS_PASS;
 				break;
 		}
@@ -489,6 +495,24 @@ class Order extends _Dal {
 
 		if(!$user_id || !$sub_data)return;
 		$ret = D('order')->add($user_id, self::STATUS_PASS, 'reduce', $sub_data['cashtype'], self::N_REDUCE, $sub_data['amount'], $sub_data);
+
+		return $ret;
+	}
+
+	/**
+	 * 封装云购下注订单便捷方法
+	 * @param bigint  $user_id  用户ID
+	 * @param array   $sub_data 下注订单数据
+	 */
+	function addYungou($user_id, $sub_data){
+
+		if(!$user_id || !$sub_data || !$sub_data['yungou_id'] || !$sub_data['amount'])return;
+
+		$total = $this->db('order_yungou')->getChipSum($sub_data['yungou_id']);
+		$sub_data['number_begin'] = $total+1;
+		$sub_data['number_end'] = $sub_data['number_begin']+$sub_data['amount']-1;
+		
+		$ret = D('order')->add($user_id, self::STATUS_PASS, 'yungou', self::CASHTYPE_BAO, self::N_REDUCE, $sub_data['amount'], $sub_data);
 
 		return $ret;
 	}
@@ -855,6 +879,9 @@ class Order extends _Dal {
 					break;
 				case 'sign':
 					$v['sub_display'] = '每日签到奖励集分宝';
+					break;
+				case 'yungou':
+					$v['sub_display'] = '0元夺宝下注：' . D('yungou')->detail($v['sub_detail']['yungou_id'] , 'title');
 					break;
 				case 'advtask':
 					$options = C('options', 'advtask_type');

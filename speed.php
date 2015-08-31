@@ -134,9 +134,9 @@ class Speed extends _Dal {
 	function chUser($mode = 'set'){
 
 		if($mode == 'set'){
-			return $this->redis('speed')->sincr('ch_user:user_id:'.D('myuser')->getId(), DAY, 50);
+			return $this->redis('speed')->sincr('ch_user:user_id:'.D('myuser')->getId(), DAY, 100);
 		}else{
-			return $this->redis('speed')->sget('ch_user:user_id:'.D('myuser')->getId(), DAY, 50);
+			return $this->redis('speed')->sget('ch_user:user_id:'.D('myuser')->getId(), DAY, 100);
 		}
 	}
 

@@ -6,6 +6,7 @@ class Fund extends _Dal {
 
 	const CASHTYPE_JFB = 1; //资金类型：集分宝
 	const CASHTYPE_CASH = 2; //资金类型：现金
+	const CASHTYPE_BAO = 3; //资金类型：宝币
 
 	const N_ADD = 1; //增加资产
 	const N_REDUCE = -1; //减少资产
@@ -24,7 +25,7 @@ class Fund extends _Dal {
 		//TODO model底层加入group方法，直接返回计算好的数据
 		//TODO 做资产锁，防止同时增减资产
 		if(!$user_id)return;
-		if($cashtype && ($cashtype != self::CASHTYPE_JFB && $cashtype != self::CASHTYPE_CASH))return;
+		if($cashtype && ($cashtype != self::CASHTYPE_JFB && $cashtype != self::CASHTYPE_CASH && $cashtype != self::CASHTYPE_BAO))return;
 
 		$fund_logs = $this->db('fund')->findAll(arrayClean(array('user_id'=>$user_id, 'cashtype'=>$cashtype, 'sub'=>$sub)));
 
@@ -33,17 +34,17 @@ class Fund extends _Dal {
 			$fund_logs = clearTableName($fund_logs);
 			foreach($fund_logs as $fund){
 				if($fund['n']==-1){
-					$ret[$fund['cashtype']] -= $fund['amount'];
+					@$ret[$fund['cashtype']] -= $fund['amount'];
 				}
 
 				if($fund['n']==1){
-					$ret[$fund['cashtype']] += $fund['amount'];
+					@$ret[$fund['cashtype']] += $fund['amount'];
 				}
 			}
 		}
 
 		if($cashtype){
-			return $ret[$cashtype];
+			return $ret[$cashtype]?$ret[$cashtype]:0;
 		}
 		return $ret;
 	}
