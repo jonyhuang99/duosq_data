@@ -339,25 +339,28 @@ class Myuser extends _Dal {
 		return D('cashgift')->getSummary($this->getId(), $status);
 	}
 
-	//获取当前用户抽奖等级
+	//获取当前用户抽奖等级(3个月内购物)
 	function getLotteryLevel(){
 		
 		if(!$this->isLogined())return 1;
 
-		$shopping_balance = D('fund')->getShoppingBalance($this->getId());
+		$shopping_balance = D('fund')->getShoppingBalance($this->getId(), date('Y-m-d', time()-MONTH*3));
+
+		$level = 1;
+
 		if($shopping_balance < 10000){
 			$level = 1;
 		}else if($shopping_balance >= 10000 && $shopping_balance < 30000){
 			$level = 2;
 		}else if($shopping_balance >= 30000 && $shopping_balance < 60000){
 			$level = 3;
-		}else if($shopping_balance >= 60000 && $shopping_balance < 10000){
+		}else if($shopping_balance >= 60000 && $shopping_balance < 100000){
 			$level = 4;
 		}else if($shopping_balance >= 100000 && $shopping_balance < 150000){
 			$level = 5;
 		}else if($shopping_balance >= 150000 && $shopping_balance < 200000){
 			$level = 6;
-		}else if($shopping_balance >2000000){
+		}else if($shopping_balance >=2000000){
 			$level = 7;
 		}
 

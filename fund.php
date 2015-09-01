@@ -20,14 +20,18 @@ class Fund extends _Dal {
 	 * @param  boolean $lock     是否锁定资产，如果是，使用完需及时解锁
 	 * @return array             资产详情
 	 */
-	function getBalance($user_id, $cashtype='', $sub='', $lock=false){
+	function getBalance($user_id, $cashtype='', $sub='', $date_range='', $lock=false){
 
 		//TODO model底层加入group方法，直接返回计算好的数据
 		//TODO 做资产锁，防止同时增减资产
 		if(!$user_id)return;
 		if($cashtype && ($cashtype != self::CASHTYPE_JFB && $cashtype != self::CASHTYPE_CASH && $cashtype != self::CASHTYPE_BAO))return;
 
-		$fund_logs = $this->db('fund')->findAll(arrayClean(array('user_id'=>$user_id, 'cashtype'=>$cashtype, 'sub'=>$sub)));
+		if($date_range){
+			$fund_logs = $this->db('fund')->findAll(arrayClean(array('user_id'=>$user_id, 'cashtype'=>$cashtype, 'sub'=>$sub, 'createdate'=>"> {$date_range}")));	
+		}else{
+			$fund_logs = $this->db('fund')->findAll(arrayClean(array('user_id'=>$user_id, 'cashtype'=>$cashtype, 'sub'=>$sub)));
+		}
 
 		$ret = array(self::CASHTYPE_JFB=>0, self::CASHTYPE_CASH=>0);
 		if($fund_logs){
@@ -54,16 +58,20 @@ class Fund extends _Dal {
 	 * @param  bigint $user_id  用户ID
 	 * @return bigint           金额(单位:分)
 	 */
-	function getShoppingBalance($user_id){
+	function getShoppingBalance($user_id, $date_range=''){
 
 		if(!$user_id)return false;
 
 		//获取购物资产
-		$balance = $this->getBalance($user_id, '', array('mall', 'taobao'));
+		$balance = $this->getBalance($user_id, '', array('mall', 'taobao'), $date_range);
 
 		//减去购物订单无效扣款
 		D()->db('order_reduce');
-		$reduce_orders = D('order')->getSubList('reduce', array('user_id'=>$user_id, 'type'=>\DB\OrderReduce::TYPE_ORDER), '', '');
+		if($date_range){
+			$reduce_orders = D('order')->getSubList('reduce', array('user_id'=>$user_id, 'type'=>\DB\OrderReduce::TYPE_ORDER, 'createdate'=>"> {$date_range}"), '', '');
+		}else{
+			$reduce_orders = D('order')->getSubList('reduce', array('user_id'=>$user_id, 'type'=>\DB\OrderReduce::TYPE_ORDER), '', '');
+		}
 
 		$reduce_balance = array(self::CASHTYPE_JFB=>0, self::CASHTYPE_CASH=>0);
 		if($reduce_orders){
@@ -245,7 +253,7 @@ class Fund extends _Dal {
 			$is_show = 0;
 		}
 
-		$max = $this->getBalance($user_id, $param['cashtype'], '', true);
+		$max = $this->getBalance($user_id, $param['cashtype'], '', '', true);
 
 		if($max === false){
 			$errcode = _e('balance_locked');
