@@ -414,7 +414,7 @@ class Order extends _Dal {
 		}
 
 		//TODO 不允许重复增加新人礼包
-		$ret = $this->add($user_id, $status, 'cashgift', $cashtype, self::N_ADD, $amount, array('gifttype'=>$gifttype, 'refer_o_id'=>$refer_o_id, 'review_reason'=>$review_reason));
+		$ret = $this->add($user_id, $status, 'cashgift', $cashtype, self::N_ADD, $amount, array('gifttype'=>$gifttype, 'refer_o_id'=>$refer_o_id, 'review_reason'=>$review_reason, 'amount'=>$amount));
 		if($ret){
 			$ret_true = array();
 			$ret_true['amount'] = $amount;

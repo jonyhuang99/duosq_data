@@ -98,7 +98,7 @@ class Edm extends _Dal {
 		$serial_fields = array('setting_albumcat', 'setting_clothes_style_girl', 'setting_clothes_style_boy', 'setting_clothes_size_girl', 'setting_shoes_size_girl', 'setting_clothes_size_boy', 'setting_shoes_size_boy');
 
 		foreach($serial_fields as $f){
-			if($detail[$f])
+			if(@$detail[$f])
 				$detail[$f] = arrayClean(explode(',', $detail[$f]));
 			else
 				$detail[$f] = array();
@@ -128,6 +128,34 @@ class Edm extends _Dal {
 	function delSentId($account, $channel, $edm_id){
 		if(!$account|| !$channel || !$edm_id)return;
 		return $this->redis('edm')->delSentId($account, $channel, $edm_id);
+	}
+
+	//获取所有用户数
+	function getAllMemberNum($candition=array()){
+
+		return $this->db('edm_list')->findCount($candition);
+	}
+
+	//获取所有用户
+	function getAllMembers($limit=1000, $page=1, $candition=array()){
+
+		$ret = $this->db('edm_list')->findAll($candition, '', 'id ASC', $limit, $page);
+		return clearTableName($ret);
+	}
+
+	//更新Email发送次数
+	function incrTimes($email){
+
+		if(!$email)return;
+		$times = $this->db('edm_list')->field('times', array('email'=>$email));
+		$ret = $this->db('edm_list')->update($email, array('times'=>$times+1));
+		return $ret;
+	}
+
+	//查询邮箱是否黑名单
+	function isBlack($email){
+
+		return $this->db('edm_black')->find(array('email'=>$email));
 	}
 }
 ?>
