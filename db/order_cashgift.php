@@ -21,11 +21,12 @@ class OrderCashgift extends _Db {
 	const GIFTTYPE_QUAN = 3; //省钱圈抢红包
 	const GIFTTYPE_LOTTERY = 4; //每日集分宝抽奖
 	const GIFTTYPE_LOTTERY_CASH = 10; //每日现金抽奖
-	const GIFTTYPE_YUNGOU_SIGN = 11; //每日云购签到
 	const GIFTTYPE_COND_10 = 5; //条件现金红包10元
 	const GIFTTYPE_COND_20 = 6; //条件现金红包20元
 	const GIFTTYPE_COND_50 = 8; //条件现金红包50元
 	const GIFTTYPE_COND_100 = 9; //条件现金红包100元
+	const GIFTTYPE_YUNGOU_SIGN = 11; //每日云购签到
+	const GIFTTYPE_YUNGOU_SHOPPING = 12; //购物送云购
 
 	/**
 	 * 新增用户红包子订单

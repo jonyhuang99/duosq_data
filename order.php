@@ -301,13 +301,14 @@ class Order extends _Dal {
 		$new_cashgift_type = array();
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_LUCK;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_TASK;
-		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_YUNGOU_SIGN;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_LOTTERY;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_LOTTERY_CASH;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_10;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_20;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_50;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_100;
+		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_YUNGOU_SIGN;
+		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_YUNGOU_SHOPPING;
 
 		$all_cashgift_type = $new_cashgift_type;
 		$all_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_QUAN;
@@ -350,6 +351,7 @@ class Order extends _Dal {
 				$status = self::STATUS_PASS;
 				break;
 			case \DB\OrderCashgift::GIFTTYPE_YUNGOU_SIGN:
+			case \DB\OrderCashgift::GIFTTYPE_YUNGOU_SHOPPING:
 				$cashtype = self::CASHTYPE_BAO;
 				$status = self::STATUS_PASS;
 				break;
@@ -780,6 +782,13 @@ class Order extends _Dal {
 
 		D('cache')->set($key, $recent_orders, MINUTE);
 		return $recent_orders;
+	}
+
+	//检查是否奖励过宝币
+	function checkRewardedBaoBi($o_id){
+
+		if(!$o_id)return false;
+		return $this->db('order_cashgift')->find(array('refer_o_id'=>$o_id));
 	}
 
 	/**
