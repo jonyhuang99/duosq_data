@@ -177,6 +177,12 @@ class Myuser extends _Dal {
 		return $this->sess('userinfo.sc_risk');
 	}
 
+	//获取用户来源标识
+	function getMarkSc(){
+
+		return isset($_GET['from']) ? isset($_GET['from']) : $this->sess('userinfo.mark_sc');
+	}
+
 	//获取用户来源标识ID
 	function getMarkId(){
 		return $this->sess('userinfo.mark_id');
