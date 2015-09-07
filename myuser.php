@@ -180,7 +180,7 @@ class Myuser extends _Dal {
 	//获取用户来源标识
 	function getMarkSc(){
 
-		return isset($_GET['from']) ? isset($_GET['from']) : $this->sess('userinfo.mark_sc');
+		return isset($_GET['from']) ? $_GET['from'] : $this->sess('userinfo.mark_sc');
 	}
 
 	//获取用户来源标识ID
