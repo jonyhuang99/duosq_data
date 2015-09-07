@@ -286,6 +286,14 @@ class user extends _Dal {
 		}
 	}
 
+	//切换强制现金结算标志位
+	function updateForceCash($user_id, $force=true){
+		if($force)
+			return $this->db('user')->update($user_id, array('force_cash'=>1));
+		else
+			return $this->db('user')->update($user_id, array('force_cash'=>0));
+	}
+
 	//带上等级比例奖励
 	function lvRate($user_id){
 

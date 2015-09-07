@@ -250,6 +250,12 @@ class Myuser extends _Dal {
 		return D('user')->detail($this->getId(), 'can_get_cashgift');
 	}
 
+	//判断用户是否允许切换结算模式
+	function canSwitchCash(){
+		if(!$this->isLogined())return;
+		return D('user')->detail($this->getId(), 'can_switch_cash');
+	}
+
 	//判断用户是否有过订单
 	function hasOrder(){
 		if(!$this->isLogined())return;
