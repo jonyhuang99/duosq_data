@@ -157,5 +157,16 @@ class Edm extends _Dal {
 
 		return $this->db('edm_black')->find(array('email'=>$email));
 	}
+
+	//更新邮箱为黑名单
+	function setBlack($email, $reason = 2){
+
+		$exist = $this->db('edm_black')->find(array('email'=>$email));
+		if($exist){
+			return $this->db('edm_black')->update($email, array('reason'=>$reason));
+		}else{
+			return $this->db('edm_black')->add(array('email'=>$email, 'reason'=>$reason));
+		}
+	}
 }
 ?>
