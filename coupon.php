@@ -47,9 +47,9 @@ class Coupon extends _Dal {
 
 			if(!$this->lock_id){
 				//没能抢到锁，但作为特例允许，抢到的数额不计入今日数额，这将导致可能新人今日可以抢2张
-				$ret = $this->db('coupon')->add(array('type'=>$type, 'user_id'=>$user_id, 'createdate'=>date('Y-m-d', time()-DAY), 'expiredate'=>date('Y-m-d', time()+DAY*30)));
+				$ret = $this->add($type, $user_id, date('Y-m-d', time()-DAY), date('Y-m-d', time()+DAY*30));
 			}else{
-				$ret = $this->db('coupon')->add(array('type'=>$type, 'user_id'=>$user_id, 'expiredate'=>date('Y-m-d', time()+DAY*30)));
+				$ret = $this->add($type, $user_id, date('Y-m-d', time()+DAY*30));
 			}
 			$this->unlock($user_id);
 			if(!$ret){
@@ -64,6 +64,14 @@ class Coupon extends _Dal {
 			$this->unlock($user_id);
 			return false;
 		}
+	}
+
+	//给一个会员增加一张优惠券
+	function add($type, $user_id, $expire=null){
+
+		if(!$type || !$user_id)return;
+		if(!$expire)$expire = date('Y-m-d', time()+DAY*30);
+		return $this->db('coupon')->add(array('type'=>$type, 'user_id'=>$user_id, 'expiredate'=>$expire));
 	}
 
 	//使用优惠券

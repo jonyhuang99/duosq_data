@@ -15,6 +15,7 @@ class SubscribeTaskEdm extends _Db {
 	const TARGET_SUBSCRIBE_GLOBAL = 2; //所有订户
 	const TARGET_DUOSQ_GLOBAL = 3; //duosq用户
 	const TARGET_DUOSQ_EDM_GLOBAL = 4; //duosq edm库用户
+	const TARGET_DUOSQ_LEAVE_GLOBAL = 5; //duosq 流失用户
 
 	var $validate = array(
 							'subject'=>VALID_NOT_EMPTY,

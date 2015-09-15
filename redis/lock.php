@@ -23,6 +23,8 @@ class Lock extends _Redis {
 	const LOCK_GET_TAOBAO_ITEM_DEEP_INFO = 'api_taobao_deep_info';
 	const LOCK_CLEAR_TAOBAO_ITEM_SMALL_IMG = 'clear_taobao_item_small_img';
 	const LOCK_CHECK_TAOBAO_ITEM_VALID = 'check_taobao_item_vaild';
+	const LOCK_LEAVE_REWARD_PKG = 'leave_reward_pkg';
+	const LOCK_LEAVE_REWARD_PKG_2WEEK = 'leave_reward_pkg_2week';
 
 	/**
 	 * 获得一个业务锁
@@ -122,6 +124,12 @@ class Lock extends _Redis {
 				break;
 			case self::LOCK_CLEAR_TAOBAO_ITEM_SMALL_IMG:
 				$expire = WEEK;
+				break;
+			case self::LOCK_LEAVE_REWARD_PKG:
+				$expire = YEAR*2;
+				break;
+			case self::LOCK_LEAVE_REWARD_PKG_2WEEK:
+				$expire = WEEK*2;
 				break;
 			default:
 				$expire = 10;
