@@ -48,6 +48,15 @@ class Speed extends _Dal {
 	}
 
 	/**
+	 * 发送邮件速度控制：唤醒老购物用户
+	 * @return bool 是否超过限速
+	 */
+	function emailLeaveWakeUp(){
+
+		return $this->redis('speed')->sincr('email:leave_wake_up:date:'.date('Y-m-d'), HOUR*24, 500);
+	}
+
+	/**
 	 * 注册用户名命中黑名单
 	 * @return [type] [description]
 	 */
