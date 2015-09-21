@@ -83,5 +83,6 @@ class OrderYungou extends _Db {
 		$total = $this->findSum('amount', array('yungou_id'=>$yungou_id) );
 		return intval($total);
 	}
+	
 }
 ?>

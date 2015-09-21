@@ -104,6 +104,18 @@ class Order extends _Dal {
 	}
 
 	/**
+	 * 获取用户子订单总额
+	 * @param  [type] $sub       [description]
+	 * @param  array  $condition [description]
+	 * @param  [type] $field     [description]
+	 * @return [type]            [description]
+	 */
+	function getSubSumAmount($sub, $condition=array()){
+		if(!$sub)return;
+		return $this->db('order_'.$sub)->findSum('amount', arrayClean($condition));
+	}
+
+	/**
 	 * 获取单条子订单详情
 	 * @param  string  $sub    子订单标识
 	 * @param  char    $o_id   订单号
@@ -309,6 +321,7 @@ class Order extends _Dal {
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_COND_100;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_YUNGOU_SIGN;
 		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_YUNGOU_SHOPPING;
+		$new_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_YUNGOU_REWARD;
 
 		$all_cashgift_type = $new_cashgift_type;
 		$all_cashgift_type[] = \DB\OrderCashgift::GIFTTYPE_QUAN;
@@ -343,10 +356,8 @@ class Order extends _Dal {
 				$status = self::STATUS_PASS;
 				break;
 			case \DB\OrderCashgift::GIFTTYPE_LOTTERY_CASH:
-				$cashtype = self::CASHTYPE_CASH;
-				$status = self::STATUS_PASS;
-				break;
 			case \DB\OrderCashgift::GIFTTYPE_QUAN:
+			case \DB\OrderCashgift::GIFTTYPE_YUNGOU_REWARD:
 				$cashtype = self::CASHTYPE_CASH;
 				$status = self::STATUS_PASS;
 				break;
@@ -789,6 +800,14 @@ class Order extends _Dal {
 
 		if(!$o_id)return false;
 		return $this->db('order_cashgift')->find(array('refer_o_id'=>$o_id));
+	}
+
+	//检查是否奖励过宝币
+	function checkCanRewardedBaoBi($o_id){
+
+		if(!$o_id)return false;
+		$status = $this->db('order')->field('status', array('o_id'=>$o_id));
+		if($status == self::STATUS_PASS)return true;
 	}
 
 	/**

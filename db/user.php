@@ -26,7 +26,7 @@ class User extends _Db {
 		$client = getAgent();
 		$utmo = D('track')->get();
 
-		if($_COOKIE['referer'] && strpos($_COOKIE['referer'], 'duosq.com')===false){
+		if(@$_COOKIE['referer'] && strpos($_COOKIE['referer'], 'duosq.com')===false){
 			$referer = $_COOKIE['referer'];
 		}else{
 			$referer = '';

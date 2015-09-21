@@ -27,6 +27,7 @@ class OrderCashgift extends _Db {
 	const GIFTTYPE_COND_100 = 9; //条件现金红包100元
 	const GIFTTYPE_YUNGOU_SIGN = 11; //每日云购签到
 	const GIFTTYPE_YUNGOU_SHOPPING = 12; //购物送云购
+	const GIFTTYPE_YUNGOU_REWARD = 13; //云购中奖
 
 	/**
 	 * 新增用户红包子订单

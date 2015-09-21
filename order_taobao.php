@@ -17,6 +17,7 @@ class OrderTaobao extends _Dal {
 		$order['r_taobao_no'] = $taobao_no;
 		$order['user_id'] = C('comm', 'sysuser_order_taobao_trace_error');
 		$order['fanli_rate'] = C('comm', 'fanli_taobao_rate');
+		if(!$order['r_num'])$order['r_num'] = 1;
 
 		//该订单必须是新增的，此处修正查找同订单，不同商品比例不同导致旧佣金比例错乱
 		$order_existed = D('order')->getSubList('taobao', array('r_orderid'=>$order['r_orderid'], 'r_id'=>$order['r_id']));
@@ -32,9 +33,9 @@ class OrderTaobao extends _Dal {
 			}
 		}else{
 			//fanli_rate需要根据佣金额度打折
-			if($order['r_yongjin'] >= 1000){
+			if($order['r_yongjin']/$order['r_num'] >= 1000){
 				$order['fanli_rate'] = C('comm', 'fanli_taobao_5_rate');
-			}elseif($order['r_yongjin'] >= 500){
+			}elseif($order['r_yongjin']/$order['r_num'] >= 500){
 				$order['fanli_rate'] = C('comm', 'fanli_taobao_10_rate');
 			}
 			$order['fanli_lv_rate'] = 0;

@@ -16,11 +16,26 @@ class Yungou extends _Dal {
 	/**
 	 * 获取有效商品
 	 */
-	function getProduct($limit = 2){
+	function getProduct($limit = 2, $status=''){
 
-		$ret = $this->db('yungou')->findAll(array('status'=>array(\DB\Yungou::STATUS_OPENING, \DB\Yungou::STATUS_SELECTING)), '', '', $limit);
+		$this->db('yungou');
+
+		if(!$status){
+			$status = array(\DB\Yungou::STATUS_OPENING, \DB\Yungou::STATUS_SELECTING);
+		}
+
+		$ret = $this->db('yungou')->findAll(array('status'=>$status), '', '', $limit);
 
 		return clearTableName($ret);
+	}
+
+	/**
+	 * 增加云购商品
+	 * @param [type] $detail [description]
+	 */
+	function addProduct($detail){
+
+		return $this->db('yungou')->add($detail);
 	}
 
 	/**
@@ -72,5 +87,53 @@ class Yungou extends _Dal {
 
 		return $this->db('yungou')->update($yungou_id, array('status'=>$status));
 	}
+
+	/**
+	 * 更新云购用户ID
+	 * @param  int $yungou_id 商品ID
+	 * @param  int $user_id   用户ID
+	 * @return bool
+	 */
+	function updateUserId($yungou_id, $user_id){
+
+		if(!$yungou_id || !$user_id){
+			return ;
+		}
+
+		return $this->db('yungou')->update($yungou_id, array('user_id'=>$user_id));
+	}
+
+	/**
+	 * 根据开奖号码，找到中奖订单
+	 * @param  [type] $yungou_id [description]
+	 * @param  [type] $number    [description]
+	 * @return [type]            [description]
+	 */
+	function findOrderByHitNumber($yungou_id, $hit_number){
+
+		if(!$yungou_id || !$hit_number)return;
+		$order = $this->db('order_yungou')->find(array('yungou_id'=>$yungou_id, 'number_begin'=>"<= {$hit_number}", 'number_end'=>">= {$hit_number}"));
+
+		return clearTableName($order);
+	}
+
+	/**
+	 * 更新中奖订单&非中奖订单
+	 * @param  [type] $yungou_id [description]
+	 * @return [type]            [description]
+	 */
+	function updateOrderByYungouId($yungou_id, $hit_o_id){
+
+		if(!$yungou_id || !$hit_o_id)return;
+
+		//更新未中奖
+		$this->db('order_yungou')->query("UPDATE order_yungou SET status=3 WHERE yungou_id={$yungou_id} AND o_id <> '{$hit_o_id}'");
+
+		//更新已中奖
+		$this->db('order_yungou')->query("UPDATE order_yungou SET status=2 WHERE o_id = '{$hit_o_id}'");
+
+		return true;
+	}
+
 }
 ?>

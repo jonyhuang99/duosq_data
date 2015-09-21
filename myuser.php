@@ -9,7 +9,7 @@ class Myuser extends _Dal {
 	 * @param  [type] $alipay 支付宝账号
 	 * @return array          用户ID，账号已存在状态
 	 */
-	function saveAlipay($alipay, &$err){
+	function saveAlipay($alipay, &$err=''){
 
 		if(!$alipay){
 			$err = '支付宝账号不能为空!';
