@@ -135,7 +135,7 @@ class Alarm extends _Dal {
 
 		if($entry_params){
 
-			foreach ($balances as $acount => $balance) {
+			foreach ($balances as $account => $balance) {
 				$entry_params[$account . ' 剩余'] = $balance;
 			}
 			$this->_fireEmail('P2P：拍拍贷自动投标', $entry_params);

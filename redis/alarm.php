@@ -48,20 +48,24 @@ class Alarm extends _Redis {
 			return $now;
 		}
 		if(!$now)$now = array();
+
+		$arr = array();
 		if(!is_array($entry)){
-			$arr = explode(',',$entry);
+
+			$step = 1;
+			$tmp = explode(',',$entry);
+			foreach($tmp as $t){
+				if(preg_match('/:[0-9]+/i', $t)){
+					list($name, $step) = explode(':', $t);
+					$arr[$name] = @$arr[$name] + $step;
+				}
+			}
+			
 		}else{
 			$arr = $entry;
 		}
 
-		foreach($arr as $a){
-			$step = 1;
-			if(preg_match('/:[0-9]+/i', $a)){
-				list($a, $step) = explode(':', $a);
-			}
-			$now[$a] = @$now[$a] + $step;
-		}
-		return $now;
+		return $arr;
 	}
 }
 ?>

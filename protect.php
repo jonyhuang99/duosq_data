@@ -95,7 +95,7 @@ class Protect extends _Dal {
 		$count_ip = fieldSet($ret, 'id');
 		if($count_ip){
 			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'ip', 'data2'=>$ip_c, 'data4'=>join(',',$count_ip)));
-			$entry[] = 'ip';
+			$entry['ip'] = 1;
 		}
 
 		if($utmo){
@@ -104,14 +104,14 @@ class Protect extends _Dal {
 			if($count_utmo){
 				D('user')->markUserCashgiftInvalid($my_id);
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'utmo', 'data2'=>$utmo, 'data4'=>join(',',$count_utmo)));
-				$entry[] = 'utmo';
+				$entry['utmo'] = 1;
 			}
 		}
 
 		if(stripos($my_alipay, 'eyou.com')!==false){
 			D('user')->markUserCashgiftInvalid($my_id);
 			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'eyou', 'data2'=>$my_alipay));
-				$entry[] = 'eyou';
+				$entry['eyou'] = 1;
 		}
 		//严格识别完成
 
@@ -122,7 +122,7 @@ class Protect extends _Dal {
 			if(count($count_agent) < 6) $count_agent = array();
 			if($count_agent){
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'agent', 'data2'=>$agent, 'data4'=>join(',',$count_agent)));
-				$entry[] = 'agent';
+				$entry['agent'] = 1;
 			}
 		}
 
@@ -163,7 +163,7 @@ class Protect extends _Dal {
 
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'parent', 'data2'=>$parent_id));
 
-				$this->alarm('reg', array('parent'), true);
+				$this->alarm('reg', 'parent', true);
 				$attack = true;
 			}
 		}
@@ -174,12 +174,12 @@ class Protect extends _Dal {
 			D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2, 'black_list');
 			D('user')->markUserCashgiftInvalid($my_id);
 			D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'black', 'data2'=>$my_alipay));
-			$this->alarm('reg', array('black_list'), true);
+			$this->alarm('reg', 'black_list', true);
 			$attack = true;
 
 			//只要该IP_C新增过黑名单，接下来1天，所有账号均进黑名单
 			if(D('speed')->blacklist('set')){
-				$this->alarm('reg', array('black_ip'), true);
+				$this->alarm('reg', 'black_ip', true);
 			}
 		}
 
@@ -188,7 +188,7 @@ class Protect extends _Dal {
 			if(preg_match($rule, $my_alipay)){
 				D('user')->markBlack($my_id, \DAL\User::STATUS_BLACK_2, 'black_list');
 				D('log')->action($action_code, 1, array('status'=>1, 'data1'=>'black', 'data2'=>$my_alipay));
-				$this->alarm('reg', array('black_rule'), true);
+				$this->alarm('reg', 'black_rule', true);
 				$attack = true;
 				D('user')->markUserCashgiftInvalid($my_id);
 				break;

@@ -79,7 +79,7 @@ class Taobao extends _Api {
 				}
 
 				//server_tbk报警
-				D('alarm')->api(array('tbk.getItemDetailByServer'));
+				D('alarm')->api('tbk.getItemDetailByServer');
 			}
 		}
 
