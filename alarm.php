@@ -122,6 +122,26 @@ class Alarm extends _Dal {
 		}
 	}
 
+	//P2P：拍拍贷自动投标
+	function p2pAutoAuction($entry, $balances=array()){
+
+		if(date('H') < 12){
+			$expire = HOUR*9;
+		}else{
+			$expire = HOUR*3;
+		}
+
+		$entry_params = D()->redis('alarm')->accum('p2p:ppdai_acution', $expire, $entry);
+
+		if($entry_params){
+
+			foreach ($balances as $acount => $balance) {
+				$entry_params[$account . ' 剩余'] = $balance;
+			}
+			$this->_fireEmail('P2P：拍拍贷自动投标', $entry_params);
+		}
+	}
+
 	//监控daemon进程
 	function processMonitor($process){
 
@@ -186,9 +206,14 @@ class Alarm extends _Dal {
 		$param['title'] = $title;
 
 		$content = array();
-		foreach($entry_params as $k => $v){
-			$content[] = "{$k}:{$v}";
+		if(is_array($entry_params)){
+			foreach($entry_params as $k => $v){
+				$content[] = "{$k}:{$v}";
+			}	
+		}else{
+				$content[] = $entry_params;
 		}
+		
 		$param['content'] = join(',', $content);
 		$param['time'] = date('H:i');
 		$ret = sendMail(C('comm', 'monitor_email'), $param, 'sys_alarm', $msg);
