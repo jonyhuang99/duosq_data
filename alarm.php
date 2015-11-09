@@ -214,7 +214,7 @@ class Alarm extends _Dal {
 				$content[] = $entry_params;
 		}
 		
-		$param['content'] = join(',', $content);
+		$param['content'] = join('<br />', $content);
 		$param['time'] = date('H:i');
 		$ret = sendMail(C('comm', 'monitor_email'), $param, 'sys_alarm', $msg);
 	}

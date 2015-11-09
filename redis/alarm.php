@@ -65,7 +65,11 @@ class Alarm extends _Redis {
 			$arr = $entry;
 		}
 
-		return $arr;
+		foreach ($arr as $key => $step) {
+			$now[$key] = @$now[$key] + $step;
+		}
+
+		return $now;
 	}
 }
 ?>
