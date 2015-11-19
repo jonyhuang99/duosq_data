@@ -142,6 +142,32 @@ class Alarm extends _Dal {
 		}
 	}
 
+	//P2P：拍拍贷自动发标
+	function p2pAutoLoan($entry){
+
+		if(date('H') < 12){
+			$expire = HOUR*9;
+		}else{
+			$expire = HOUR*3;
+		}
+
+		$entry_params = D()->redis('alarm')->accum('p2p:ppdai_loan', $expire, $entry);
+
+		if($entry_params){
+			$this->_fireEmail('P2P：拍拍贷自动借款', $entry_params);
+		}
+	}
+
+	//P2P: 拍拍贷报警
+	function p2pWarning($title, $content){
+
+		if(date('H') < 11){
+			return;
+		}
+
+		$this->_fireEmail($title, $content);
+	}
+
 	//监控daemon进程
 	function processMonitor($process){
 
@@ -211,7 +237,7 @@ class Alarm extends _Dal {
 				$content[] = "{$k}:{$v}";
 			}	
 		}else{
-				$content[] = $entry_params;
+			$content[] = $entry_params;
 		}
 		
 		$param['content'] = join('<br />', $content);
