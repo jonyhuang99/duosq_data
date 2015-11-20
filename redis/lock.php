@@ -137,7 +137,7 @@ class Lock extends _Redis {
 				$expire = WEEK;
 				break;
 			case self::LOCK_P2P_ALARM:
-				$expire = HOUR*3;
+				$expire = HOUR*2;
 				break;
 			default:
 				$expire = 10;

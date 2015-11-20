@@ -161,7 +161,7 @@ class Alarm extends _Dal {
 	//P2P: 拍拍贷报警
 	function p2pWarning($title, $content){
 
-		if(date('H') < 11){
+		if(date('H') < 10){
 			return;
 		}
 
