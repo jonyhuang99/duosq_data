@@ -58,6 +58,8 @@ class Alarm extends _Redis {
 				if(preg_match('/:[0-9]+/i', $t)){
 					list($name, $step) = explode(':', $t);
 					$arr[$name] = @$arr[$name] + $step;
+				}else{
+					$arr[$t] = @$arr[$t] + $step;
 				}
 			}
 			
