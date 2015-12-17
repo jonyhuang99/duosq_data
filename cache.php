@@ -35,6 +35,11 @@ class Cache extends _Dal {
 		return $ret;
 	}
 
+	//有效期延续
+	function expire($key, $expire=3600){
+		return $this->redis('cache')->expire($key, $expire);
+	}
+
 	//获取文本缓存
 	function getFile($key){
 

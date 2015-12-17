@@ -18,7 +18,7 @@ class Alarm extends _Redis {
 		$cache = $this->hgetall($key);
 
 		$all_entry = $this->_merge($cache, $entry);
-
+		
 		if(!$cache){
 			$all_entry['expire_on'] = time() + $duration;
 		}
@@ -55,7 +55,7 @@ class Alarm extends _Redis {
 			$step = 1;
 			$tmp = explode(',',$entry);
 			foreach($tmp as $t){
-				if(preg_match('/:[0-9]+/i', $t)){
+				if(preg_match('/:[0-9]+$/i', $t)){
 					list($name, $step) = explode(':', $t);
 					$arr[$name] = @$arr[$name] + $step;
 				}else{

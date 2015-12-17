@@ -125,10 +125,10 @@ class Alarm extends _Dal {
 	//P2P：拍拍贷自动投标
 	function p2pAutoAuction($entry, $balances=array()){
 
-		if(date('H') < 12){
-			$expire = HOUR*9;
-		}else{
+		if(date('H') > 8){
 			$expire = HOUR*3;
+		}else{
+			$expire = HOUR*9;
 		}
 
 		$entry_params = D()->redis('alarm')->accum('p2p:ppdai_acution', $expire, $entry);
@@ -138,34 +138,24 @@ class Alarm extends _Dal {
 			foreach ($balances as $account => $balance) {
 				$entry_params[$account . ' 剩余'] = $balance;
 			}
-			$this->_fireEmail('P2P：拍拍贷自动投标', $entry_params);
-		}
-	}
-
-	//P2P：拍拍贷自动发标
-	function p2pAutoLoan($entry){
-
-		if(date('H') < 12){
-			$expire = HOUR*9;
-		}else{
-			$expire = HOUR*3;
-		}
-
-		$entry_params = D()->redis('alarm')->accum('p2p:ppdai_loan', $expire, $entry);
-
-		if($entry_params){
-			$this->_fireEmail('P2P：拍拍贷自动借款', $entry_params);
+			$this->_fireEmail('P2P：自动投标', $entry_params);
 		}
 	}
 
 	//P2P: 拍拍贷报警
-	function p2pWarning($title, $content){
+	function p2pWarnning($title, $content){
 
-		if(date('H') < 10){
-			return;
+		if(date('H') > 8){
+			$expire = HOUR*3;
+		}else{
+			$expire = HOUR*9;
 		}
 
-		$this->_fireEmail($title, $content);
+		$entry_params = D()->redis('alarm')->accum('p2p:ppdai_warnning:'.md5($title), $expire, $content);
+
+		if($entry_params){
+			$this->_fireEmail($title, $entry_params);
+		}
 	}
 
 	//监控daemon进程
