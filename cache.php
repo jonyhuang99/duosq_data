@@ -30,7 +30,9 @@ class Cache extends _Dal {
 
 	//自增类缓存，支持有效期延续
 	function incr($key, $expire=3600){
-		$ret = $this->redis('cache')->incr($key);
+		
+		$count = $this->get($key);
+		$ret = $this->set($key, $count+1);
 		$this->redis('cache')->expire($key, $expire);
 		return $ret;
 	}
