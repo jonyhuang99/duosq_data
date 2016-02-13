@@ -32,8 +32,7 @@ class Cache extends _Dal {
 	function incr($key, $expire=3600){
 		
 		$count = $this->get($key);
-		$ret = $this->set($key, $count+1);
-		$this->redis('cache')->expire($key, $expire);
+		$ret = $this->set($key, $count+1, $expire);
 		return $ret;
 	}
 

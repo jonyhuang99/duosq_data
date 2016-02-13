@@ -183,7 +183,7 @@ class _Redis extends \Object {
 	 * @return boolean
 	 */
 	function setArray($key, $val, $exp = null) {
-		if (is_null($exp)) {
+		if (!$exp) {
 			$ret = $this->set($key, serialize($val));
 		}
 		else {
