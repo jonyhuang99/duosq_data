@@ -976,7 +976,7 @@ class Order extends _Dal {
 	}
 
 	//获取/设置 最后跟单时间
-	function lastTraceTime($sub, $time=null){
+	function lastTraceTime($sub=null, $time=null){
 
 		if(!$sub)return;
 		if($time){
