@@ -27,6 +27,7 @@ class Lock extends _Redis {
 	const LOCK_LEAVE_REWARD_PKG_2WEEK = 'leave_reward_pkg_2week';
 	const LOCK_P2P_RECORD = 'p2p_record';
 	const LOCK_P2P_ALARM = 'p2p_alarm';
+	const LOCK_YUNGOU_TOKEN = 'yungou_token';
 
 	/**
 	 * 获得一个业务锁
@@ -122,6 +123,9 @@ class Lock extends _Redis {
 				$expire = MONTH;
 				break;
 			case self::LOCK_CHECK_TAOBAO_ITEM_VALID:
+				$expire = DAY;
+				break;
+			case self::LOCK_YUNGOU_TOKEN:
 				$expire = DAY;
 				break;
 			case self::LOCK_CLEAR_TAOBAO_ITEM_SMALL_IMG:

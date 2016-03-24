@@ -135,5 +135,15 @@ class Yungou extends _Dal {
 		return true;
 	}
 
+	/**
+	 * 使用云购token防止重复提交
+	 * @param  [type] $token [description]
+	 * @return [type]        [description]
+	 */
+	function useToken($token) {
+
+		return $this->redis('lock')->getlock(\Redis\Lock::LOCK_COUPON_ROB, 'uid:'.D('myuser')->getId().':'.$token);
+	}
+
 }
 ?>
